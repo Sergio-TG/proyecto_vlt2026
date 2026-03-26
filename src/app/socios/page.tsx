@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { 
@@ -31,6 +32,7 @@ export default function SociosPage() {
   const [authMode, setAuthMode] = React.useState<"login" | "register">("login")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [editingAccommodation, setEditingAccommodation] = React.useState<any | null>(null)
   const [currentStep, setCurrentStep] = React.useState(1)
   const [formData, setFormData] = React.useState({
@@ -101,6 +103,7 @@ export default function SociosPage() {
 
       if (session) {
         console.log("Sesión encontrada para:", session.user.id);
+        setUserEmail(session.user.email ?? null)
         const accommodations = await checkUserAccommodations(session.user.id)
         console.log("Alojamientos encontrados en checkSession:", accommodations);
         setUserAccommodations(accommodations)
@@ -201,6 +204,7 @@ export default function SociosPage() {
         console.log("Resultado signIn:", { data, error });
         if (error) throw error
         
+        setUserEmail(data.user.email ?? null)
         // Wait a small moment to ensure auth is synced
         await new Promise(resolve => setTimeout(resolve, 500));
         
@@ -226,6 +230,7 @@ export default function SociosPage() {
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut()
+      setUserEmail(null)
     } catch (err) {
       console.error("Error al cerrar sesión:", err)
     }
@@ -353,46 +358,56 @@ export default function SociosPage() {
           className="w-full max-w-2xl mx-auto"
         >
           <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl overflow-hidden">
-            <CardHeader className="text-center pt-10">
-              <CardTitle className="text-4xl font-black text-white tracking-tight">Bienvenido de nuevo</CardTitle>
-              <CardDescription className="text-lg mt-2 text-white/70 font-light">
-                Gestiona tus alojamientos o registra uno nuevo.
-              </CardDescription>
+            <CardHeader className="text-center pt-6 pb-2">
+              <div className="flex justify-center mb-2">
+                <div className="bg-primary/20 p-2 rounded-xl border border-primary/30">
+                  <User className="w-6 h-6 text-white" />
+                </div>
+              </div>
+              <CardTitle className="text-3xl font-black text-white tracking-tight">Bienvenido de nuevo</CardTitle>
+              {userEmail && (
+                <div className="mt-1.5 flex items-center justify-center">
+                  <Badge variant="outline" className="bg-white/5 border-white/10 text-white/50 px-3 py-1 rounded-full text-[10px] font-bold lowercase tracking-wide">
+                    {userEmail}
+                  </Badge>
+                </div>
+              )}
             </CardHeader>
-            <CardContent className="p-8 space-y-8">
-              <div className="space-y-4">
-                <h3 className="font-bold text-xl text-white tracking-tight">Tus Alojamientos Registrados:</h3>
-                <div className="grid grid-cols-1 gap-4">
+            <CardContent className="p-6 space-y-6">
+              <div className="space-y-3">
+                <h3 className="font-bold text-lg text-white tracking-tight flex items-center gap-2">
+                  <ListChecks className="w-4 h-4 text-primary" />
+                  Tus Alojamientos:
+                </h3>
+                <div className="grid grid-cols-1 gap-3 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                   {userAccommodations.map((acc) => (
-                    <div key={acc.id} className="flex flex-col md:flex-row justify-between items-start md:items-center bg-white/5 p-6 rounded-2xl border border-white/10 shadow-lg hover:bg-white/10 transition-all gap-4">
-                      <div>
-                        <span className="font-black text-white text-xl tracking-tight">{acc.nombre_complejo}</span>
-                        <p className="text-sm text-white/50 font-medium mt-1">{acc.localidad} • {acc.tipo_alojamiento}</p>
+                    <div key={acc.id} className="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/10 hover:bg-white/10 transition-all gap-4">
+                      <div className="min-w-0">
+                        <span className="font-bold text-white text-base tracking-tight truncate block">{acc.nombre_complejo}</span>
+                        <p className="text-[11px] text-white/40 font-medium mt-0.5 truncate">{acc.localidad} • {acc.tipo_alojamiento}</p>
                       </div>
-                      <div className="flex gap-2 w-full md:w-auto">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className="flex-1 md:flex-none border-white/20 text-white hover:bg-white/10 font-bold rounded-full h-11 px-6 text-sm text-slate-900"
-                          onClick={() => {
-                            if (confirm(`¿Estás seguro que deseas modificar los datos de ${acc.nombre_complejo}?`)) {
-                              setEditingAccommodation(acc)
-                              setCurrentStep(1)
-                              setView("form")
-                            }
-                          }}
-                        >
-                          Modificar Datos
-                        </Button>
-                      </div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-shrink-0 border-white/20 text-white hover:bg-white/10 font-bold rounded-full h-9 px-4 text-xs text-slate-900"
+                        onClick={() => {
+                          if (confirm(`¿Estás seguro que deseas modificar los datos de ${acc.nombre_complejo}?`)) {
+                            setEditingAccommodation(acc)
+                            setCurrentStep(1)
+                            setView("form")
+                          }
+                        }}
+                      >
+                        Modificar
+                      </Button>
                     </div>
                   ))}
                 </div>
               </div>
-              <div className="pt-8 border-t border-white/10">
+              <div className="pt-4 border-t border-white/10 space-y-4">
                 <Button 
                   onClick={() => {
-                    if (confirm("¿Deseas registrar un nuevo alojamiento? Tendrás que completar la ficha técnica nuevamente.")) {
+                    if (confirm("¿Deseas registrar un nuevo alojamiento?")) {
                       setEditingAccommodation(null)
                       setCurrentStep(1)
                       setFormData({
@@ -425,18 +440,21 @@ export default function SociosPage() {
                       setView("form")
                     }
                   }} 
-                  className="w-full h-16 text-xl font-black bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-2xl rounded-full border border-white/10"
+                  className="w-full h-14 text-lg font-black bg-white text-slate-900 hover:bg-white/90 shadow-xl rounded-2xl border-none transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3"
                 >
-                  Registrar Nueva Cabaña / Complejo
+                  <div className="bg-primary p-1.5 rounded-lg">
+                    <Home className="w-5 h-5 text-white" />
+                  </div>
+                  Registrar Nuevo Alojamiento
                 </Button>
-              </div>
-              <div className="text-center mt-6">
-                <button 
-                  onClick={handleSignOut}
-                  className="text-sm font-bold text-white/50 hover:text-red-400 transition-colors"
-                >
-                  Cerrar Sesión
-                </button>
+                <div className="text-center">
+                  <button 
+                    onClick={handleSignOut}
+                    className="text-xs font-bold text-white/40 hover:text-red-400 transition-colors py-2"
+                  >
+                    Cerrar Sesión
+                  </button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -556,6 +574,11 @@ export default function SociosPage() {
               </button>
             )}
             <div className="flex items-center gap-2">
+              {userEmail && (
+                <span className="text-[10px] font-medium text-white/40 lowercase tracking-wide mr-2 border-r border-white/10 pr-3">
+                  {userEmail}
+                </span>
+              )}
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
               <span className="text-[10px] font-bold text-white/80 uppercase tracking-widest">Sesión Activa</span>
             </div>
@@ -957,6 +980,17 @@ export default function SociosPage() {
                           <h4 className="font-black text-white uppercase tracking-widest text-xs">4. Alojamiento Verificado</h4>
                           <p>El sello de "Alojamiento Verificado" indica que el establecimiento cumple con estándares básicos de calidad y legalidad constatados al momento de su alta, pero no garantiza el comportamiento futuro del prestador.</p>
                         </div>
+                        <div className="space-y-3">
+                          <h4 className="font-black text-white uppercase tracking-widest text-xs">5. Paridad de Tarifas y Actualización</h4>
+                          <p>El Propietario se compromete a mantener en <strong className="text-white">vivilastermas.com.ar</strong> una tarifa igual o inferior a la ofrecida en sus canales de venta directa o plataformas de terceros (Paridad de Tarifas).</p>
+                          <p><strong className="text-white">Actualizaciones:</strong> Cualquier modificación en las tarifas publicadas deberá ser comunicada a la administración de la web con una antelación mínima de 72 horas hábiles.</p>
+                          <p><strong className="text-white">Garantía al Usuario:</strong> Ante cualquier discrepancia, el Propietario se obliga a respetar el precio estipulado y vigente en el portal al momento de la consulta o reserva del huésped.</p>
+                        </div>
+                        <div className="space-y-3">
+                          <h4 className="font-black text-white uppercase tracking-widest text-xs">6. Comisión por Gestión de Reserva</h4>
+                          <p>El Propietario acepta abonar a <strong className="text-white">vivilastermas.com.ar</strong> una comisión del <strong className="text-white text-lg">10% (diez por ciento)</strong> sobre el valor total de cada reserva efectiva que haya sido derivada o gestionada a través del portal.</p>
+                          <p>El incumplimiento en el reporte o pago de dichas comisiones será causal de baja inmediata del listado de prestadores verificados.</p>
+                        </div>
                       </div>
                     </div>
 
@@ -979,7 +1013,7 @@ export default function SociosPage() {
                           className="border-white/30 mt-1"
                         />
                         <Label htmlFor="terms2" className="text-sm leading-relaxed cursor-pointer text-white/80">
-                          Acepto que Viví las Termas y Termas del Sol son un canal de promoción y que la responsabilidad civil, legal y comercial por la estadía recae íntegramente sobre mi administración.
+                          Acepto que Viví las Termas y Termas del Sol actúan como canal de promoción y que la responsabilidad civil, legal y comercial por la estadía recae íntegramente sobre mi administración. Asimismo, ratifico mi compromiso con la paridad tarifaria y el esquema de comisiones del 10% por reserva efectiva derivado de la plataforma.
                         </Label>
                       </div>
 
@@ -990,7 +1024,7 @@ export default function SociosPage() {
                           className="border-white/30 mt-1"
                         />
                         <Label htmlFor="terms3" className="text-sm leading-relaxed cursor-pointer text-white/80">
-                          Declaro que la información proporcionada es veraz. Entiendo que reclamos por información engañosa resultarán en la baja inmediata del listado.
+                          Declaro que la información proporcionada es veraz. Entiendo que reclamos por información engañosa o incumplimiento de las condiciones comerciales resultarán en la baja inmediata del listado.
                         </Label>
                       </div>
                     </div>

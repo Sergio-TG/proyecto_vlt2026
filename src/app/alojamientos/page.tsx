@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves } from "lucide-react"
+import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves, Share2, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
@@ -24,6 +24,32 @@ import { Label } from "@/components/ui/label"
 export default function AlojamientosPage() {
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+  const [showShareToast, setShowShareToast] = useState(false)
+
+  // Función para compartir alojamiento
+  const handleShare = async (e: React.MouseEvent, id: string, title: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const url = `${window.location.origin}/alojamientos/${id}`
+    const shareData = {
+      title: `Viví las Termas - ${title}`,
+      text: `Mirá este alojamiento increíble en las sierras: ${title}`,
+      url: url,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        await navigator.clipboard.writeText(url)
+        setShowShareToast(true)
+        setTimeout(() => setShowShareToast(false), 3000)
+      }
+    } catch (err) {
+      console.error("Error al compartir:", err)
+    }
+  }
 
   // Obtener localidades únicas de los datos
   const locations = useMemo(() => {
@@ -237,6 +263,17 @@ export default function AlojamientosPage() {
                         </Badge>
                       ))}
                     </div>
+
+                    {/* Botón Compartir */}
+                    <motion.button
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={(e) => handleShare(e, item.id, item.title)}
+                      className="absolute top-4 right-4 z-20 bg-white/80 backdrop-blur-md p-2.5 rounded-full shadow-lg border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
+                      title="Compartir alojamiento"
+                    >
+                      <Share2 className="w-4 h-4" />
+                    </motion.button>
                   </div>
 
                   {/* Content Area */}
@@ -315,6 +352,20 @@ export default function AlojamientosPage() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showShareToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 50, x: "-50%" }}
+            className="fixed bottom-10 left-1/2 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3"
+          >
+            <CheckCircle2 className="w-5 h-5 text-green-400" />
+            <span className="font-bold">¡Enlace copiado al portapapeles!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
