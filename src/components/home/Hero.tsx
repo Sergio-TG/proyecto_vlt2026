@@ -5,6 +5,7 @@ import Link from "next/link"
 import { ChevronDown, ShieldCheck, UserCheck, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRef } from "react"
+import CustomImage from "@/components/common/CustomImage"
 
 export function Hero() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -29,8 +30,14 @@ export function Hero() {
         className="absolute inset-0 z-0"
       >
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 z-10" />
-        <div 
-          className="h-full w-full bg-slate-900 bg-[url('https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?q=80&w=2049&auto=format&fit=crop')] bg-cover bg-center transition-transform duration-1000 ease-out" 
+        <CustomImage 
+          path="termas_001.JPG" 
+          folder="GALERIA" 
+          alt="Termas naturales de Viví las Termas"
+          fill
+          priority
+          className="transition-transform duration-1000 ease-out"
+          sizes="100vw"
         />
       </motion.div>
 

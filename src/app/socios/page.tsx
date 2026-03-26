@@ -467,68 +467,68 @@ export default function SociosPage() {
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md mx-auto"
+          className="w-full max-w-sm mx-auto"
         >
-          <div className="text-center mb-10 space-y-3">
-            <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter drop-shadow-2xl">Portal de Socios</h1>
-            <p className="text-white/70 text-lg font-light">Gestiona la información de tu alojamiento</p>
+          <div className="text-center mb-6 space-y-2">
+            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter drop-shadow-2xl">Portal de Socios</h1>
+            <p className="text-white/70 text-base font-light">Gestiona la información de tu alojamiento</p>
           </div>
 
           <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl overflow-hidden">
-            <CardHeader className="space-y-2 pb-6 pt-10">
-              <div className="flex justify-center mb-6">
-                <div className="bg-primary/20 p-4 rounded-3xl border border-primary/30 shadow-inner">
-                  <Lock className="w-8 h-8 text-white" />
+            <CardHeader className="space-y-1 pb-4 pt-8">
+              <div className="flex justify-center mb-4">
+                <div className="bg-primary/20 p-3 rounded-2xl border border-primary/30 shadow-inner">
+                  <Lock className="w-6 h-6 text-white" />
                 </div>
               </div>
-              <CardTitle className="text-3xl font-black text-center text-white tracking-tight">
+              <CardTitle className="text-2xl font-black text-center text-white tracking-tight">
                 {authMode === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
               </CardTitle>
-              <CardDescription className="text-center text-white/60 text-base font-medium">
+              <CardDescription className="text-center text-white/60 text-sm font-medium">
                 {authMode === "login" 
                   ? "Ingresa tus credenciales para continuar" 
                   : "Regístrate para dar de alta tu alojamiento"}
               </CardDescription>
             </CardHeader>
-            <CardContent className="p-8 space-y-6">
+            <CardContent className="p-6 space-y-4">
               {error && (
-                <div className="bg-red-500/20 border border-red-500/30 text-red-200 px-5 py-4 rounded-2xl text-sm flex items-center gap-3 animate-shake">
-                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                <div className="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-xs flex items-center gap-2 animate-shake">
+                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
                   {error}
                 </div>
               )}
-              <form onSubmit={handleAuth} className="space-y-5">
-                <div className="space-y-2">
-                  <Label htmlFor="email" className="text-white/80 font-bold ml-1">Email</Label>
+              <form onSubmit={handleAuth} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label htmlFor="email" className="text-white/80 font-bold ml-1 text-xs">Email</Label>
                   <div className="relative group">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-primary transition-colors" />
-                    <Input id="email" type="email" placeholder="nombre@ejemplo.com" className="pl-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-2xl focus:ring-primary focus:border-primary transition-all" required />
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors" />
+                    <Input id="email" type="email" placeholder="nombre@ejemplo.com" className="pl-10 h-11 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl focus:ring-primary focus:border-primary transition-all text-sm" required />
                   </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="text-white/80 font-bold ml-1">Contraseña</Label>
+                <div className="space-y-1.5">
+                  <Label htmlFor="password" className="text-white/80 font-bold ml-1 text-xs">Contraseña</Label>
                   <div className="relative group">
-                    <Key className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-primary transition-colors" />
-                    <Input id="password" type="password" placeholder="••••••••" className="pl-12 h-14 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-2xl focus:ring-primary focus:border-primary transition-all" required />
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors" />
+                    <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-11 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl focus:ring-primary focus:border-primary transition-all text-sm" required />
                   </div>
                 </div>
                 {authMode === "login" && (
                   <div className="text-right">
-                    <button type="button" className="text-xs font-bold text-white/40 hover:text-white transition-colors">
+                    <button type="button" className="text-[10px] font-bold text-white/40 hover:text-white transition-colors">
                       ¿Olvidaste tu contraseña?
                     </button>
                   </div>
                 )}
-                <Button type="submit" className="w-full h-14 text-lg font-black bg-primary hover:bg-primary/90 text-white shadow-2xl rounded-2xl mt-4 transition-all hover:scale-[1.02] active:scale-[0.98]" disabled={loading}>
+                <Button type="submit" className="w-full h-12 text-base font-black bg-primary hover:bg-primary/90 text-white shadow-2xl rounded-xl mt-2 transition-all hover:scale-[1.02] active:scale-[0.98]" disabled={loading}>
                   {loading ? "Procesando..." : (authMode === "login" ? "Entrar al Portal" : "Registrarse como Socio")}
                 </Button>
               </form>
 
-              <div className="relative py-4">
+              <div className="relative py-2">
                 <div className="absolute inset-0 flex items-center">
                   <span className="w-full border-t border-white/10" />
                 </div>
-                <div className="relative flex justify-center text-xs uppercase tracking-widest font-black">
+                <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-black">
                   <span className="bg-[#1a1f2c]/50 backdrop-blur-xl px-4 text-white/30">O también</span>
                 </div>
               </div>
@@ -536,7 +536,7 @@ export default function SociosPage() {
               <div className="text-center">
                 <button 
                   onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}
-                  className="text-base text-white/60 hover:text-white transition-all font-bold"
+                  className="text-sm text-white/60 hover:text-white transition-all font-bold"
                 >
                   {authMode === "login" 
                     ? "¿No tienes cuenta? Regístrate gratis" 
@@ -546,7 +546,7 @@ export default function SociosPage() {
             </CardContent>
           </Card>
           
-          <p className="mt-10 text-center text-xs text-white/30 leading-relaxed font-medium px-8">
+          <p className="mt-6 text-center text-[10px] text-white/30 leading-relaxed font-medium px-8">
             Al continuar, aceptas formar parte de la red de Viví las Termas y cumplir con los estándares de calidad establecidos.
           </p>
         </motion.div>
