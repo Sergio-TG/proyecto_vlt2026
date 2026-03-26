@@ -31,7 +31,7 @@ export function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16 pb-16 border-b border-slate-800">
           <div className="max-w-xs">
             <Link href="/" className="inline-block mb-6">
-              <img src="/logotipo.svg" alt="Viví las Termas" className="h-28 md:h-32 w-auto brightness-0 invert object-contain" />
+              <img src="/logotipo.png" alt="Logotipo de Viví las Termas" className="h-28 md:h-32 w-auto brightness-0 invert object-contain" />
             </Link>
             <p className="text-slate-400 text-sm leading-relaxed">
               Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y el bienestar de nuestras termas naturales.
@@ -76,15 +76,15 @@ export function Footer() {
               <ul className="space-y-4 text-sm">
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">Tel:</span>
-                  <span>+54 9 351 XXX XXXX</span>
+                  <span>+54 9 3546 525404</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">Email:</span>
-                  <span>reservas@vivillastermas.com.ar</span>
+                  <span>hola@vivillastermas.com.ar</span>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">Ubicación:</span>
-                  <span>El Durazno, Valle de Calamuchita<br/>Córdoba, Argentina</span>
+                  <span>Av. Marrero S/N, B° Las Acacias, Villa Yacanto de Calamuchita<br/>Córdoba, Argentina</span>
                 </li>
               </ul>
             </div>

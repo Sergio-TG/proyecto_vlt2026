@@ -83,8 +83,8 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 z-50">
           <img 
-            src="/logo.svg" 
-            alt="Viví las Termas" 
+            src="/logo.png" 
+            alt="Logotipo de Viví las Termas" 
             className={cn(
               "h-20 md:h-28 w-auto transition-all duration-300 object-contain",
               isScrolled || !isTransparentPage ? "" : "brightness-0 invert"
