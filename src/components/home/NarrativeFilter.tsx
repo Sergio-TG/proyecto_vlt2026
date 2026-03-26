@@ -21,31 +21,31 @@ import { cn } from "@/lib/utils"
 const travelerTypes = [
   { id: "couple", label: "Pareja", sub: "Escapada Romántica", icon: Heart },
   { id: "family_kids", label: "Familia con niños", sub: "Aventura Familiar", icon: Users },
-  { id: "friends", label: "Grupo Amigos", sub: "Desconexión Grupal", icon: Users },
+  { id: "friends", label: "Grupo de Amigos", sub: "Desconexión Grupal", icon: Users },
   { id: "corporate", label: "Corporativo", sub: "Team Building Natural", icon: Briefcase },
-  { id: "solo", label: "Viajero Solo", sub: "Reconexión Personal", icon: User },
-  { id: "seniors", label: "Adultos Mayores", sub: "Confort y Tranquilidad", icon: Sun },
+  { id: "solo", label: "Viajero", sub: "Reconexión Personal", icon: User },
+  { id: "seniors", label: "Senior +60", sub: "Confort y Tranquilidad", icon: Sun },
 ]
 
 const experienceTypes = [
   { 
     id: "relax", 
-    label: "RELAX Y DESCANSO", 
-    desc: "Desconectar del mundo y renovar energías",
+    label: "BIENESTAR Y RELAX", 
+    desc: "Desconexión total, masajes y aguas termales para renovar energías",
     icon: Leaf,
     color: "bg-emerald-100 text-emerald-600"
   },
   { 
     id: "adventure", 
-    label: "AVENTURA Y TREKKING", 
-    desc: "Rutas, senderos y aventura al aire libre",
+    label: "AVENTURA Y EXPLORACIÓN", 
+    desc: "Senderismo, recorridos guiados y actividades al aire libre",
     icon: Compass,
     color: "bg-orange-100 text-orange-600"
   },
   { 
     id: "nature", 
-    label: "NATURALEZA Y PAISAJES", 
-    desc: "Aire puro y vistas panorámicas",
+    label: "ESCENARIOS NATURALES", 
+    desc: "Vistas panorámicas, atardeceres únicos y aire puro de montaña",
     icon: Mountain,
     color: "bg-blue-100 text-blue-600"
   },

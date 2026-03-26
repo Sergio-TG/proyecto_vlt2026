@@ -82,12 +82,14 @@ export function Header() {
       <div className="container mx-auto px-4 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 z-50">
-          <span className={cn(
-            "text-2xl font-bold tracking-tight",
-            isScrolled || !isTransparentPage ? "text-primary" : "text-white"
-          )}>
-            Viví las Termas
-          </span>
+          <img 
+            src="/logo.svg" 
+            alt="Viví las Termas" 
+            className={cn(
+              "h-20 md:h-28 w-auto transition-all duration-300 object-contain",
+              isScrolled || !isTransparentPage ? "" : "brightness-0 invert"
+            )}
+          />
         </Link>
 
         {/* Desktop Navigation */}
