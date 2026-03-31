@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Viví las Termas 🌿
 
-## Getting Started
+Portal integral de turismo, bienestar y servicios. Este proyecto centraliza la oferta profesional de la región, facilitando la gestión de socios y la visibilidad de servicios.
 
-First, run the development server:
+## 🚀 Estado del Proyecto
+Actualmente en fase de **Despliegue de Sección de Socios**.
+* **Acceso Principal:** La Home se encuentra en mantenimiento/oculta.
+* **Sección Activa:** Panel de gestión de Socios e integración de perfiles.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🛠️ Stack Tecnológico
+* **Framework:** Next.js 14+ (App Router)
+* **Lenguaje:** TypeScript
+* **Estilos:** Tailwind CSS
+* **Multimedia:** ImageKit.io (CDN & Optimization)
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 📦 Requisitos de Producción
+Para el despliegue en entornos de hosting administrado:
+* **Node.js:** Versión 18.x o superior.
+* **Build:** El proyecto debe compilarse usando `npm run build`.
+* **Variables de Entorno:** Es indispensable configurar el archivo `.env` en el servidor con las credenciales de ImageKit y la base de datos para garantizar el funcionamiento de la sección de socios.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 💻 Instalación Local
+1. Clonar el repositorio.
+2. Instalar dependencias: `npm install`
+3. Iniciar modo desarrollo: `npm run dev`
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📄 Notas de Configuración
+Este proyecto utiliza rutas dinámicas para la gestión de socios. Asegúrate de que el servidor soporte la ejecución de procesos Node.js persistentes (vía PM2 o el gestor de aplicaciones del panel de control).
 
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+© 2026 Viví las Termas - TG Web Studios.
