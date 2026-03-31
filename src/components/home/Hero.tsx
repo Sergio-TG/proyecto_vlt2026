@@ -29,7 +29,8 @@ export function Hero() {
         style={{ y, scale }}
         className="absolute inset-0 z-0"
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-transparent to-black/60 z-10" />
+        {/* Overlay gradiente oscuro para legibilidad superior e inferior */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70 z-10" />
         <CustomImage 
           path="termas_001.JPG" 
           folder="GALERIA" 
@@ -56,10 +57,10 @@ export function Hero() {
                 initial={{ opacity: 0, scale: 0.8, y: 10 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.8 }}
-                className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-xl px-5 py-2.5 rounded-full border border-white/20 mb-4 shadow-2xl"
+                className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-[8px] px-5 py-2.5 rounded-full border border-white/20 mb-4 shadow-2xl"
             >
-                <span className="text-orange-400 animate-pulse">🔥</span>
-                <span className="text-sm font-semibold tracking-wide uppercase">Sunset Pass - Exclusivo de temporada</span>
+                <span className="text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)] animate-pulse">🔥</span>
+                <span className="text-sm font-bold tracking-wide uppercase text-white">Termas Night - Exclusivo</span>
             </motion.div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.1] drop-shadow-2xl">
@@ -70,34 +71,34 @@ export function Hero() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.8, duration: 1 }}
-            className="text-xl md:text-2xl font-light text-white/90 tracking-wide max-w-3xl mx-auto leading-relaxed"
+            className="text-xl md:text-2xl font-semibold text-white/95 tracking-wide max-w-3xl mx-auto leading-relaxed [text-shadow:0_2px_10px_rgba(0,0,0,0.5)]"
           >
-            Termas • Alojamientos Verificados • <span className="font-medium text-white">Experiencias Auténticas</span>
+            Termas • Alojamientos Verificados • <span className="font-bold text-white underline decoration-accent/50 underline-offset-8">Experiencias Auténticas</span>
           </motion.h2>
 
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="flex flex-wrap justify-center gap-6 md:gap-10 py-8 text-sm md:text-base font-medium text-white/90"
+            className="flex flex-wrap justify-center gap-4 md:gap-6 py-8 text-sm md:text-base font-medium text-white"
           >
-            <div className="flex items-center gap-3 group">
-                <div className="p-2 rounded-full bg-green-400/20 group-hover:bg-green-400/40 transition-colors">
+            <div className="flex items-center gap-3 group px-4 py-2 rounded-xl bg-gradient-to-t from-black/40 to-transparent backdrop-blur-[2px] border border-white/5">
+                <div className="p-2 rounded-full bg-green-500/30 group-hover:bg-green-500/50 transition-colors shadow-lg">
                   <ShieldCheck className="w-5 h-5 text-green-400" />
                 </div>
-                <span className="tracking-tight">Inspección personal</span>
+                <span className="tracking-[0.02em] font-bold">Inspección personal</span>
             </div>
-            <div className="flex items-center gap-3 group">
-                <div className="p-2 rounded-full bg-blue-400/20 group-hover:bg-blue-400/40 transition-colors">
+            <div className="flex items-center gap-3 group px-4 py-2 rounded-xl bg-gradient-to-t from-black/40 to-transparent backdrop-blur-[2px] border border-white/5">
+                <div className="p-2 rounded-full bg-blue-500/30 group-hover:bg-blue-500/50 transition-colors shadow-lg">
                   <UserCheck className="w-5 h-5 text-blue-400" />
                 </div>
-                <span className="tracking-tight">Asesoría experta 24hs</span>
+                <span className="tracking-[0.02em] font-bold">Asesoría experta</span>
             </div>
-            <div className="flex items-center gap-3 group">
-                <div className="p-2 rounded-full bg-yellow-400/20 group-hover:bg-yellow-400/40 transition-colors">
+            <div className="flex items-center gap-3 group px-4 py-2 rounded-xl bg-gradient-to-t from-black/40 to-transparent backdrop-blur-[2px] border border-white/5">
+                <div className="p-2 rounded-full bg-yellow-500/30 group-hover:bg-yellow-500/50 transition-colors shadow-lg">
                   <Wallet className="w-5 h-5 text-yellow-400" />
                 </div>
-                <span className="tracking-tight">Sin comisiones ocultas</span>
+                <span className="tracking-[0.02em] font-bold">Sin comisiones ocultas</span>
             </div>
           </motion.div>
 

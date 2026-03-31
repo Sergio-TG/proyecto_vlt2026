@@ -48,6 +48,8 @@ export default function SociosPage() {
     capacidadTotal: "",
     distribucionCamas: "",
     unidades: "",
+    precio_desde: "",
+    estadia_minima: "",
     
     // Sección 3: Logística
     direccion: "",
@@ -132,6 +134,8 @@ export default function SociosPage() {
         capacidadTotal: editingAccommodation.capacidad_total || "",
         distribucionCamas: editingAccommodation.distribucion_camas || "",
         unidades: editingAccommodation.unidades || "",
+        precio_desde: editingAccommodation.precio_desde || "",
+        estadia_minima: editingAccommodation.estadia_minima || "",
         direccion: editingAccommodation.direccion || "",
         googleMaps: editingAccommodation.google_maps || "",
         distanciaTermas: editingAccommodation.distancia_termas || "",
@@ -258,6 +262,8 @@ export default function SociosPage() {
         capacidad_total: formData.capacidadTotal,
         distribucion_camas: formData.distribucionCamas,
         unidades: formData.unidades,
+        precio_desde: formData.precio_desde,
+        estadia_minima: formData.estadia_minima,
         direccion: formData.direccion,
         google_maps: formData.googleMaps,
         distancia_termas: formData.distanciaTermas,
@@ -294,6 +300,20 @@ export default function SociosPage() {
 
       if (error) throw error
       
+      // Notificar al administrador
+      try {
+        await fetch('/api/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            record: submissionData,
+            type: editingAccommodation ? 'UPDATE' : 'INSERT'
+          }),
+        });
+      } catch (notifyErr) {
+        console.error("Error al enviar notificación:", notifyErr);
+      }
+
       // Refresh user accommodations after update/insert
       if (user) {
         const accommodations = await checkUserAccommodations(user.id)
@@ -420,6 +440,8 @@ export default function SociosPage() {
                         capacidadTotal: "",
                         distribucionCamas: "",
                         unidades: "",
+                        precio_desde: "",
+                        estadia_minima: "",
                         direccion: "",
                         googleMaps: "",
                         distanciaTermas: "",
@@ -733,6 +755,10 @@ export default function SociosPage() {
                           <option value="Casa de Campo" className="bg-slate-900">Casa de Campo</option>
                           <option value="Complejo Turístico" className="bg-slate-900">Complejo Turístico</option>
                           <option value="Domo/Glamping" className="bg-slate-900">Domo / Glamping</option>
+                          <option value="Departamento" className="bg-slate-900">Departamento</option>
+                          <option value="Camping" className="bg-slate-900">Camping</option>
+                          <option value="Apart-Hotel" className="bg-slate-900">Apart-Hotel</option>
+                          <option value="Otros" className="bg-slate-900">Otros</option>
                         </select>
                       </div>
                       <div className="space-y-2">
@@ -752,6 +778,26 @@ export default function SociosPage() {
                           placeholder="Ej: 3 cabañas" 
                           value={formData.unidades}
                           onChange={(e) => setFormData({...formData, unidades: e.target.value})}
+                          className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-white/80">Precio desde ($)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="Precio base por noche" 
+                          value={formData.precio_desde}
+                          onChange={(e) => setFormData({...formData, precio_desde: e.target.value})}
+                          className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-white/80">Estadía mínima (noches)</Label>
+                        <Input 
+                          type="number" 
+                          placeholder="Mínimo de noches" 
+                          value={formData.estadia_minima}
+                          onChange={(e) => setFormData({...formData, estadia_minima: e.target.value})}
                           className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
                         />
                       </div>

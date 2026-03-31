@@ -1,13 +1,16 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves, Share2, CheckCircle2 } from "lucide-react"
+import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves, Share2, CheckCircle2, Tv, Coffee, Utensils, Flame, Snowflake, ArrowRight, Gem, Leaf } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { accommodations } from "@/data/accommodations"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Label } from "@/components/ui/label"
+import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
 import { motion, AnimatePresence } from "framer-motion"
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useEffect } from "react"
+import CustomImage from "@/components/common/CustomImage"
 import {
   Sheet,
   SheetContent,
@@ -18,20 +21,30 @@ import {
   SheetFooter,
   SheetClose
 } from "@/components/ui/sheet"
-import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
 
 export default function AlojamientosPage() {
+  const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
+  const [loading, setLoading] = useState(true)
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
   const [showShareToast, setShowShareToast] = useState(false)
 
+  // Cargar datos de Supabase
+  useEffect(() => {
+    async function loadData() {
+      const data = await getAlojamientos()
+      setAccommodations(data)
+      setLoading(false)
+    }
+    loadData()
+  }, [])
+
   // Función para compartir alojamiento
-  const handleShare = async (e: React.MouseEvent, id: string, title: string) => {
+  const handleShare = async (e: React.MouseEvent, slug: string, title: string) => {
     e.preventDefault()
     e.stopPropagation()
     
-    const url = `${window.location.origin}/alojamientos/${id}`
+    const url = `${window.location.origin}/alojamientos/${slug}`
     const shareData = {
       title: `Viví las Termas - ${title}`,
       text: `Mirá este alojamiento increíble en las sierras: ${title}`,
@@ -53,27 +66,29 @@ export default function AlojamientosPage() {
 
   // Obtener localidades únicas de los datos
   const locations = useMemo(() => {
-    const locs = accommodations.map(acc => acc.location.split(" - ")[0])
+    const locs = accommodations.map(acc => acc.localidad)
     return Array.from(new Set(locs))
-  }, [])
+  }, [accommodations])
 
   // Filtrar alojamientos
   const filteredAccommodations = useMemo(() => {
     return accommodations.filter(acc => {
       const locationMatch = selectedLocation.length === 0 || 
-        selectedLocation.some(loc => acc.location.includes(loc))
+        selectedLocation.some(loc => acc.localidad.includes(loc))
       
       const featuresMatch = selectedFeatures.length === 0 ||
         selectedFeatures.every(feat => {
-          if (feat === "wifi") return acc.features.wifi
-          if (feat === "pet") return acc.features.pet
-          if (feat === "pool") return acc.features.pool
+          if (!acc.servicios) return false;
+          const s = acc.servicios.map(serv => serv.toLowerCase());
+          if (feat === "wifi") return s.some(serv => serv.includes('wifi'));
+          if (feat === "pet") return s.some(serv => serv.includes('mascota') || serv.includes('pet'));
+          if (feat === "pool") return s.some(serv => serv.includes('piscina') || serv.includes('pileta'));
           return true
         })
 
       return locationMatch && featuresMatch
     })
-  }, [selectedLocation, selectedFeatures])
+  }, [accommodations, selectedLocation, selectedFeatures])
 
   const toggleLocation = (loc: string) => {
     setSelectedLocation(prev => 
@@ -92,42 +107,54 @@ export default function AlojamientosPage() {
     setSelectedFeatures([])
   }
 
+  const getServiceIcon = (service: string) => {
+    const s = service.toLowerCase();
+    if (s.includes("wifi")) return <Wifi className="w-3.5 h-3.5" />;
+    if (s.includes("piscina") || s.includes("pileta")) return <Waves className="w-3.5 h-3.5" />;
+    if (s.includes("tv") || s.includes("cable")) return <Tv className="w-3.5 h-3.5" />;
+    if (s.includes("desayuno")) return <Coffee className="w-3.5 h-3.5" />;
+    if (s.includes("cocina") || s.includes("vajilla")) return <Utensils className="w-3.5 h-3.5" />;
+    if (s.includes("aire") || s.includes("ac")) return <Snowflake className="w-3.5 h-3.5" />;
+    if (s.includes("parrilla") || s.includes("asador")) return <Flame className="w-3.5 h-3.5" />;
+    return <CheckCircle2 className="w-3.5 h-3.5" />;
+  };
+
   const FilterContent = ({ isDesktop = false }: { isDesktop?: boolean }) => (
-    <div className={`space-y-10 ${isDesktop ? "" : "pb-20"}`}>
+    <div className={`space-y-8 ${isDesktop ? "" : "pb-20"}`}>
       {/* Localidad */}
-      <div className="space-y-6">
-        <h4 className="text-xl font-bold tracking-tight">Localidad</h4>
-        <div className="grid grid-cols-1 gap-4">
+      <div className="space-y-4">
+        <h4 className="text-lg font-bold tracking-tight">Localidad</h4>
+        <div className="grid grid-cols-1 gap-3">
           {locations.map(loc => (
-            <div key={loc} className="flex items-center space-x-3 group cursor-pointer" onClick={() => toggleLocation(loc)}>
+            <div key={loc} className="flex items-center space-x-2 group cursor-pointer" onClick={() => toggleLocation(loc)}>
               <Checkbox 
                 id={`${isDesktop ? 'desktop' : 'mobile'}-loc-${loc}`} 
                 checked={selectedLocation.includes(loc)}
-                className="w-6 h-6 rounded-lg border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
               />
-              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-loc-${loc}`} className="text-lg font-medium text-slate-600 group-hover:text-primary transition-colors cursor-pointer">{loc}</Label>
+              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-loc-${loc}`} className="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors cursor-pointer">{loc}</Label>
             </div>
           ))}
         </div>
       </div>
 
       {/* Servicios */}
-      <div className="space-y-6">
-        <h4 className="text-xl font-bold tracking-tight">Servicios</h4>
-        <div className="grid grid-cols-1 gap-4">
+      <div className="space-y-4">
+        <h4 className="text-lg font-bold tracking-tight">Servicios</h4>
+        <div className="grid grid-cols-1 gap-3">
           {[
             { id: "wifi", label: "Wi-Fi Gratis", icon: Wifi },
             { id: "pet", label: "Pet Friendly", icon: PawPrint },
             { id: "pool", label: "Piscina", icon: Waves },
           ].map(feat => (
-            <div key={feat.id} className="flex items-center space-x-3 group cursor-pointer" onClick={() => toggleFeature(feat.id)}>
+            <div key={feat.id} className="flex items-center space-x-2 group cursor-pointer" onClick={() => toggleFeature(feat.id)}>
               <Checkbox 
                 id={`${isDesktop ? 'desktop' : 'mobile'}-feat-${feat.id}`} 
                 checked={selectedFeatures.includes(feat.id)}
-                className="w-6 h-6 rounded-lg border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
               />
-              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-feat-${feat.id}`} className="text-lg font-medium text-slate-600 flex items-center gap-2 group-hover:text-primary transition-colors cursor-pointer">
-                <feat.icon className="w-5 h-5 opacity-60" />
+              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-feat-${feat.id}`} className="text-sm font-medium text-slate-600 flex items-center gap-2 group-hover:text-primary transition-colors cursor-pointer">
+                <feat.icon className="w-4 h-4 opacity-60" />
                 {feat.label}
               </Label>
             </div>
@@ -145,13 +172,13 @@ export default function AlojamientosPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8 }}
-          className="flex flex-col md:flex-row justify-between items-end mb-20 gap-8"
+          className="flex flex-col md:flex-row justify-between items-end mb-12 gap-8"
         >
-          <div className="space-y-4">
-            <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 leading-tight">
+          <div className="space-y-3">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
               Alojamientos <br/><span className="text-primary">Verificados</span>
             </h1>
-            <p className="text-xl md:text-2xl text-slate-500 max-w-2xl font-light leading-relaxed text-balance">
+            <p className="text-base md:text-lg text-slate-500 max-w-2xl font-light leading-relaxed text-balance">
               Encontrá tu lugar ideal en las sierras. Todos inspeccionados personalmente para garantizar tu bienestar.
             </p>
           </div>
@@ -230,7 +257,7 @@ export default function AlojamientosPage() {
             </div>
 
             {/* Grid with Staggered Reveal */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3">
           <AnimatePresence mode="popLayout">
             {filteredAccommodations.map((item, index) => (
               <motion.div
@@ -240,94 +267,125 @@ export default function AlojamientosPage() {
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
                 transition={{ 
-                  duration: 0.5,
-                  delay: (index % 3) * 0.1,
+                  duration: 0.4,
+                  delay: (index % 6) * 0.05,
                   ease: [0.22, 1, 0.36, 1]
                 }}
                 className="flex"
               >
-                <Card className="group w-full overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col rounded-[1.5rem] bg-white">
-                  {/* Image Container with Trevia-style Zoom */}
-                  <div className="relative aspect-[16/10] overflow-hidden flex-shrink-0">
-                    <motion.img 
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.8 }}
-                      src={item.image} 
-                      alt={item.title} 
-                      className="object-cover w-full h-full"
-                    />
-                    <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                      {item.badges.map((badge, i) => (
-                        <Badge key={i} className="bg-white/95 text-slate-800 backdrop-blur-md border-none shadow-sm px-2.5 py-1 rounded-full font-bold text-[9px] uppercase tracking-wider">
-                          {badge}
-                        </Badge>
-                      ))}
+                <Card className="group w-full overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col rounded-[2rem] bg-white relative">
+                  {/* Link envolvente para toda la card (excepto botones de acción) */}
+                  <Link href={`/alojamientos/${item.slug}`} className="absolute inset-0 z-10">
+                    <span className="sr-only">Ver detalles de {item.nombre}</span>
+                  </Link>
+
+                  {/* Image Container */}
+                  <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 p-2 pb-0">
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      transition={{ duration: 0.6 }}
+                      className="w-full h-full overflow-hidden rounded-[1.8rem]"
+                    >
+                      <CustomImage 
+                        path="portada.jpg"
+                        folder="ALOJAMIENTOS"
+                        subfolder={item.slug}
+                        alt={item.nombre}
+                        fill
+                        className="object-cover"
+                      />
+                    </motion.div>
+                    
+                    {/* Dynamic Badge like the image */}
+                    <div className="absolute top-4 left-4 z-20">
+                      <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2.5 py-1 rounded-full font-black text-[8px] uppercase tracking-wider flex items-center gap-1">
+                        {item.rating_google && item.rating_google >= 4.8 ? (
+                          <><Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> MÁS PEDIDO</>
+                        ) : item.precio_base && item.precio_base > 100000 ? (
+                          <><Gem className="w-2.5 h-2.5 text-blue-500" /> PREMIUM</>
+                        ) : (
+                          <><Leaf className="w-2.5 h-2.5 text-green-500" /> ECO-FRIENDLY</>
+                        )}
+                      </Badge>
                     </div>
 
                     {/* Botón Compartir */}
                     <motion.button
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      onClick={(e) => handleShare(e, item.id, item.title)}
-                      className="absolute top-4 right-4 z-20 bg-white/80 backdrop-blur-md p-2.5 rounded-full shadow-lg border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
+                      onClick={(e) => handleShare(e, item.slug, item.nombre)}
+                      className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-md border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
                       title="Compartir alojamiento"
                     >
-                      <Share2 className="w-4 h-4" />
+                      <Share2 className="w-3.5 h-3.5" />
                     </motion.button>
                   </div>
 
-                  {/* Content Area */}
-                  <div className="flex flex-col flex-grow">
-                    <CardContent className="p-5 space-y-3 flex-grow z-10 bg-white">
-                      <div className="flex justify-between items-start gap-3">
-                        <div className="space-y-1">
-                          <h3 className="font-bold text-lg group-hover:text-primary transition-colors duration-300 leading-snug line-clamp-1 text-slate-900">
-                            {item.title}
-                          </h3>
-                          <div className="flex items-center text-slate-400 text-xs font-medium">
-                            <MapPin className="w-3.5 h-3.5 mr-1 text-primary/60 flex-shrink-0" />
-                            <span className="truncate">{item.location.split(" - ")[0]}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1 bg-primary/5 px-2 py-1 rounded-lg flex-shrink-0 border border-primary/10">
-                          <Star className="w-3.5 h-3.5 fill-primary text-primary" />
-                          <span className="text-xs font-black text-primary">{item.rating}</span>
+                  {/* Content Area - New Design from Image */}
+                  <div className="flex flex-col flex-grow p-4 pt-3 space-y-2 relative z-20">
+                    <div className="flex justify-between items-start gap-2">
+                      <div className="space-y-0.5 flex-grow">
+                        <h3 className="font-black text-[14px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                          {item.nombre}
+                        </h3>
+                        <div className="flex items-center text-[#7dd3fc] text-[9px] font-bold">
+                          <MapPin className="w-3 h-3 mr-1 fill-[#7dd3fc]/20 flex-shrink-0" />
+                          <span className="truncate uppercase tracking-tight">{item.localidad}</span>
                         </div>
                       </div>
+                      
+                      {/* Rating Badge next to Title */}
+                      <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-2 py-1 rounded-lg font-black text-[10px] shadow-sm flex-shrink-0">
+                        <Star className="w-3 h-3 fill-[#2563eb]" />
+                        {item.rating_google || "—"}
+                      </div>
+                    </div>
 
-                      <div className="flex items-center gap-4 text-[10px] font-bold text-slate-500 pt-3 border-t border-slate-50">
-                        <div className="flex items-center gap-1.5">
-                          <Users className="w-3.5 h-3.5 text-slate-400" />
-                          <span>{item.features.guests} p.</span>
+                    {/* Amenities List - Clean Horizontal Style */}
+                    {item.servicios && item.servicios.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
+                        {/* Capacidad / Personas */}
+                        <div className="flex items-center gap-1 text-slate-400">
+                          <Users className="w-3 h-3" />
+                          <span className="text-[9px] font-bold">
+                            {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
+                          </span>
                         </div>
-                        {item.features.wifi && (
-                          <div className="flex items-center gap-1.5">
-                            <Wifi className="w-3.5 h-3.5 text-slate-400" />
-                            <span>Wi-Fi</span>
+                        {/* WiFi */}
+                        {item.servicios.some(s => s.toLowerCase().includes('wifi')) && (
+                          <div className="flex items-center gap-1 text-slate-400">
+                            <Wifi className="w-3 h-3" />
+                            <span className="text-[9px] font-bold">Wi-Fi</span>
                           </div>
                         )}
-                        {item.features.pet && (
-                          <div className="flex items-center gap-1.5">
-                            <PawPrint className="w-3.5 h-3.5 text-slate-400" />
-                            <span>Pet</span>
+                        {/* Mascotas */}
+                        {item.servicios.some(s => s.toLowerCase().includes('mascota')) && (
+                          <div className="flex items-center gap-1 text-slate-400">
+                            <PawPrint className="w-3 h-3" />
+                            <span className="text-[9px] font-bold">Pet Friendly</span>
                           </div>
                         )}
                       </div>
-                    </CardContent>
+                    )}
 
-                    <CardFooter className="p-5 pt-0 flex items-center justify-between mt-auto z-10 bg-white">
+                    <div className="pt-3 flex items-center justify-between mt-auto border-t border-slate-50">
                       <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 mb-0.5">Noche</span>
+                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-xl font-black text-slate-900 tracking-tight">{item.price}</span>
+                          <span className="text-[18px] font-black text-slate-900 leading-none">
+                            {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
+                          </span>
+                          <span className="text-[9px] text-slate-400 font-bold ml-0.5">/noche</span>
                         </div>
                       </div>
-                      <Link href={`/alojamientos/${item.id}`}>
-                        <Button size="sm" className="h-10 px-4 rounded-full font-bold text-xs shadow-sm bg-[#1a1f2c] hover:bg-primary text-white transition-all duration-300">
-                          Detalles
-                        </Button>
-                      </Link>
-                    </CardFooter>
+                      <div className="relative z-30">
+                        <Link href={`/alojamientos/${item.slug}`}>
+                          <Button className="h-9 px-5 rounded-full font-black text-[10px] bg-[#1a1f2c] hover:bg-primary text-white shadow-lg shadow-slate-200 transition-all duration-300">
+                            Ver Detalles
+                          </Button>
+                        </Link>
+                      </div>
+                    </div>
                   </div>
                 </Card>
               </motion.div>

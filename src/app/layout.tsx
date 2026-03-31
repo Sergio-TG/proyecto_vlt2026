@@ -1,6 +1,5 @@
-"use client"
+"use client";
 
-import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { Header } from "@/components/layout/Header";
@@ -19,19 +18,28 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
+
+  const isMaintenanceMode = pathname === '/';
   const isSociosPage = pathname.startsWith('/socios');
+  const hideLayout = isMaintenanceMode || isSociosPage;
 
   return (
-    <html lang="es">
+    // Agregamos overflow-x-hidden al HTML para mayor seguridad
+    <html lang="es" className="overflow-x-hidden">
       <body
-        className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col`}
+        className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col w-full max-w-full overflow-x-hidden`}
       >
         <ImageKitProviderWrapper>
-          {!isSociosPage && <Header />}
-          <main className="flex-1">
+          {!hideLayout && <Header />}
+          
+          {/* IMPORTANTE: Usamos 'w-full' en lugar de 'w-screen' para evitar 
+            que la barra de scroll vertical empuje el contenido hacia los lados.
+          */}
+          <main className="flex-1 w-full max-w-full overflow-x-hidden relative">
             {children}
           </main>
-          {!isSociosPage && <Footer />}
+          
+          {!hideLayout && <Footer />}
         </ImageKitProviderWrapper>
       </body>
     </html>

@@ -7,6 +7,7 @@ import imageKitLoader from "@/utils/image-loader";
 interface CustomImageProps {
   path: string;
   folder: ImageFolder;
+  subfolder?: string;
   alt: string;
   width?: number;
   height?: number;
@@ -19,6 +20,7 @@ interface CustomImageProps {
 export default function CustomImage({
   path,
   folder,
+  subfolder,
   alt,
   width,
   height,
@@ -28,7 +30,9 @@ export default function CustomImage({
   sizes = "(max-width: 768px) 100vw, 50vw",
 }: CustomImageProps) {
   // Construct the full path within ImageKit
-  const fullPath = `${IMAGE_FOLDERS[folder]}/${path}`;
+  const fullPath = subfolder 
+    ? `${IMAGE_FOLDERS[folder]}/${subfolder}/${path}`
+    : `${IMAGE_FOLDERS[folder]}/${path}`;
 
   return (
     <Image
