@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, ArrowRight, Gem, Leaf } from "lucide-react"
+import { MapPin, Star, Users, Wifi, PawPrint, ArrowRight, Gem, Leaf, Share2, CheckCircle2 } from "lucide-react"
 import {
   Carousel,
   CarouselContent,
@@ -9,15 +9,54 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { accommodations } from "@/data/accommodations"
-import { motion, useScroll, useTransform } from "framer-motion"
-import { useRef } from "react"
+import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
+import { useRef, useState, useEffect } from "react"
+import CustomImage from "@/components/common/CustomImage"
 
 export function FeaturedAccommodations() {
+  const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
+  const [loading, setLoading] = useState(true)
+  const [showShareToast, setShowShareToast] = useState(false)
   const sectionRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    async function loadData() {
+      const data = await getAlojamientos()
+      // Solo mostrar los primeros 10 o los que tengan mejor rating
+      setAccommodations(data.slice(0, 10))
+      setLoading(false)
+    }
+    loadData()
+  }, [])
+
+  // Función para compartir alojamiento
+  const handleShare = async (e: React.MouseEvent, slug: string, title: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    
+    const url = `${window.location.origin}/alojamientos/${slug}`
+    const shareData = {
+      title: `Viví las Termas - ${title}`,
+      text: `Mirá este alojamiento increíble en las sierras: ${title}`,
+      url: url,
+    }
+
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData)
+      } else {
+        await navigator.clipboard.writeText(url)
+        setShowShareToast(true)
+        setTimeout(() => setShowShareToast(false), 3000)
+      }
+    } catch (err) {
+      console.error("Error al compartir:", err)
+    }
+  }
+
   const { scrollYProgress } = useScroll({
     target: sectionRef,
     offset: ["start end", "end start"]
@@ -35,13 +74,13 @@ export function FeaturedAccommodations() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
-          className="flex flex-col md:flex-row justify-between items-center mb-32 gap-8"
+          className="flex flex-col md:flex-row justify-between items-center mb-16 md:mb-24 gap-8"
         >
-          <div className="space-y-4">
-            <h2 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 leading-tight text-balance">
+          <div className="space-y-3">
+            <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 leading-tight text-balance">
               Alojamientos <br/><span className="text-primary">Recomendados</span>
             </h2>
-            <p className="text-slate-500 text-xl md:text-2xl font-light max-w-2xl leading-relaxed">
+            <p className="text-slate-500 text-lg md:text-xl font-light max-w-2xl leading-relaxed">
               Selección exclusiva verificada personalmente para garantizar tu descanso en las sierras.
             </p>
           </div>
@@ -53,7 +92,7 @@ export function FeaturedAccommodations() {
                 whileTap={{ scale: 0.95 }}
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
               >
-                <Button variant="ghost" className="flex gap-2 text-primary font-bold text-lg hover:bg-primary/5 px-6 h-12 rounded-full border border-transparent hover:border-primary/10 transition-all">
+                <Button variant="ghost" className="flex gap-2 text-primary font-bold text-base hover:bg-primary/5 px-6 h-12 rounded-full border border-transparent hover:border-primary/10 transition-all">
                     Ver Catálogo Completo <ArrowRight className="w-5 h-5" />
                 </Button>
               </motion.div>
@@ -81,99 +120,119 @@ export function FeaturedAccommodations() {
               <CarouselNext className="static translate-y-0 h-14 w-14 border-slate-200 bg-white shadow-2xl hover:bg-primary hover:text-white transition-all duration-500 hover:scale-110" />
             </div>
             
-            <CarouselContent className="-ml-8">
+            <CarouselContent className="-ml-2 py-10 -my-10">
               {accommodations.map((item, index) => (
-                <CarouselItem key={item.id} className="pl-8 md:basis-1/2 lg:basis-1/3 flex">
+                <CarouselItem key={item.id} className="pl-2 basis-[85%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 flex">
                   <motion.div
-                    initial={{ opacity: 0, y: 50 }}
+                    initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
-                    transition={{ delay: index * 0.15, duration: 0.8 }}
-                    className="flex w-full"
+                    transition={{ delay: index * 0.05, duration: 0.5 }}
+                    className="flex w-full p-0.5"
                   >
-                    <Card className="group w-full overflow-hidden border-none shadow-[0_10px_50px_rgba(0,0,0,0.04)] hover:shadow-[0_40px_100px_rgba(0,0,0,0.15)] transition-all duration-1000 flex flex-col rounded-[2.5rem] bg-white">
-                      {/* Image Container with Parallax & Trevia Zoom */}
-                      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0">
-                        <motion.div 
-                          style={{ y: imageY }}
-                          className="absolute inset-0 w-full h-[120%] -top-[10%]"
+                    <div className="group w-full overflow-hidden shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-500 flex flex-col rounded-[2rem] bg-white relative">
+                      {/* Link envolvente para toda la card */}
+                      <Link href={`/alojamientos/${item.slug}`} className="absolute inset-0 z-10">
+                        <span className="sr-only">Ver detalles de {item.nombre}</span>
+                      </Link>
+
+                      {/* Image Container */}
+                      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 p-2 pb-0">
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          transition={{ duration: 0.6 }}
+                          className="w-full h-full overflow-hidden rounded-[1.8rem]"
                         >
-                          <motion.img 
-                            src={item.image} 
-                            alt={item.title} 
-                            className="object-cover w-full h-full"
-                            whileHover={{ scale: 1.1 }}
-                            transition={{ duration: 1.5, ease: [0.22, 1, 0.36, 1] }}
+                          <CustomImage 
+                            path="portada.jpg"
+                            folder="ALOJAMIENTOS"
+                            subfolder={item.slug}
+                            alt={item.nombre}
+                            fill
+                            className="object-cover"
                           />
                         </motion.div>
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                        <div className="absolute top-6 left-6 flex flex-wrap gap-2 z-10">
-                          {item.badges.map((badge, i) => (
-                            <Badge key={i} variant="outline" className="bg-white/90 backdrop-blur-md border-slate-200 text-slate-700 shadow-sm px-3 py-1.5 rounded-full font-bold text-[10px] uppercase tracking-wider flex items-center gap-1.5">
-                              {badge.includes("MÁS PEDIDO") && <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />}
-                              {badge.includes("PREMIUM") && <Gem className="w-3 h-3 text-blue-500" />}
-                              {badge.includes("ECO-FRIENDLY") && <Leaf className="w-3 h-3 text-green-500" />}
-                              {badge}
-                            </Badge>
-                          ))}
+                        
+                        {/* Dynamic Badge like the image */}
+                        <div className="absolute top-4 left-4 z-20">
+                          <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2 py-0.5 rounded-full font-black text-[7px] uppercase tracking-wider flex items-center gap-1">
+                            {item.rating_google && item.rating_google >= 4.8 ? (
+                              <><Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> MÁS PEDIDO</>
+                            ) : item.precio_base && item.precio_base > 100000 ? (
+                              <><Gem className="w-2.5 h-2.5 text-blue-500" /> PREMIUM</>
+                            ) : (
+                              <><Leaf className="w-2.5 h-2.5 text-green-500" /> ECO-FRIENDLY</>
+                            )}
+                          </Badge>
+                        </div>
+
+                        {/* Botón Compartir */}
+                        <motion.button
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.9 }}
+                          onClick={(e) => handleShare(e, item.slug, item.nombre)}
+                          className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-md border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
+                          title="Compartir alojamiento"
+                        >
+                          <Share2 className="w-3.5 h-3.5" />
+                        </motion.button>
+                      </div>
+
+                      {/* Content Area - New Design from Image */}
+                      <div className="flex flex-col flex-grow p-4 pt-3 space-y-2 relative z-20">
+                        <div className="flex justify-between items-start gap-2">
+                          <div className="space-y-0.5 flex-grow">
+                            <h3 className="font-black text-[13px] text-slate-900 leading-tight tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+                              {item.nombre}
+                            </h3>
+                            <div className="flex items-center text-[#7dd3fc] text-[9px] font-bold">
+                              <MapPin className="w-2.5 h-2.5 mr-1 fill-[#7dd3fc]/20 flex-shrink-0" />
+                              <span className="truncate uppercase tracking-tight">{item.localidad}</span>
+                            </div>
+                          </div>
+                          
+                          {/* Rating Badge next to Title */}
+                          <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-1.5 py-0.5 rounded-md font-black text-[9px] shadow-sm flex-shrink-0">
+                            <Star className="w-2.5 h-2.5 fill-[#2563eb]" />
+                            {item.rating_google || "—"}
+                          </div>
+                        </div>
+
+                        {/* Amenities List - Simple Icons */}
+                        {item.servicios && item.servicios.length > 0 && (
+                          <div className="flex items-center gap-3 pt-0.5">
+                            <div className="flex items-center gap-1 text-slate-400">
+                              <Users className="w-3 h-3" />
+                              <span className="text-[8px] font-bold">
+                                {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
+                              </span>
+                            </div>
+                            {item.servicios.some(s => s.toLowerCase().includes('wifi')) && (
+                              <Wifi className="w-3 h-3 text-slate-400" />
+                            )}
+                            {item.servicios.some(s => s.toLowerCase().includes('mascota')) && (
+                              <PawPrint className="w-3 h-3 text-slate-400" />
+                            )}
+                          </div>
+                        )}
+
+                        <div className="pt-3 flex items-center justify-between mt-auto border-t border-slate-50">
+                          <div className="flex flex-col">
+                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
+                            <div className="flex items-baseline gap-0.5">
+                              <span className="text-[16px] font-black text-slate-900 leading-none">
+                                {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
+                              </span>
+                              <span className="text-[8px] text-slate-400 font-bold ml-0.5">/noche</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 text-primary font-black text-[9px] uppercase tracking-wider">
+                            Detalles
+                            <ArrowRight className="w-2.5 h-2.5" />
+                          </div>
                         </div>
                       </div>
-
-                      {/* Content Area with Fixed Structure */}
-                      <div className="flex flex-col flex-grow">
-                        <CardContent className="p-8 space-y-5 flex-grow z-10">
-                          <div className="flex justify-between items-start gap-4 min-h-[70px]">
-                            <div className="space-y-1.5">
-                              <h3 className="font-bold text-2xl text-slate-900 leading-tight tracking-tight line-clamp-2">
-                                {item.title}
-                              </h3>
-                              <div className="flex items-center text-slate-400 text-sm font-medium">
-                                <MapPin className="w-4 h-4 mr-1.5 text-slate-400 flex-shrink-0" />
-                                <span className="truncate">{item.location}</span>
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1.5 bg-blue-50 px-3 py-1.5 rounded-xl flex-shrink-0 border border-blue-100">
-                              <Star className="w-4 h-4 fill-primary text-primary" />
-                              <span className="text-base font-black text-primary">{item.rating}</span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-6 text-xs font-bold text-slate-500 pt-4 border-t border-slate-100">
-                            <div className="flex items-center gap-2">
-                              <Users className="w-4 h-4 text-slate-400" />
-                              <span>{item.features.guests} Pers.</span>
-                            </div>
-                            {item.features.wifi && (
-                              <div className="flex items-center gap-2">
-                                <Wifi className="w-4 h-4 text-slate-400" />
-                                <span>Wi-Fi</span>
-                              </div>
-                            )}
-                            {item.features.pet && (
-                              <div className="flex items-center gap-2">
-                                <PawPrint className="w-4 h-4 text-slate-400" />
-                                <span>Pet Friendly</span>
-                              </div>
-                            )}
-                          </div>
-                        </CardContent>
-
-                        <CardFooter className="p-8 pt-0 flex items-center justify-between mt-auto z-10">
-                          <div className="flex flex-col">
-                            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-400 mb-0.5">Desde</span>
-                            <div className="flex items-baseline gap-1">
-                              <span className="text-3xl font-black text-slate-900 tracking-tighter">{item.price}</span>
-                              <span className="text-xs font-bold text-slate-400">/noche</span>
-                            </div>
-                          </div>
-                          <Link href={`/alojamientos/${item.id}`}>
-                              <Button size="lg" className="h-12 px-6 rounded-full font-bold text-base shadow-md bg-[#1a1f2c] hover:bg-primary text-white transition-all duration-300">
-                                Ver Detalles
-                              </Button>
-                          </Link>
-                        </CardFooter>
-                      </div>
-                    </Card>
+                    </div>
                   </motion.div>
                 </CarouselItem>
               ))}
@@ -191,6 +250,20 @@ export function FeaturedAccommodations() {
         </div>
 
       </div>
+
+      <AnimatePresence>
+        {showShareToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: 50, x: "-50%" }}
+            className="fixed bottom-10 left-1/2 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3"
+          >
+            <CheckCircle2 className="w-5 h-5 text-green-400" />
+            <span className="font-bold">¡Enlace copiado al portapapeles!</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </section>
   )
 }

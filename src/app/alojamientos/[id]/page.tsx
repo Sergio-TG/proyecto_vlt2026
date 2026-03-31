@@ -1,13 +1,13 @@
-
 "use client"
 
-import { accommodations } from "@/data/accommodations";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AccommodationGallery } from "@/components/accommodations/AccommodationGallery";
+import { getAlojamientoBySlug, AlojamientoAprobado } from "@/lib/supabase-queries";
+import CustomImage from "@/components/common/CustomImage";
 import {
   MapPin,
   Star,
@@ -25,40 +25,62 @@ import {
   Video,
   ArrowLeft,
   Navigation,
-  Share2
+  Share2,
+  Tv,
+  Coffee,
+  Utensils,
+  Flame,
+  Snowflake
 } from "lucide-react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { useRef, use, useState } from "react";
+import { useRef, use, useState, useEffect } from "react";
 
 interface PageProps {
   params: Promise<{ id: string }>;
 }
 
 export default function AccommodationPage({ params }: PageProps) {
-  const { id } = use(params);
-  const accommodation = accommodations.find((acc) => acc.id === id);
+  const { id: slug } = use(params);
+  const [accommodation, setAccommodation] = useState<AlojamientoAprobado | null>(null);
+  const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showShareToast, setShowShareToast] = useState(false);
 
+  useEffect(() => {
+    async function loadData() {
+      const data = await getAlojamientoBySlug(slug);
+      setAccommodation(data);
+      setLoading(false);
+    }
+    loadData();
+  }, [slug]);
+
+  // Parallax effects
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"]
   });
 
+  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
+  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.1]);
+  const opacity = useTransform(scrollYProgress, [0, 1], [1, 0.5]);
+
+  // Handle Share
   const handleShare = async () => {
     if (!accommodation) return;
-
+    
+    const url = window.location.href;
     const shareData = {
-      title: `Viví las Termas - ${accommodation.title}`,
-      text: `Mirá este alojamiento increíble en las sierras: ${accommodation.title}`,
-      url: window.location.href,
+      title: `Viví las Termas - ${accommodation.nombre}`,
+      text: `Mirá este alojamiento increíble en las sierras: ${accommodation.nombre}`,
+      url: url,
     };
 
     try {
       if (navigator.share) {
         await navigator.share(shareData);
       } else {
-        await navigator.clipboard.writeText(window.location.href);
+        await navigator.clipboard.writeText(url);
         setShowShareToast(true);
         setTimeout(() => setShowShareToast(false), 3000);
       }
@@ -66,19 +88,6 @@ export default function AccommodationPage({ params }: PageProps) {
       console.error("Error al compartir:", err);
     }
   };
-
-  const y = useTransform(scrollYProgress, [0, 1], ["0%", "30%"]);
-  const scale = useTransform(scrollYProgress, [0, 1], [1, 1.15]);
-  const opacity = useTransform(scrollYProgress, [0, 0.5], [1, 0]);
-
-  if (!accommodation) {
-    notFound();
-  }
-
-  // WhatsApp link configuration
-  const phoneNumber = "5493511234567"; // Placeholder corporate number
-  const message = encodeURIComponent(`Hola, me interesa consultar disponibilidad para *${accommodation.title}*.`);
-  const whatsappLink = `https://wa.me/${phoneNumber}?text=${message}`;
 
   // Feature icons mapping
   const getFeatureIcon = (feature: string) => {
@@ -94,6 +103,18 @@ export default function AccommodationPage({ params }: PageProps) {
     }
   };
 
+  const getServiceIcon = (service: string) => {
+    const s = service.toLowerCase();
+    if (s.includes("wifi")) return <Wifi className="w-5 h-5" />;
+    if (s.includes("piscina") || s.includes("pileta")) return <Waves className="w-5 h-5" />;
+    if (s.includes("tv") || s.includes("cable")) return <Tv className="w-5 h-5" />;
+    if (s.includes("desayuno")) return <Coffee className="w-5 h-5" />;
+    if (s.includes("cocina") || s.includes("vajilla")) return <Utensils className="w-5 h-5" />;
+    if (s.includes("aire") || s.includes("ac")) return <Snowflake className="w-5 h-5" />;
+    if (s.includes("parrilla") || s.includes("asador")) return <Flame className="w-5 h-5" />;
+    return <CheckCircle2 className="w-5 h-5" />;
+  };
+
   const getFeatureLabel = (key: string, value: any) => {
     switch (key) {
       case "guests": return `${value} Huéspedes`;
@@ -107,6 +128,39 @@ export default function AccommodationPage({ params }: PageProps) {
     }
   };
 
+  // Helper para extraer features desde servicios si no existe la columna en DB
+  const getDerivedFeatures = () => {
+    if (!accommodation) return null;
+    const s = accommodation.servicios?.map(serv => serv.toLowerCase()) || [];
+    
+    // Extraer capacidad del texto "Capacidad: X personas"
+    let guests = 0;
+    const capacityText = accommodation.servicios?.find(serv => serv.includes('Capacidad:'));
+    if (capacityText) {
+      const match = capacityText.match(/\d+/);
+      if (match) guests = parseInt(match[0]);
+    }
+
+    return {
+      guests,
+      wifi: s.some(serv => serv.includes('wifi')),
+      pet: s.some(serv => serv.includes('mascota') || serv.includes('pet') || serv.includes('acepta')),
+      pool: s.some(serv => serv.includes('piscina') || serv.includes('pileta')),
+    };
+  };
+
+  const derivedFeatures = getDerivedFeatures();
+
+  if (loading) {
+    return <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>;
+  }
+
+  if (!accommodation) {
+    notFound();
+  }
+
   return (
     <div className="min-h-screen bg-white pb-20 overflow-hidden">
       {/* Hero / Header Image with Apple Parallax */}
@@ -116,10 +170,14 @@ export default function AccommodationPage({ params }: PageProps) {
           className="absolute inset-0 z-0"
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-          <img
-            src={accommodation.image}
-            alt={accommodation.title}
-            className="w-full h-full object-cover"
+          <CustomImage 
+            path="portada.jpg"
+            folder="ALOJAMIENTOS"
+            subfolder={accommodation.slug}
+            alt={accommodation.nombre}
+            fill
+            priority
+            className="object-cover"
           />
         </motion.div>
         
@@ -136,24 +194,22 @@ export default function AccommodationPage({ params }: PageProps) {
                 <span className="font-medium tracking-tight">Volver al catálogo</span>
               </Link>
               <div className="flex flex-wrap gap-3 mb-6">
-                {accommodation.badges.map((badge, i) => (
-                  <Badge key={i} className="bg-white/95 text-black hover:bg-white border-none text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-xl">
-                    {badge}
-                  </Badge>
-                ))}
+                <Badge className="bg-white/95 text-black hover:bg-white border-none text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-xl">
+                  {accommodation.tipo_alojamiento}
+                </Badge>
               </div>
               <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter leading-none drop-shadow-2xl">
-                {accommodation.title}
+                {accommodation.nombre}
               </h1>
               <div className="flex flex-wrap items-center gap-6 text-lg md:text-xl font-light">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-6 h-6 text-primary" />
-                  <span className="opacity-90">{accommodation.location}</span>
+                  <span className="opacity-90">{accommodation.localidad}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                  <span className="font-bold">{accommodation.rating}</span>
-                  <span className="text-base opacity-60">({accommodation.reviews} reseñas)</span>
+                  <span className="font-bold">{accommodation.rating_google || "—"}</span>
+                  <span className="text-base opacity-60">(Google Maps)</span>
                 </div>
               </div>
             </div>
@@ -205,37 +261,40 @@ export default function AccommodationPage({ params }: PageProps) {
           >
             <Card className="border-none shadow-[0_40px_100px_rgba(0,0,0,0.08)] rounded-[3rem] overflow-hidden bg-white/80 backdrop-blur-xl">
               <CardContent className="p-10 md:p-16">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
-                  {Object.entries(accommodation.features).map(([key, value], idx) => {
-                    const label = getFeatureLabel(key, value);
-                    if (!label) return null;
-                    return (
-                      <motion.div 
-                        key={key} 
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: idx * 0.1 }}
-                        className="flex flex-col items-center justify-center p-6 bg-slate-50/50 rounded-3xl text-center gap-3 hover:bg-white hover:shadow-xl transition-all duration-500 border border-slate-100 group"
-                      >
-                        <div className="text-primary transform group-hover:scale-110 transition-transform">{getFeatureIcon(key)}</div>
-                        <span className="text-sm font-bold text-slate-700 uppercase tracking-tight leading-none">{label}</span>
-                      </motion.div>
-                    );
-                  })}
-                </div>
+                {derivedFeatures && (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-12">
+                    {Object.entries(derivedFeatures).map(([key, value], idx) => {
+                      const label = getFeatureLabel(key, value);
+                      if (!label) return null;
+                      if (key === "guests" && value === 0) return null; // No mostrar si no hay capacidad definida
+                      return (
+                        <motion.div 
+                          key={key} 
+                          initial={{ opacity: 0, scale: 0.9 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          transition={{ delay: idx * 0.1 }}
+                          className="flex flex-col items-center justify-center p-6 bg-slate-50/50 rounded-3xl text-center gap-3 hover:bg-white hover:shadow-xl transition-all duration-500 border border-slate-100 group"
+                        >
+                          <div className="text-primary transform group-hover:scale-110 transition-transform">{getFeatureIcon(key)}</div>
+                          <span className="text-sm font-bold text-slate-700 uppercase tracking-tight leading-none">{label}</span>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
 
                 <div className="space-y-6 text-slate-600 mb-12">
                   <h3 className="text-2xl font-black text-slate-900 tracking-tight">Sobre este alojamiento</h3>
-                  <p className="text-lg leading-relaxed font-light">{accommodation.description}</p>
+                  <p className="text-lg leading-relaxed font-light">{accommodation.descripcion}</p>
                 </div>
 
                 <div className="space-y-6 pt-12 border-t border-slate-100">
                   <h3 className="text-xl font-black text-slate-900 tracking-tight">Servicios Incluidos</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {accommodation.services.map((service, index) => (
+                    {accommodation.servicios?.map((service, index) => (
                       <div key={index} className="flex items-center gap-3 text-slate-600 group">
                         <div className="p-1 rounded-full bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
-                          <CheckCircle2 className="w-5 h-5" />
+                          {getServiceIcon(service)}
                         </div>
                         <span className="text-base font-light">{service}</span>
                       </div>
@@ -245,40 +304,6 @@ export default function AccommodationPage({ params }: PageProps) {
               </CardContent>
             </Card>
           </motion.div>
-
-          {/* Gallery with Trevia Zoom */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-          >
-            <AccommodationGallery images={accommodation.gallery} title={accommodation.title} />
-          </motion.div>
-
-          {/* Drone Video */}
-          {accommodation.video && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true }}
-              className="space-y-6"
-            >
-              <h3 className="text-3xl font-black text-slate-900 flex items-center gap-3 tracking-tight">
-                <Video className="w-8 h-8 text-primary" />
-                Video con Drone
-              </h3>
-              <div className="aspect-video w-full rounded-[2.5rem] overflow-hidden shadow-2xl bg-black border-4 border-white">
-                <iframe
-                  src={accommodation.video}
-                  title="Drone Video"
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              </div>
-            </motion.div>
-          )}
-
         </div>
 
         {/* Sidebar */}
@@ -294,17 +319,19 @@ export default function AccommodationPage({ params }: PageProps) {
             <Card className="border-none shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[2.5rem] overflow-hidden bg-white">
               <CardHeader className="bg-slate-50 p-10 border-b border-slate-100">
                 <CardTitle className="flex justify-between items-end">
-                  <span className="text-4xl font-black text-slate-900 tracking-tighter">{accommodation.price}</span>
+                  <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                    {accommodation.precio_base ? `$${accommodation.precio_base.toLocaleString('es-AR')}` : "Consultar"}
+                  </span>
                   <span className="text-base text-slate-400 font-medium mb-1">/ noche</span>
                 </CardTitle>
                 <CardDescription className="text-base font-medium text-slate-500 pt-2">
-                  Precio base para {accommodation.features.guests} huéspedes
+                  Estadía mínima de {accommodation.noches_minimas || 1} noches
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-10 space-y-8">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button asChild className="w-full bg-green-600 hover:bg-green-700 text-white shadow-2xl shadow-green-200 text-lg h-20 rounded-full font-black">
-                    <a href={whatsappLink} target="_blank" rel="noopener noreferrer">
+                  <Button asChild className="w-full bg-accent hover:bg-accent/90 text-white shadow-2xl shadow-accent/20 text-lg h-20 rounded-full font-black">
+                    <a href={`https://wa.me/5493546525404?text=Hola, me interesa consultar disponibilidad para *${accommodation.nombre}*.`} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="w-6 h-6 mr-3" />
                       Consultar Disponibilidad
                     </a>
@@ -315,51 +342,7 @@ export default function AccommodationPage({ params }: PageProps) {
                 </p>
               </CardContent>
             </Card>
-
-            {/* Logistics Card with Trevia Dark Style */}
-            <Card className="mt-8 border-none shadow-2xl bg-slate-950 text-white rounded-[2.5rem] overflow-hidden relative group">
-              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity">
-                <Navigation className="w-40 h-40 transform rotate-12" />
-              </div>
-              <CardHeader className="p-10 pb-6">
-                <CardTitle className="flex items-center gap-3 text-xl font-black tracking-tight">
-                  <div className="p-2 bg-primary/20 rounded-xl">
-                    <Car className="w-6 h-6 text-primary" />
-                  </div>
-                  Logística y Acceso
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-10 pt-0 space-y-10 relative z-10">
-                <div className="space-y-2">
-                  <div className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Distancia a Termas</div>
-                  <div className="text-2xl font-black text-white tracking-tighter">{accommodation.logistics.distanceToTermas}</div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Tipo de Camino</div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-primary/40 text-primary bg-primary/5 px-4 py-1.5 rounded-full text-sm font-bold">
-                      {accommodation.logistics.roadType}
-                    </Badge>
-                  </div>
-                </div>
-
-                {accommodation.logistics.accessWarning && (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    className="bg-orange-500/10 border border-orange-500/30 rounded-3xl p-6 flex gap-4 items-start"
-                  >
-                    <AlertTriangle className="w-6 h-6 text-orange-400 flex-shrink-0" />
-                    <p className="text-base text-orange-100 font-light leading-snug">
-                      {accommodation.logistics.accessWarning}
-                    </p>
-                  </motion.div>
-                )}
-              </CardContent>
-            </Card>
           </motion.div>
-
         </div>
       </div>
     </div>

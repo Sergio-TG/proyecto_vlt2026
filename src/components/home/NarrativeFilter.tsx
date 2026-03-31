@@ -6,7 +6,7 @@ import {
   Heart, Users, Briefcase, User, Sun, 
   Leaf, Mountain, Compass, 
   Wifi, Coffee, Car, Flame, Waves, Fish, Accessibility, PawPrint,
-  ArrowRight, Check
+  ArrowRight, Check, Baby, UsersRound
 } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils"
 
 const travelerTypes = [
   { id: "couple", label: "Pareja", sub: "Escapada Romántica", icon: Heart },
-  { id: "family_kids", label: "Familia con niños", sub: "Aventura Familiar", icon: Users },
+  { id: "family_kids", label: "Familia con niños", sub: "Aventura Familiar", icon: UsersRound },
   { id: "friends", label: "Grupo de Amigos", sub: "Desconexión Grupal", icon: Users },
   { id: "corporate", label: "Corporativo", sub: "Team Building Natural", icon: Briefcase },
   { id: "solo", label: "Viajero", sub: "Reconexión Personal", icon: User },

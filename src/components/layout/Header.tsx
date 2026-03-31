@@ -13,7 +13,6 @@ const navItems = [
   { name: "Termas", href: "/termas" },
   { name: "Alojamientos", href: "/alojamientos" },
   { name: "Experiencias", href: "/experiencias" },
-  { name: "Nuestra Esencia", href: "/nuestra-esencia" },
   { name: "Contacto", href: "/contacto" },
 ]
 
@@ -25,7 +24,7 @@ export function Header() {
   const pathname = usePathname()
 
   // Pages that have a dark hero section and support transparent header
-  const isTransparentPage = pathname === "/" || pathname === "/termas" || pathname === "/experiencias" || pathname === "/nuestra-esencia" || (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
+  const isTransparentPage = pathname === "/" || pathname === "/termas" || pathname === "/experiencias" || (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     // Logic moved to native scroll listener for better performance
@@ -83,7 +82,7 @@ export function Header() {
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 z-50">
           <img 
-            src="/logo.png" 
+            src="/logotipo.png" 
             alt="Logotipo de Viví las Termas" 
             className={cn(
               "h-20 md:h-28 w-auto transition-all duration-300 object-contain",
