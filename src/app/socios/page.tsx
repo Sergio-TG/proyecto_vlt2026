@@ -752,13 +752,14 @@ export default function SociosPage() {
                           <option value="" className="bg-slate-900">Seleccione tipo</option>
                           <option value="Cabaña" className="bg-slate-900">Cabaña</option>
                           <option value="Hostería" className="bg-slate-900">Hostería</option>
+                          <option value="Apart-Hotel" className="bg-slate-900">Apart-Hotel</option>
+                          <option value="Departamento" className="bg-slate-900">Departamento</option>
                           <option value="Casa de Campo" className="bg-slate-900">Casa de Campo</option>
                           <option value="Complejo Turístico" className="bg-slate-900">Complejo Turístico</option>
-                          <option value="Domo/Glamping" className="bg-slate-900">Domo / Glamping</option>
-                          <option value="Departamento" className="bg-slate-900">Departamento</option>
+                          <option value="Domo/Glamping" className="bg-slate-900">Domo/Glamping</option>
                           <option value="Camping" className="bg-slate-900">Camping</option>
-                          <option value="Apart-Hotel" className="bg-slate-900">Apart-Hotel</option>
-                          <option value="Otros" className="bg-slate-900">Otros</option>
+                          <option value="Estancia Rural" className="bg-slate-900">Estancia Rural</option>
+                          <option value="Refugio de Montaña" className="bg-slate-900">Refugio de Montaña</option>
                         </select>
                       </div>
                       <div className="space-y-2">

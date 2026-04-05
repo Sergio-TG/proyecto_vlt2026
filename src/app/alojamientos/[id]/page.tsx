@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AccommodationGallery } from "@/components/accommodations/AccommodationGallery";
 import { getAlojamientoBySlug, AlojamientoAprobado } from "@/lib/supabase-queries";
+import { slugify } from "@/lib/utils";
 import CustomImage from "@/components/common/CustomImage";
 import {
   MapPin,
@@ -152,9 +153,32 @@ export default function AccommodationPage({ params }: PageProps) {
   const derivedFeatures = getDerivedFeatures();
 
   if (loading) {
-    return <div className="min-h-screen bg-white flex items-center justify-center">
-      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-    </div>;
+    return (
+      <div className="min-h-screen bg-white overflow-hidden">
+        <section
+          ref={containerRef}
+          className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden flex items-center justify-center"
+        >
+          <motion.div
+            style={{ y, scale, opacity }}
+            className="absolute inset-0 z-0"
+          >
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+            <CustomImage
+              path="placeholder-vlt.webp"
+              folder="ENTORNO"
+              alt="Cargando alojamiento"
+              fill
+              priority
+              className="object-cover"
+            />
+          </motion.div>
+          <div className="relative z-20 flex items-center justify-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        </section>
+      </div>
+    );
   }
 
   if (!accommodation) {
@@ -171,10 +195,12 @@ export default function AccommodationPage({ params }: PageProps) {
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
           <CustomImage 
-            path="portada.jpg"
+            path="portada.webp"
             folder="ALOJAMIENTOS"
-            subfolder={accommodation.slug}
+            subfolder={accommodation.slug || slugify(accommodation.nombre)}
             alt={accommodation.nombre}
+            alternatePaths={["portada.jpg"]}
+            fallbackCandidates={[{ folder: "ENTORNO", path: "placeholder-vlt.webp" }]}
             fill
             priority
             className="object-cover"

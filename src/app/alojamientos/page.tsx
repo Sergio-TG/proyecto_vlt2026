@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { slugify } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import React, { useState, useMemo, useEffect } from "react"
 import CustomImage from "@/components/common/CustomImage"
@@ -257,7 +258,7 @@ export default function AlojamientosPage() {
             </div>
 
             {/* Grid with Staggered Reveal */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredAccommodations.map((item, index) => (
               <motion.div
@@ -287,10 +288,12 @@ export default function AlojamientosPage() {
                       className="w-full h-full overflow-hidden rounded-[1.8rem]"
                     >
                       <CustomImage 
-                        path="portada.jpg"
+                        path="portada.webp"
                         folder="ALOJAMIENTOS"
-                        subfolder={item.slug}
+                        subfolder={item.slug || slugify(item.nombre)}
                         alt={item.nombre}
+                        alternatePaths={["portada.jpg"]}
+                        fallbackCandidates={[{ folder: "ENTORNO", path: "placeholder-vlt.webp" }]}
                         fill
                         className="object-cover"
                       />
@@ -322,20 +325,20 @@ export default function AlojamientosPage() {
                   </div>
 
                   {/* Content Area - New Design from Image */}
-                  <div className="flex flex-col flex-grow p-4 pt-3 space-y-2 relative z-20">
+                  <div className="flex flex-col flex-grow p-5 pt-4 space-y-3 relative z-20">
                     <div className="flex justify-between items-start gap-2">
                       <div className="space-y-0.5 flex-grow">
-                        <h3 className="font-black text-[14px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                        <h3 className="font-black text-[15px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors">
                           {item.nombre}
                         </h3>
-                        <div className="flex items-center text-[#7dd3fc] text-[9px] font-bold">
+                        <div className="flex items-center text-[#38bdf8] text-[10px] font-bold">
                           <MapPin className="w-3 h-3 mr-1 fill-[#7dd3fc]/20 flex-shrink-0" />
                           <span className="truncate uppercase tracking-tight">{item.localidad}</span>
                         </div>
                       </div>
                       
                       {/* Rating Badge next to Title */}
-                      <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-2 py-1 rounded-lg font-black text-[10px] shadow-sm flex-shrink-0">
+                      <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-2.5 py-1 rounded-lg font-black text-[11px] shadow-sm flex-shrink-0">
                         <Star className="w-3 h-3 fill-[#2563eb]" />
                         {item.rating_google || "—"}
                       </div>
@@ -343,11 +346,11 @@ export default function AlojamientosPage() {
 
                     {/* Amenities List - Clean Horizontal Style */}
                     {item.servicios && item.servicios.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
                         {/* Capacidad / Personas */}
                         <div className="flex items-center gap-1 text-slate-400">
                           <Users className="w-3 h-3" />
-                          <span className="text-[9px] font-bold">
+                          <span className="text-[10px] font-bold">
                             {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
                           </span>
                         </div>
@@ -355,24 +358,24 @@ export default function AlojamientosPage() {
                         {item.servicios.some(s => s.toLowerCase().includes('wifi')) && (
                           <div className="flex items-center gap-1 text-slate-400">
                             <Wifi className="w-3 h-3" />
-                            <span className="text-[9px] font-bold">Wi-Fi</span>
+                            <span className="text-[10px] font-bold">Wi‑Fi</span>
                           </div>
                         )}
                         {/* Mascotas */}
                         {item.servicios.some(s => s.toLowerCase().includes('mascota')) && (
                           <div className="flex items-center gap-1 text-slate-400">
                             <PawPrint className="w-3 h-3" />
-                            <span className="text-[9px] font-bold">Pet Friendly</span>
+                            <span className="text-[10px] font-bold">Pet Friendly</span>
                           </div>
                         )}
                       </div>
                     )}
 
-                    <div className="pt-3 flex items-center justify-between mt-auto border-t border-slate-50">
+                    <div className="pt-4 flex items-center justify-between mt-auto border-t border-slate-50">
                       <div className="flex flex-col">
                         <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
                         <div className="flex items-baseline gap-0.5">
-                          <span className="text-[18px] font-black text-slate-900 leading-none">
+                          <span className="text-[20px] font-black text-slate-900 leading-none">
                             {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
                           </span>
                           <span className="text-[9px] text-slate-400 font-bold ml-0.5">/noche</span>
@@ -380,8 +383,8 @@ export default function AlojamientosPage() {
                       </div>
                       <div className="relative z-30">
                         <Link href={`/alojamientos/${item.slug}`}>
-                          <Button className="h-9 px-5 rounded-full font-black text-[10px] bg-[#1a1f2c] hover:bg-primary text-white shadow-lg shadow-slate-200 transition-all duration-300">
-                            Ver Detalles
+                          <Button className="h-9 px-6 rounded-full font-black text-[11px] bg-[#1a1f2c] hover:bg-primary text-white shadow-lg shadow-slate-200 transition-all duration-300">
+                            Detalles
                           </Button>
                         </Link>
                       </div>
@@ -427,4 +430,3 @@ export default function AlojamientosPage() {
     </div>
   )
 }
-

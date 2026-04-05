@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { slugify } from "@/lib/utils"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState, useEffect } from "react"
 import CustomImage from "@/components/common/CustomImage"
@@ -122,7 +123,7 @@ export function FeaturedAccommodations() {
             
             <CarouselContent className="-ml-2 py-10 -my-10">
               {accommodations.map((item, index) => (
-                <CarouselItem key={item.id} className="pl-2 basis-[85%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 flex">
+                <CarouselItem key={item.id} className="pl-2 basis-[92%] sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5 flex">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -144,10 +145,12 @@ export function FeaturedAccommodations() {
                           className="w-full h-full overflow-hidden rounded-[1.8rem]"
                         >
                           <CustomImage 
-                            path="portada.jpg"
+                            path="portada.webp"
                             folder="ALOJAMIENTOS"
-                            subfolder={item.slug}
+                            subfolder={item.slug || slugify(item.nombre)}
                             alt={item.nombre}
+                            alternatePaths={["portada.jpg"]}
+                            fallbackCandidates={[{ folder: "ENTORNO", path: "placeholder-vlt.webp" }]}
                             fill
                             className="object-cover"
                           />
@@ -179,21 +182,21 @@ export function FeaturedAccommodations() {
                       </div>
 
                       {/* Content Area - New Design from Image */}
-                      <div className="flex flex-col flex-grow p-4 pt-3 space-y-2 relative z-20">
+                      <div className="flex flex-col flex-grow p-5 pt-4 space-y-3 relative z-20">
                         <div className="flex justify-between items-start gap-2">
                           <div className="space-y-0.5 flex-grow">
-                            <h3 className="font-black text-[13px] text-slate-900 leading-tight tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
+                            <h3 className="font-black text-[15px] text-slate-900 leading-tight tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
                               {item.nombre}
                             </h3>
-                            <div className="flex items-center text-[#7dd3fc] text-[9px] font-bold">
-                              <MapPin className="w-2.5 h-2.5 mr-1 fill-[#7dd3fc]/20 flex-shrink-0" />
+                            <div className="flex items-center text-[#38bdf8] text-[10px] font-bold">
+                              <MapPin className="w-3 h-3 mr-1 fill-[#38bdf8]/20 flex-shrink-0" />
                               <span className="truncate uppercase tracking-tight">{item.localidad}</span>
                             </div>
                           </div>
                           
                           {/* Rating Badge next to Title */}
-                          <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-1.5 py-0.5 rounded-md font-black text-[9px] shadow-sm flex-shrink-0">
-                            <Star className="w-2.5 h-2.5 fill-[#2563eb]" />
+                          <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-2.5 py-1 rounded-lg font-black text-[11px] shadow-sm flex-shrink-0">
+                            <Star className="w-3 h-3 fill-[#2563eb]" />
                             {item.rating_google || "—"}
                           </div>
                         </div>
@@ -203,7 +206,7 @@ export function FeaturedAccommodations() {
                           <div className="flex items-center gap-3 pt-0.5">
                             <div className="flex items-center gap-1 text-slate-400">
                               <Users className="w-3 h-3" />
-                              <span className="text-[8px] font-bold">
+                              <span className="text-[10px] font-bold">
                                 {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
                               </span>
                             </div>
@@ -216,17 +219,17 @@ export function FeaturedAccommodations() {
                           </div>
                         )}
 
-                        <div className="pt-3 flex items-center justify-between mt-auto border-t border-slate-50">
+                        <div className="pt-4 flex items-center justify-between mt-auto border-t border-slate-50">
                           <div className="flex flex-col">
                             <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
                             <div className="flex items-baseline gap-0.5">
-                              <span className="text-[16px] font-black text-slate-900 leading-none">
+                              <span className="text-[18px] font-black text-slate-900 leading-none">
                                 {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
                               </span>
                               <span className="text-[8px] text-slate-400 font-bold ml-0.5">/noche</span>
                             </div>
                           </div>
-                          <div className="flex items-center gap-1 text-primary font-black text-[9px] uppercase tracking-wider">
+                          <div className="flex items-center gap-1 text-primary font-black text-[10px] uppercase tracking-wider">
                             Detalles
                             <ArrowRight className="w-2.5 h-2.5" />
                           </div>
