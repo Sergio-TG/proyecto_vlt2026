@@ -71,8 +71,21 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-lg">WhatsApp</h3>
                   <p className="text-gray-600 mb-1">Para respuestas rápidas</p>
-                  <a href="https://wa.me/549354615563187" target="_blank" rel="noopener noreferrer" className="text-green-600 font-medium hover:underline">
-                    +54 9 3546 155-63187
+                  <a href="https://wa.me/5493546525404" target="_blank" rel="noopener noreferrer" className="text-green-600 font-medium hover:underline">
+                    +54 9 3546 525404
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 group">
+                <div className="bg-slate-100 p-3 rounded-full text-slate-700 group-hover:scale-110 transition-transform">
+                  <Phone className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Teléfono</h3>
+                  <p className="text-gray-600 mb-1">Llamadas y consultas</p>
+                  <a href="tel:+5493546525404" className="text-slate-700 font-medium hover:underline">
+                    +54 9 3546 525404
                   </a>
                 </div>
               </div>
@@ -84,8 +97,8 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-lg">Email</h3>
                   <p className="text-gray-600 mb-1">Para consultas generales</p>
-                  <a href="mailto:info@vivilastermas.com.ar" className="text-blue-600 font-medium hover:underline">
-                    info@vivilastermas.com.ar
+                  <a href="mailto:hola@vivillastermas.com.ar" className="text-blue-600 font-medium hover:underline">
+                    hola@vivillastermas.com.ar
                   </a>
                 </div>
               </div>
@@ -97,7 +110,7 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-lg">Ubicación</h3>
                   <p className="text-gray-600">
-                    El Durazno, Valle de Calamuchita<br/>
+                    Av. Marrero S/N, Villa Yacanto, X5197<br/>
                     Córdoba, Argentina
                   </p>
                 </div>
@@ -107,7 +120,7 @@ export default function ContactoPage() {
             {/* Google Maps Preview */}
             <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-100 h-64 relative">
                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3391.248039396264!2d-64.76779492458428!3d-32.17294497394666!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95d2c1c000000001%3A0x123456789abcdef!2sEl%20Durazno%2C%20C%C3%B3rdoba!5e0!3m2!1ses!2sar!4v1700000000000!5m2!1ses!2sar" 
+                  src="https://www.google.com/maps?q=Av.%20Marrero%20S%2FN%2C%20Villa%20Yacanto%2C%20X5197%2C%20C%C3%B3rdoba%2C%20Argentina&output=embed" 
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 

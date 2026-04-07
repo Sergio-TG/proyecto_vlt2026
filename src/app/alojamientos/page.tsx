@@ -1,13 +1,13 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves, Share2, CheckCircle2, Tv, Coffee, Utensils, Flame, Snowflake, ArrowRight, Gem, Leaf } from "lucide-react"
+import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves, Share2, CheckCircle2, Tv, Coffee, Utensils, Flame, Snowflake, ArrowRight, Gem, Leaf, Car } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { getAlojamientosFiltered, AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import React, { useState, useMemo, useEffect } from "react"
@@ -23,22 +23,70 @@ import {
   SheetClose
 } from "@/components/ui/sheet"
 
+function normalizeServiceForSearch(service: string) {
+  return service
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "")
+}
+
 export default function AlojamientosPage() {
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => {
+    if (typeof window === "undefined") return []
+    const featuresParam = new URLSearchParams(window.location.search).get("features")
+    if (!featuresParam) return []
+    return featuresParam
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  })
   const [showShareToast, setShowShareToast] = useState(false)
 
-  // Cargar datos de Supabase
+  const buildSupabaseFilters = React.useCallback(() => {
+    const requiredServicios: string[] = []
+    let requirePet = false
+
+    for (const feat of selectedFeatures) {
+      if (feat === "wifi") requiredServicios.push("Wi-Fi")
+      if (feat === "pool") requiredServicios.push("Pileta")
+      if (feat === "breakfast") requiredServicios.push("Desayuno")
+      if (feat === "bbq") requiredServicios.push("Parrilla / Quincho")
+      if (feat === "heating") requiredServicios.push("Estufa a leña")
+      if (feat === "parking") requiredServicios.push("Cochera")
+      if (feat === "pet") requirePet = true
+    }
+
+    return {
+      requiredServicios: Array.from(new Set(requiredServicios)),
+      requirePet,
+      localidades: selectedLocation,
+    }
+  }, [selectedFeatures, selectedLocation])
+
   useEffect(() => {
+    let ignore = false
     async function loadData() {
-      const data = await getAlojamientos()
+      setLoading(true)
+      const filters = buildSupabaseFilters()
+      const data = await getAlojamientosFiltered({
+        requiredServicios: filters.requiredServicios,
+        localidades: filters.localidades,
+        requirePet: filters.requirePet,
+        allowLegacyParking: true,
+      })
+      if (ignore) return
       setAccommodations(data)
       setLoading(false)
     }
     loadData()
-  }, [])
+    return () => {
+      ignore = true
+    }
+  }, [buildSupabaseFilters])
 
   // Función para compartir alojamiento
   const handleShare = async (e: React.MouseEvent, slug: string, title: string) => {
@@ -71,25 +119,30 @@ export default function AlojamientosPage() {
     return Array.from(new Set(locs))
   }, [accommodations])
 
-  // Filtrar alojamientos
   const filteredAccommodations = useMemo(() => {
-    return accommodations.filter(acc => {
-      const locationMatch = selectedLocation.length === 0 || 
-        selectedLocation.some(loc => acc.localidad.includes(loc))
-      
-      const featuresMatch = selectedFeatures.length === 0 ||
-        selectedFeatures.every(feat => {
-          if (!acc.servicios) return false;
-          const s = acc.servicios.map(serv => serv.toLowerCase());
-          if (feat === "wifi") return s.some(serv => serv.includes('wifi'));
-          if (feat === "pet") return s.some(serv => serv.includes('mascota') || serv.includes('pet'));
-          if (feat === "pool") return s.some(serv => serv.includes('piscina') || serv.includes('pileta'));
+    return accommodations.filter((acc) => {
+      const locationMatch =
+        selectedLocation.length === 0 ||
+        selectedLocation.some((loc) => acc.localidad.includes(loc))
+
+      const featuresMatch =
+        selectedFeatures.length === 0 ||
+        selectedFeatures.every((feat) => {
+          if (!acc.servicios) return false
+          const s = acc.servicios.map(normalizeServiceForSearch)
+          if (feat === "wifi") return s.some((serv) => serv.includes("wifi"))
+          if (feat === "pet") return (acc.mascotas === "Sí") || s.some((serv) => serv.includes("pet") || serv.includes("mascota"))
+          if (feat === "pool") return s.some((serv) => serv.includes("piscina") || serv.includes("pileta"))
+          if (feat === "parking") return s.some((serv) => serv.includes("cochera"))
+          if (feat === "bbq") return s.some((serv) => serv.includes("parrilla") || serv.includes("asador") || serv.includes("quincho"))
+          if (feat === "breakfast") return s.some((serv) => serv.includes("desayuno"))
+          if (feat === "heating") return s.some((serv) => serv.includes("estufa") || serv.includes("calefaccion"))
           return true
         })
 
       return locationMatch && featuresMatch
     })
-  }, [accommodations, selectedLocation, selectedFeatures])
+  }, [accommodations, selectedFeatures, selectedLocation])
 
   const toggleLocation = (loc: string) => {
     setSelectedLocation(prev => 
@@ -109,18 +162,20 @@ export default function AlojamientosPage() {
   }
 
   const getServiceIcon = (service: string) => {
-    const s = service.toLowerCase();
+    const s = normalizeServiceForSearch(service)
     if (s.includes("wifi")) return <Wifi className="w-3.5 h-3.5" />;
     if (s.includes("piscina") || s.includes("pileta")) return <Waves className="w-3.5 h-3.5" />;
+    if (s.includes("cochera")) return <Car className="w-3.5 h-3.5" />;
     if (s.includes("tv") || s.includes("cable")) return <Tv className="w-3.5 h-3.5" />;
     if (s.includes("desayuno")) return <Coffee className="w-3.5 h-3.5" />;
     if (s.includes("cocina") || s.includes("vajilla")) return <Utensils className="w-3.5 h-3.5" />;
+    if (s.includes("estufa") || s.includes("calefaccion")) return <Flame className="w-3.5 h-3.5" />;
     if (s.includes("aire") || s.includes("ac")) return <Snowflake className="w-3.5 h-3.5" />;
-    if (s.includes("parrilla") || s.includes("asador")) return <Flame className="w-3.5 h-3.5" />;
+    if (s.includes("parrilla") || s.includes("asador") || s.includes("quincho")) return <Utensils className="w-3.5 h-3.5" />;
     return <CheckCircle2 className="w-3.5 h-3.5" />;
   };
 
-  const FilterContent = ({ isDesktop = false }: { isDesktop?: boolean }) => (
+  const renderFilterContent = (isDesktop = false) => (
     <div className={`space-y-8 ${isDesktop ? "" : "pb-20"}`}>
       {/* Localidad */}
       <div className="space-y-4">
@@ -147,6 +202,9 @@ export default function AlojamientosPage() {
             { id: "wifi", label: "Wi-Fi Gratis", icon: Wifi },
             { id: "pet", label: "Pet Friendly", icon: PawPrint },
             { id: "pool", label: "Piscina", icon: Waves },
+            { id: "parking", label: "Cochera", icon: Car },
+            { id: "bbq", label: "Parrilla / Quincho", icon: Utensils },
+            { id: "breakfast", label: "Desayuno", icon: Coffee },
           ].map(feat => (
             <div key={feat.id} className="flex items-center space-x-2 group cursor-pointer" onClick={() => toggleFeature(feat.id)}>
               <Checkbox 
@@ -218,7 +276,7 @@ export default function AlojamientosPage() {
                         Ajustá los resultados según tus preferencias.
                       </SheetDescription>
                     </SheetHeader>
-                    <FilterContent />
+                    {renderFilterContent(false)}
                   </div>
 
                   <SheetFooter className="p-10 pt-6 mt-auto border-t border-slate-100 bg-white/80 backdrop-blur-md z-20">
@@ -242,7 +300,7 @@ export default function AlojamientosPage() {
               <div>
                 <h3 className="text-2xl font-black tracking-tight mb-2">Filtros</h3>
                 <p className="text-slate-500 text-sm font-medium mb-8">Refiná tu búsqueda</p>
-                <FilterContent isDesktop />
+                {renderFilterContent(true)}
               </div>
             </div>
           </aside>
@@ -351,18 +409,18 @@ export default function AlojamientosPage() {
                         <div className="flex items-center gap-1 text-slate-400">
                           <Users className="w-3 h-3" />
                           <span className="text-[10px] font-bold">
-                            {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
+                            {item.capacidad_total || item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
                           </span>
                         </div>
                         {/* WiFi */}
-                        {item.servicios.some(s => s.toLowerCase().includes('wifi')) && (
+                        {item.servicios.some(s => normalizeServiceForSearch(s).includes('wifi')) && (
                           <div className="flex items-center gap-1 text-slate-400">
                             <Wifi className="w-3 h-3" />
                             <span className="text-[10px] font-bold">Wi‑Fi</span>
                           </div>
                         )}
                         {/* Mascotas */}
-                        {item.servicios.some(s => s.toLowerCase().includes('mascota')) && (
+                        {item.servicios.some(s => normalizeServiceForSearch(s).includes('mascota') || normalizeServiceForSearch(s).includes('pet')) && (
                           <div className="flex items-center gap-1 text-slate-400">
                             <PawPrint className="w-3 h-3" />
                             <span className="text-[10px] font-bold">Pet Friendly</span>

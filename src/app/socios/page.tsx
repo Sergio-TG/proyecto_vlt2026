@@ -141,7 +141,19 @@ export default function SociosPage() {
         distanciaTermas: editingAccommodation.distancia_termas || "",
         tipoAcceso: editingAccommodation.tipo_acceso || "",
         perfiles: editingAccommodation.perfiles || [],
-        servicios: editingAccommodation.servicios || [],
+        servicios: Array.from(
+          new Set(
+            (editingAccommodation.servicios || [])
+              .filter((s: string) => !/^(tipo|capacidad)\s*:/i.test(s))
+              .map((s: string) => {
+                if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
+                if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
+                if (s === "Cochera cubierta") return "Cochera"
+                if (s === "Pileta propia") return "Pileta"
+                return s
+              })
+          )
+        ),
         mascotas: editingAccommodation.mascotas || "",
         checkIn: editingAccommodation.check_in || "",
         checkOut: editingAccommodation.check_out || "",
@@ -171,6 +183,40 @@ export default function SociosPage() {
   }
 
   const toggleItem = (category: 'perfiles' | 'servicios', item: string) => {
+    if (category === "servicios") {
+      const normalizedItem =
+        item === "Asador" || item === "Parrilla" || item === "Quincho" || item === "Parrillero / Quincho"
+          ? "Parrilla / Quincho"
+          : item === "Ropa Blanca"
+            ? "Ropa de Cama y Toallas"
+            : item
+
+      setFormData((prev) => {
+        const normalizedCurrent = Array.from(
+          new Set(
+            prev.servicios
+              .filter((s: string) => !/^(tipo|capacidad)\s*:/i.test(s))
+              .map((s: string) => {
+              if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
+              if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
+                if (s === "Cochera cubierta") return "Cochera"
+                if (s === "Pileta propia") return "Pileta"
+              return s
+            })
+          )
+        )
+
+        return {
+          ...prev,
+          servicios: normalizedCurrent.includes(normalizedItem)
+            ? normalizedCurrent.filter((i) => i !== normalizedItem)
+            : [...normalizedCurrent, normalizedItem],
+        }
+      })
+
+      return
+    }
+
     setFormData(prev => ({
       ...prev,
       [category]: prev[category].includes(item)
@@ -251,6 +297,24 @@ export default function SociosPage() {
       if (userError) throw userError
       if (!user) throw new Error("No hay sesión activa")
 
+      const normalizedServicios = Array.from(
+        new Set(
+          formData.servicios
+            .filter((s: string) => !/^(tipo|capacidad)\s*:/i.test(s))
+            .map((s: string) => {
+              if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
+              if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
+              if (s === "Cochera cubierta") return "Cochera"
+              if (s === "Pileta propia") return "Pileta"
+              return s
+            })
+        )
+      )
+
+      if (formData.mascotas === "Sí") {
+        normalizedServicios.push("Pet Friendly")
+      }
+
       const submissionData = {
         user_id: user.id,
         propietario: formData.propietario,
@@ -269,7 +333,7 @@ export default function SociosPage() {
         distancia_termas: formData.distanciaTermas,
         tipo_acceso: formData.tipoAcceso,
         perfiles: formData.perfiles,
-        servicios: formData.servicios,
+        servicios: Array.from(new Set(normalizedServicios)),
         mascotas: formData.mascotas,
         check_in: formData.checkIn,
         check_out: formData.checkOut,
@@ -890,49 +954,52 @@ export default function SociosPage() {
                     <div className="space-y-4">
                       <Label className="text-base text-white/80 font-bold">Servicios Incluidos:</Label>
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                        {["Pileta propia", "Asador", "Wi-Fi", "Aire Acondicionado", "Estufa a leña", "Desayuno", "Ropa Blanca", "Cochera cubierta", "Parrilla", "Quincho"].map(servicio => (
-                          <div key={servicio} className="flex items-center space-x-2 bg-white/5 p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-white/10 transition-all cursor-pointer" onClick={() => toggleItem('servicios', servicio)}>
-                            <Checkbox checked={formData.servicios.includes(servicio)} className="border-white/30" />
-                            <span className="text-sm text-white/90 font-medium">{servicio}</span>
+                        {[
+                          { value: "Pileta", label: "Pileta" },
+                          { value: "Wi-Fi", label: "Wi-Fi" },
+                          { value: "Cochera", label: "Cochera" },
+                          { value: "Parrilla / Quincho", label: "Parrilla / Quincho" },
+                          { value: "Desayuno", label: "Desayuno" },
+                          { value: "Aire Acondicionado", label: "Aire Acondicionado" },
+                          { value: "Estufa a leña", label: "Calefacción" },
+                          { value: "Ropa de Cama y Toallas", label: "Ropa de Cama y Toallas" },
+                        ].map(({ value, label }) => (
+                          <div key={value} className="flex items-center space-x-2 bg-white/5 p-4 rounded-xl border border-white/10 hover:border-primary/50 hover:bg-white/10 transition-all cursor-pointer" onClick={() => toggleItem('servicios', value)}>
+                            <Checkbox checked={formData.servicios.includes(value)} className="border-white/30" />
+                            <span className="text-sm text-white/90 font-medium">{label}</span>
                           </div>
                         ))}
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                      <div className="space-y-4">
+                      <div className="space-y-2">
                         <Label className="text-base text-white/80 font-bold">¿Acepta Mascotas?</Label>
-                        <div className="flex gap-8">
-                          {["Sí", "No"].map(opt => (
-                            <label key={opt} className="flex items-center gap-3 cursor-pointer group">
-                              <input 
-                                type="radio" 
-                                name="mascotas" 
-                                className="w-5 h-5 accent-primary bg-white/5 border-white/20" 
-                                checked={formData.mascotas === opt}
-                                onChange={() => setFormData({...formData, mascotas: opt})}
-                              />
-                              <span className="text-base text-white/80 group-hover:text-white transition-colors">{opt}</span>
-                            </label>
-                          ))}
-                        </div>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 accent-primary bg-white/5 border-white/20"
+                            checked={formData.mascotas === "Sí"}
+                            onChange={(e) => setFormData({ ...formData, mascotas: e.target.checked ? "Sí" : "No" })}
+                          />
+                          <span className="text-base text-white/80 group-hover:text-white transition-colors">
+                            Pet Friendly
+                          </span>
+                        </label>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-2">
                         <Label className="text-base text-white/80 font-bold">¿Acepta niños pequeños?</Label>
-                        <div className="flex gap-8">
-                          {["Sí", "No"].map(opt => (
-                            <label key={opt} className="flex items-center gap-3 cursor-pointer group">
-                              <input 
-                                type="radio" 
-                                name="ninos" 
-                                className="w-5 h-5 accent-primary bg-white/5 border-white/20" 
-                                checked={formData.aceptaNinos === opt}
-                                onChange={() => setFormData({...formData, aceptaNinos: opt})}
-                              />
-                              <span className="text-base text-white/80 group-hover:text-white transition-colors">{opt}</span>
-                            </label>
-                          ))}
-                        </div>
+                        <label className="flex items-center gap-3 cursor-pointer group">
+                          <input
+                            type="checkbox"
+                            className="w-5 h-5 accent-primary bg-white/5 border-white/20"
+                            checked={formData.aceptaNinos === "Sí"}
+                            onChange={(e) => setFormData({ ...formData, aceptaNinos: e.target.checked ? "Sí" : "No" })}
+                          />
+                          <span className="text-base text-white/80 group-hover:text-white transition-colors">
+                            Acepta niños
+                          </span>
+                        </label>
                       </div>
                     </div>
 

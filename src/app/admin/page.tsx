@@ -18,9 +18,13 @@ export default function AdminDashboard() {
   const [isAdmin, setIsAdmin] = React.useState(false)
   const [authLoading, setAuthLoading] = React.useState(true)
   const [pendientes, setPendientes] = React.useState<any[]>([])
+  const [aprobados, setAprobados] = React.useState<any[]>([])
   const [loading, setLoading] = React.useState(true)
+  const [loadingAprobados, setLoadingAprobados] = React.useState(true)
   const [approving, setApproving] = React.useState<string | null>(null)
+  const [deletingApprovedId, setDeletingApprovedId] = React.useState<string | null>(null)
   const [searchTerm, setSearchTerm] = React.useState("")
+  const [approvedSearchTerm, setApprovedSearchTerm] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
 
   const checkAdminSession = async () => {
@@ -33,6 +37,7 @@ export default function AdminDashboard() {
     if (session && session.user.email === adminEmail) {
       setIsAdmin(true)
       fetchPendientes()
+      fetchAprobados()
     } else {
       setIsAdmin(false)
     }
@@ -67,6 +72,7 @@ export default function AdminDashboard() {
       
       setIsAdmin(true)
       fetchPendientes()
+      fetchAprobados()
     } catch (err: any) {
       setError(err.message || "Error al iniciar sesión")
     } finally {
@@ -94,9 +100,40 @@ export default function AdminDashboard() {
     setLoading(false)
   }
 
-  React.useEffect(() => {
-    fetchPendientes()
-  }, [])
+  const fetchAprobados = async () => {
+    setLoadingAprobados(true)
+    const { data, error } = await supabase
+      .from("alojamientos_aprobados")
+      .select("id, nombre, slug, localidad, created_at")
+      .order("created_at", { ascending: false })
+      .limit(40)
+
+    if (error) {
+      console.error("Error fetching aprobados:", error)
+    } else {
+      setAprobados(data || [])
+    }
+    setLoadingAprobados(false)
+  }
+
+  const handleDeleteAprobado = async (item: any) => {
+    const confirmed = window.confirm(`Eliminar "${item.nombre}" (slug: ${item.slug}) de alojamientos_aprobados?`)
+    if (!confirmed) return
+    setDeletingApprovedId(item.id)
+    try {
+      const { error } = await supabase
+        .from("alojamientos_aprobados")
+        .delete()
+        .eq("id", item.id)
+
+      if (error) throw error
+      await fetchAprobados()
+    } catch (err: any) {
+      alert(err?.message || "Error al eliminar el alojamiento aprobado")
+    } finally {
+      setDeletingApprovedId(null)
+    }
+  }
 
   const handleApprove = async (item: any) => {
     setApproving(item.id)
@@ -111,31 +148,39 @@ export default function AdminDashboard() {
         .replace(/ +/g, "-")
         .trim();
 
-      // 2. Mapear estrictamente SOLO los campos necesarios para la web pública
-      // Esto previene errores de esquema al no enviar campos como link_drive o email_contacto
+      const normalizeServicio = (value: string) => {
+        const s = value.trim()
+        if (/^(tipo|capacidad)\s*:/i.test(s)) return ""
+        if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
+        if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
+        if (s === "Cochera cubierta") return "Cochera"
+        if (s === "Pileta propia") return "Pileta"
+        return s
+      }
+
+      const baseServicios = Array.isArray(item.servicios) ? item.servicios : []
+      const servicios = Array.from(
+        new Set(baseServicios.map((s: string) => normalizeServicio(s)).filter(Boolean))
+      )
+
+      if (item.mascotas === "Sí") {
+        servicios.push("Pet Friendly")
+      }
+
       const publicData = {
         nombre: item.nombre_complejo || "",
         slug: slug,
         descripcion: item.descripcion || "",
-        servicios: Array.isArray(item.servicios) ? item.servicios : [],
+        servicios,
         localidad: item.localidad || "",
         precio_base: item.precio_desde ? Number(item.precio_desde) : null,
         noches_minimas: item.estadia_minima ? Number(item.estadia_minima) : 1,
         rating_google: item.rating_google || 4.5,
+        tipo_alojamiento: item.tipo_alojamiento || null,
+        capacidad_total: item.capacidad_total ? Number(item.capacidad_total) : null,
+        mascotas: item.mascotas || null,
+        acepta_ninos: item.acepta_ninos || null,
       }
-
-      // Inyectamos info adicional en servicios si no existe columna dedicada
-      if (item.tipo_alojamiento && !publicData.servicios.some((s: string) => s.includes('Tipo:'))) {
-        publicData.servicios.push(`Tipo: ${item.tipo_alojamiento}`);
-      }
-      if (item.capacidad_total && !publicData.servicios.some((s: string) => s.includes('Capacidad'))) {
-        publicData.servicios.push(`Capacidad: ${item.capacidad_total} personas`);
-      }
-      if (item.mascotas === 'Sí' && !publicData.servicios.some((s: string) => s.toLowerCase().includes('mascota'))) {
-        publicData.servicios.push('Acepta Mascotas');
-      }
-
-      console.log("Enviando mapeo estricto (v2) a Supabase:", publicData);
 
       // 3. Upsert en alojamientos_aprobados (usando solo los campos permitidos)
       const { error: approveError } = await supabase
@@ -168,6 +213,12 @@ export default function AdminDashboard() {
   const filteredItems = pendientes.filter(item => 
     item.nombre_complejo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     item.propietario?.toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const filteredAprobados = aprobados.filter((item) =>
+    item.nombre?.toLowerCase().includes(approvedSearchTerm.toLowerCase()) ||
+    item.slug?.toLowerCase().includes(approvedSearchTerm.toLowerCase()) ||
+    item.localidad?.toLowerCase().includes(approvedSearchTerm.toLowerCase())
   )
 
   if (authLoading && !isAdmin) {
@@ -283,6 +334,65 @@ export default function AdminDashboard() {
             </Button>
           </div>
         </div>
+
+        <Card className="border-slate-200 bg-white mb-10 overflow-hidden">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/50">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="text-slate-900 font-black">Alojamientos Aprobados</CardTitle>
+                <CardDescription className="font-medium text-slate-500">
+                  Eliminación de registros (solo Admin)
+                </CardDescription>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="relative w-full md:w-96">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <Input
+                    placeholder="Buscar por nombre, slug o localidad..."
+                    className="pl-10 bg-white border-slate-200"
+                    value={approvedSearchTerm}
+                    onChange={(e) => setApprovedSearchTerm(e.target.value)}
+                  />
+                </div>
+                <Button variant="outline" onClick={fetchAprobados} disabled={loadingAprobados} className="bg-white">
+                  <RefreshCcw className={`w-4 h-4 ${loadingAprobados ? "animate-spin" : ""}`} />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {loadingAprobados ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {filteredAprobados.length === 0 ? (
+                  <div className="p-8 text-slate-500 font-medium">No hay resultados.</div>
+                ) : (
+                  filteredAprobados.map((item) => (
+                    <div key={item.id} className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div className="space-y-1">
+                        <p className="text-slate-900 font-black">{item.nombre}</p>
+                        <p className="text-slate-500 font-medium text-sm">
+                          {item.localidad} • <span className="font-mono text-xs">{item.slug}</span>
+                        </p>
+                      </div>
+                      <Button
+                        variant="destructive"
+                        className="h-11 rounded-xl font-black"
+                        onClick={() => handleDeleteAprobado(item)}
+                        disabled={deletingApprovedId === item.id}
+                      >
+                        {deletingApprovedId === item.id ? "Eliminando..." : "Eliminar"}
+                      </Button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-40 gap-4">

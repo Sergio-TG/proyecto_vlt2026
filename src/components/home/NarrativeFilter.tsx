@@ -2,11 +2,12 @@
 
 import * as React from "react"
 import { motion, AnimatePresence } from "framer-motion"
+import { getTaxonomiaServicios } from "@/lib/supabase-queries"
 import { 
   Heart, Users, Briefcase, User, Sun, 
   Leaf, Mountain, Compass, 
   Wifi, Coffee, Car, Flame, Waves, Fish, Accessibility, PawPrint,
-  ArrowRight, Check, Baby, UsersRound
+  ArrowRight, Check, Baby, UsersRound, Utensils, Wind, Snowflake
 } from "lucide-react"
 import Link from "next/link"
 import { Card, CardContent } from "@/components/ui/card"
@@ -52,25 +53,66 @@ const experienceTypes = [
 ]
 
 const amenities = [
-  { id: "pet_friendly", label: "Pet Friendly", icon: PawPrint },
-  { id: "wifi_high", label: "Wi-Fi", icon: Wifi },
-  { id: "breakfast", label: "Desayuno", icon: Coffee },
-  { id: "parking_covered", label: "Cochera", icon: Car },
-  { id: "linens", label: "Ropa de Cama y Toallas", icon: Sun }, // Using Sun as placeholder for linens
-  { id: "bbq", label: "Parrillero / Quincho", icon: Flame },
-  { id: "pool", label: "Pileta", icon: Waves },
-  { id: "mountain_view", label: "Vista a la Montaña", icon: Mountain },
-  { id: "river", label: "Cerca de Río/Arroyo", icon: Fish },
-  { id: "accessibility", label: "Accesibilidad", icon: Accessibility },
+  { id: "pet_friendly", label: "Pet Friendly", serviceName: "Pet Friendly", defaultIcon: PawPrint },
+  { id: "wifi_high", label: "Wi-Fi", serviceName: "Wi-Fi", defaultIcon: Wifi },
+  { id: "breakfast", label: "Desayuno", serviceName: "Desayuno", defaultIcon: Coffee },
+  { id: "parking_covered", label: "Cochera", serviceName: "Cochera", defaultIcon: Car },
+  { id: "linens", label: "Ropa de Cama y Toallas", serviceName: "Ropa de Cama y Toallas", defaultIcon: Sun },
+  { id: "bbq", label: "Parrilla / Quincho", serviceName: "Parrilla / Quincho", defaultIcon: Utensils },
+  { id: "heating", label: "Calefacción", serviceName: "Estufa a leña", defaultIcon: Flame },
+  { id: "ac", label: "Aire Acondicionado", serviceName: "Aire Acondicionado", defaultIcon: Snowflake },
+  { id: "pool", label: "Pileta", serviceName: "Pileta", defaultIcon: Waves },
+  { id: "mountain_view", label: "Vista a la Montaña", serviceName: "Vista a la Montaña", defaultIcon: Mountain },
+  { id: "river", label: "Cerca de Río/Arroyo", serviceName: "Cerca de Río/Arroyo", defaultIcon: Fish },
+  { id: "accessibility", label: "Accesibilidad", serviceName: "Accesibilidad", defaultIcon: Accessibility },
 ]
 
+const featuredAmenityIds = new Set(["parking_covered", "bbq", "breakfast"])
+
+const ICON_BY_KEY: Record<string, React.ElementType> = {
+  Car,
+  Users,
+  PawPrint,
+  Dog: PawPrint,
+  Flame,
+  Utensils,
+  Wind,
+  Snowflake,
+  Wifi,
+  Coffee,
+  Waves,
+  Mountain,
+  Fish,
+  Accessibility,
+  Sun,
+}
+
 export function NarrativeFilter() {
+  const [taxonomyByName, setTaxonomyByName] = React.useState<Record<string, string>>({})
   const [step, setStep] = React.useState(1)
   const [selections, setSelections] = React.useState({
     travelers: [] as string[],
     experience: "" as string,
     amenities: [] as string[]
   })
+
+  React.useEffect(() => {
+    let mounted = true
+    async function load() {
+      const taxonomy = await getTaxonomiaServicios()
+      if (!mounted) return
+      const next: Record<string, string> = {}
+      for (const item of taxonomy) {
+        if (!item.nombre) continue
+        next[item.nombre] = item.icono_key || ""
+      }
+      setTaxonomyByName(next)
+    }
+    load()
+    return () => {
+      mounted = false
+    }
+  }, [])
 
   const progress = (step / 3) * 100
 
@@ -104,6 +146,29 @@ export function NarrativeFilter() {
 
   const nextStep = () => setStep(prev => Math.min(prev + 1, 3))
   // const prevStep = () => setStep(prev => Math.max(prev - 1, 1)) // If needed
+
+  const selectedFeatureIds = React.useMemo(() => {
+    const featureIds: string[] = []
+    for (const id of selections.amenities) {
+      if (id === "wifi_high") featureIds.push("wifi")
+      if (id === "pet_friendly") featureIds.push("pet")
+      if (id === "pool") featureIds.push("pool")
+      if (id === "parking_covered") featureIds.push("parking")
+      if (id === "bbq") featureIds.push("bbq")
+      if (id === "breakfast") featureIds.push("breakfast")
+      if (id === "heating") featureIds.push("heating")
+    }
+    return Array.from(new Set(featureIds))
+  }, [selections.amenities])
+
+  const recommendationsHref = React.useMemo(() => {
+    const params = new URLSearchParams()
+    if (selectedFeatureIds.length > 0) {
+      params.set("features", selectedFeatureIds.join(","))
+    }
+    const qs = params.toString()
+    return qs ? `/alojamientos?${qs}` : "/alojamientos"
+  }, [selectedFeatureIds])
 
   return (
     <div className="w-full max-w-5xl mx-auto -mt-20 relative z-30 px-4">
@@ -221,22 +286,40 @@ export function NarrativeFilter() {
                     >
                         <h4 className="text-lg font-semibold">Preferencias y Servicios</h4>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                            {amenities.map((item) => (
-                                <div key={item.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors">
-                                    <Checkbox 
-                                        id={item.id} 
-                                        checked={selections.amenities.includes(item.id)}
-                                        onCheckedChange={() => handleAmenityToggle(item.id)}
-                                    />
-                                    <Label 
-                                        htmlFor={item.id} 
-                                        className="flex items-center gap-2 cursor-pointer font-normal"
-                                    >
-                                        <item.icon className="w-4 h-4 text-muted-foreground" />
-                                        {item.label}
-                                    </Label>
+                            {[...amenities].sort((a, b) => {
+                              const aFeatured = featuredAmenityIds.has(a.id)
+                              const bFeatured = featuredAmenityIds.has(b.id)
+                              if (aFeatured === bFeatured) return 0
+                              return aFeatured ? -1 : 1
+                            }).map((item) => {
+                              const iconKey = taxonomyByName[item.serviceName]
+                              const Icon = (iconKey && ICON_BY_KEY[iconKey]) ? ICON_BY_KEY[iconKey] : item.defaultIcon
+
+                              return (
+                                <div
+                                  key={item.id}
+                                  className={cn(
+                                    "flex items-center space-x-3 p-3 rounded-lg transition-colors",
+                                    featuredAmenityIds.has(item.id)
+                                      ? "bg-primary/5 hover:bg-primary/10 border border-primary/20"
+                                      : "hover:bg-secondary/50"
+                                  )}
+                                >
+                                  <Checkbox 
+                                    id={item.id} 
+                                    checked={selections.amenities.includes(item.id)}
+                                    onCheckedChange={() => handleAmenityToggle(item.id)}
+                                  />
+                                  <Label 
+                                    htmlFor={item.id} 
+                                    className="flex items-center gap-2 cursor-pointer font-normal"
+                                  >
+                                    <Icon className="w-4 h-4 text-muted-foreground" />
+                                    {item.label}
+                                  </Label>
                                 </div>
-                            ))}
+                              )
+                            })}
                         </div>
                     </motion.div>
                 )}
@@ -256,7 +339,7 @@ export function NarrativeFilter() {
                         Siguiente <ArrowRight className="ml-2 w-4 h-4" />
                     </Button>
                 ) : (
-                    <Link href="/alojamientos">
+                    <Link href={recommendationsHref}>
                         <Button 
                             size="lg"
                             className="px-8 bg-gradient-to-r from-primary to-blue-600 hover:from-primary/90 hover:to-blue-600/90 shadow-lg"

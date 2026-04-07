@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { AccommodationGallery } from "@/components/accommodations/AccommodationGallery";
-import { getAlojamientoBySlug, AlojamientoAprobado } from "@/lib/supabase-queries";
+import { getAlojamientoBySlug, AlojamientoAprobado, getTaxonomiaServicios } from "@/lib/supabase-queries";
 import { slugify } from "@/lib/utils";
 import CustomImage from "@/components/common/CustomImage";
 import {
@@ -18,6 +18,7 @@ import {
   Wifi,
   Wind,
   Waves,
+  PawPrint,
   Dog,
   Car,
   AlertTriangle,
@@ -36,6 +37,30 @@ import {
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
 import { useRef, use, useState, useEffect } from "react";
 
+function normalizeServiceLabel(service: string) {
+  const s = service.trim();
+  if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho";
+  if (s === "Ropa Blanca") return "Ropa de Cama y Toallas";
+  if (s === "Estufa a leña") return "Calefacción";
+  return s;
+}
+
+function normalizeServiceCanonical(service: string) {
+  const s = service.trim();
+  if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho";
+  if (s === "Ropa Blanca") return "Ropa de Cama y Toallas";
+  if (s === "Calefacción") return "Estufa a leña";
+  return s;
+}
+
+function normalizeServiceForSearch(service: string) {
+  return service
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "");
+}
+
 interface PageProps {
   params: Promise<{ id: string }>;
 }
@@ -46,6 +71,7 @@ export default function AccommodationPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showShareToast, setShowShareToast] = useState(false);
+  const [taxonomyByName, setTaxonomyByName] = useState<Record<string, string>>({});
 
   useEffect(() => {
     async function loadData() {
@@ -55,6 +81,24 @@ export default function AccommodationPage({ params }: PageProps) {
     }
     loadData();
   }, [slug]);
+
+  useEffect(() => {
+    let mounted = true;
+    async function loadTaxonomy() {
+      const taxonomy = await getTaxonomiaServicios();
+      if (!mounted) return;
+      const next: Record<string, string> = {};
+      for (const item of taxonomy) {
+        if (!item.nombre) continue;
+        next[item.nombre] = item.icono_key || "";
+      }
+      setTaxonomyByName(next);
+    }
+    loadTaxonomy();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Parallax effects
   const { scrollYProgress } = useScroll({
@@ -99,20 +143,38 @@ export default function AccommodationPage({ params }: PageProps) {
       case "wifi": return <Wifi className="w-5 h-5" />;
       case "ac": return <Wind className="w-5 h-5" />;
       case "pool": return <Waves className="w-5 h-5" />;
-      case "pet": return <Dog className="w-5 h-5" />;
+      case "pet": return <PawPrint className="w-5 h-5" />;
       default: return <CheckCircle2 className="w-5 h-5" />;
     }
   };
 
   const getServiceIcon = (service: string) => {
-    const s = service.toLowerCase();
+    const canonical = normalizeServiceCanonical(service);
+    const iconKey = taxonomyByName[canonical];
+    if (iconKey) {
+      if (iconKey === "Wifi") return <Wifi className="w-5 h-5" />;
+      if (iconKey === "Waves") return <Waves className="w-5 h-5" />;
+      if (iconKey === "Car") return <Car className="w-5 h-5" />;
+      if (iconKey === "Tv") return <Tv className="w-5 h-5" />;
+      if (iconKey === "Coffee") return <Coffee className="w-5 h-5" />;
+      if (iconKey === "Utensils") return <Utensils className="w-5 h-5" />;
+      if (iconKey === "Flame") return <Flame className="w-5 h-5" />;
+      if (iconKey === "Wind") return <Wind className="w-5 h-5" />;
+      if (iconKey === "Snowflake") return <Snowflake className="w-5 h-5" />;
+      if (iconKey === "PawPrint" || iconKey === "Dog") return <PawPrint className="w-5 h-5" />;
+      if (iconKey === "Users") return <Users className="w-5 h-5" />;
+    }
+
+    const s = normalizeServiceForSearch(service);
     if (s.includes("wifi")) return <Wifi className="w-5 h-5" />;
     if (s.includes("piscina") || s.includes("pileta")) return <Waves className="w-5 h-5" />;
+    if (s.includes("cochera")) return <Car className="w-5 h-5" />;
     if (s.includes("tv") || s.includes("cable")) return <Tv className="w-5 h-5" />;
     if (s.includes("desayuno")) return <Coffee className="w-5 h-5" />;
     if (s.includes("cocina") || s.includes("vajilla")) return <Utensils className="w-5 h-5" />;
+    if (s.includes("estufa") || s.includes("calefaccion")) return <Flame className="w-5 h-5" />;
     if (s.includes("aire") || s.includes("ac")) return <Snowflake className="w-5 h-5" />;
-    if (s.includes("parrilla") || s.includes("asador")) return <Flame className="w-5 h-5" />;
+    if (s.includes("parrilla") || s.includes("asador") || s.includes("quincho")) return <Utensils className="w-5 h-5" />;
     return <CheckCircle2 className="w-5 h-5" />;
   };
 
@@ -132,10 +194,11 @@ export default function AccommodationPage({ params }: PageProps) {
   // Helper para extraer features desde servicios si no existe la columna en DB
   const getDerivedFeatures = () => {
     if (!accommodation) return null;
-    const s = accommodation.servicios?.map(serv => serv.toLowerCase()) || [];
+    const s = accommodation.servicios?.map((serv) => normalizeServiceForSearch(serv)) || [];
     
-    // Extraer capacidad del texto "Capacidad: X personas"
-    let guests = 0;
+    let guests = accommodation.capacidad_total ? Number(accommodation.capacidad_total) : 0;
+    if (!Number.isFinite(guests)) guests = 0;
+
     const capacityText = accommodation.servicios?.find(serv => serv.includes('Capacidad:'));
     if (capacityText) {
       const match = capacityText.match(/\d+/);
@@ -144,7 +207,7 @@ export default function AccommodationPage({ params }: PageProps) {
 
     return {
       guests,
-      wifi: s.some(serv => serv.includes('wifi')),
+      wifi: s.some((serv) => serv.includes("wifi")),
       pet: s.some(serv => serv.includes('mascota') || serv.includes('pet') || serv.includes('acepta')),
       pool: s.some(serv => serv.includes('piscina') || serv.includes('pileta')),
     };
@@ -317,12 +380,12 @@ export default function AccommodationPage({ params }: PageProps) {
                 <div className="space-y-6 pt-12 border-t border-slate-100">
                   <h3 className="text-xl font-black text-slate-900 tracking-tight">Servicios Incluidos</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {accommodation.servicios?.map((service, index) => (
+                    {accommodation.servicios?.filter((service) => !/^(tipo|capacidad)\s*:/i.test(service)).map((service, index) => (
                       <div key={index} className="flex items-center gap-3 text-slate-600 group">
                         <div className="p-1 rounded-full bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
                           {getServiceIcon(service)}
                         </div>
-                        <span className="text-base font-light">{service}</span>
+                        <span className="text-base font-light">{normalizeServiceLabel(service)}</span>
                       </div>
                     ))}
                   </div>
@@ -356,7 +419,7 @@ export default function AccommodationPage({ params }: PageProps) {
               </CardHeader>
               <CardContent className="p-10 space-y-8">
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-                  <Button asChild className="w-full bg-accent hover:bg-accent/90 text-white shadow-2xl shadow-accent/20 text-lg h-20 rounded-full font-black">
+                  <Button asChild className="w-full bg-[#1a1f2c] hover:bg-primary text-white shadow-2xl text-lg h-20 rounded-full font-bold">
                     <a href={`https://wa.me/5493546525404?text=Hola, me interesa consultar disponibilidad para *${accommodation.nombre}*.`} target="_blank" rel="noopener noreferrer">
                       <MessageCircle className="w-6 h-6 mr-3" />
                       Consultar Disponibilidad

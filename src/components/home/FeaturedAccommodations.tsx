@@ -17,6 +17,14 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState, useEffect } from "react"
 import CustomImage from "@/components/common/CustomImage"
 
+function normalizeServiceForSearch(service: string) {
+  return service
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "")
+}
+
 export function FeaturedAccommodations() {
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
@@ -207,13 +215,13 @@ export function FeaturedAccommodations() {
                             <div className="flex items-center gap-1 text-slate-400">
                               <Users className="w-3 h-3" />
                               <span className="text-[10px] font-bold">
-                                {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
+                                {item.capacidad_total || item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
                               </span>
                             </div>
-                            {item.servicios.some(s => s.toLowerCase().includes('wifi')) && (
+                            {item.servicios.some(s => normalizeServiceForSearch(s).includes('wifi')) && (
                               <Wifi className="w-3 h-3 text-slate-400" />
                             )}
-                            {item.servicios.some(s => s.toLowerCase().includes('mascota')) && (
+                            {item.servicios.some(s => normalizeServiceForSearch(s).includes('mascota') || normalizeServiceForSearch(s).includes('pet')) && (
                               <PawPrint className="w-3 h-3 text-slate-400" />
                             )}
                           </div>
