@@ -19,13 +19,75 @@ export default function AdminDashboard() {
   const [authLoading, setAuthLoading] = React.useState(true)
   const [pendientes, setPendientes] = React.useState<any[]>([])
   const [aprobados, setAprobados] = React.useState<any[]>([])
+  const [aprobadosBySlug, setAprobadosBySlug] = React.useState<Record<string, any>>({})
   const [loading, setLoading] = React.useState(true)
   const [loadingAprobados, setLoadingAprobados] = React.useState(true)
   const [approving, setApproving] = React.useState<string | null>(null)
   const [deletingApprovedId, setDeletingApprovedId] = React.useState<string | null>(null)
+  const [cleaningDuplicates, setCleaningDuplicates] = React.useState(false)
+  const [normalizingApproved, setNormalizingApproved] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
   const [approvedSearchTerm, setApprovedSearchTerm] = React.useState("")
   const [error, setError] = React.useState<string | null>(null)
+
+  const toSlug = (value: string) => {
+    return (value || "alojamiento-sin-nombre")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^\w ]+/g, "")
+      .replace(/ +/g, "-")
+      .trim()
+  }
+
+  const getPendingSlug = (item: any) => {
+    if (typeof item?.slug === "string" && item.slug.trim().length > 0) return item.slug.trim()
+    return toSlug(item?.nombre_complejo || "")
+  }
+
+  const normalizeServicioName = (value: string) => {
+    const s = value.trim()
+    if (s.length === 0) return null
+    if (/^(tipo|capacidad)\s*:/i.test(s)) return null
+    if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
+    if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
+    if (s === "Cochera cubierta") return "Cochera"
+    if (s === "Pileta propia" || s === "Piscina") return "Pileta"
+    if (s === "Acepta Mascotas") return "Pet Friendly"
+    return s
+  }
+
+  const parseServiciosFromUnknown = (raw: unknown): string[] => {
+    if (Array.isArray(raw)) return raw.map((v) => String(v))
+    if (typeof raw !== "string") return []
+    const t = raw.trim()
+    if (t.length === 0) return []
+    if (t.startsWith("[") && t.endsWith("]")) {
+      try {
+        const parsed = JSON.parse(t)
+        if (Array.isArray(parsed)) return parsed.map((v) => String(v))
+      } catch {
+      }
+    }
+    if (t.startsWith("{") && t.endsWith("}")) {
+      const inner = t.slice(1, -1)
+      return inner
+        .split(",")
+        .map((p) => p.trim().replace(/^"+|"+$/g, ""))
+        .filter(Boolean)
+    }
+    return t
+      .split(",")
+      .map((p) => p.trim())
+      .filter(Boolean)
+  }
+
+  const normalizeServicios = (raw: unknown) => {
+    const list = parseServiciosFromUnknown(raw)
+      .map(normalizeServicioName)
+      .filter((s): s is string => Boolean(s))
+    return Array.from(new Set(list))
+  }
 
   const checkAdminSession = async () => {
     setAuthLoading(true)
@@ -87,15 +149,39 @@ export default function AdminDashboard() {
 
   const fetchPendientes = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('alojamientos_pendientes')
-      .select('*')
-      .order('created_at', { ascending: false })
-    
-    if (error) {
-      console.error("Error fetching pendientes:", error)
-    } else {
-      setPendientes(data || [])
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+
+      const res = await fetch("/api/admin/pending", {
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+      })
+      const json = await res.json()
+      if (json?.reason === "missing_env") {
+        const { data, error } = await supabase
+          .from('alojamientos_pendientes')
+          .select('*')
+          .order('created_at', { ascending: false })
+        if (error) {
+          console.error("Error fetching pendientes:", error)
+          setPendientes([])
+          setAprobadosBySlug({})
+        } else {
+          setPendientes(data || [])
+          setAprobadosBySlug({})
+        }
+      } else if (!res.ok || !json?.ok) {
+        console.error("Error fetching pendientes (server):", json)
+        setPendientes([])
+        setAprobadosBySlug({})
+      } else {
+        setPendientes(json.pendientes || [])
+        setAprobadosBySlug(json.aprobadosBySlug || {})
+      }
+    } catch (err) {
+      console.error("Error fetching pendientes:", err)
+      setPendientes([])
+      setAprobadosBySlug({})
     }
     setLoading(false)
   }
@@ -121,13 +207,26 @@ export default function AdminDashboard() {
     if (!confirmed) return
     setDeletingApprovedId(item.id)
     try {
-      const { error } = await supabase
-        .from("alojamientos_aprobados")
-        .delete()
-        .eq("id", item.id)
+      const pendingIds = (pendientes || [])
+        .filter((p: any) => getPendingSlug(p) === item.slug)
+        .map((p: any) => p?.id)
+        .filter(Boolean)
 
-      if (error) throw error
+      const res = await fetch("/api/admin/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ approvedId: item.id, pendingIds }),
+      })
+      const json = await res.json()
+      if (json?.reason === "missing_env") {
+        throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para eliminar con privilegios.")
+      }
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "Error al eliminar (server)")
+      }
+
       await fetchAprobados()
+      await fetchPendientes()
     } catch (err: any) {
       alert(err?.message || "Error al eliminar el alojamiento aprobado")
     } finally {
@@ -138,15 +237,7 @@ export default function AdminDashboard() {
   const handleApprove = async (item: any) => {
     setApproving(item.id)
     try {
-      // 1. Generar slug automáticamente si no existe o es inválido
-      const baseName = item.nombre_complejo || "alojamiento-sin-nombre";
-      const slug = baseName
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^\w ]+/g, "")
-        .replace(/ +/g, "-")
-        .trim();
+      const slug = toSlug(item.nombre_complejo)
 
       const normalizeServicio = (value: string) => {
         const s = value.trim()
@@ -155,6 +246,7 @@ export default function AdminDashboard() {
         if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
         if (s === "Cochera cubierta") return "Cochera"
         if (s === "Pileta propia") return "Pileta"
+        if (s === "Piscina") return "Pileta"
         return s
       }
 
@@ -167,7 +259,7 @@ export default function AdminDashboard() {
         servicios.push("Pet Friendly")
       }
 
-      const publicData = {
+      const publicData: Record<string, unknown> = {
         nombre: item.nombre_complejo || "",
         slug: slug,
         descripcion: item.descripcion || "",
@@ -176,29 +268,74 @@ export default function AdminDashboard() {
         precio_base: item.precio_desde ? Number(item.precio_desde) : null,
         noches_minimas: item.estadia_minima ? Number(item.estadia_minima) : 1,
         rating_google: item.rating_google || 4.5,
-        tipo_alojamiento: item.tipo_alojamiento || null,
-        capacidad_total: item.capacidad_total ? Number(item.capacidad_total) : null,
-        mascotas: item.mascotas || null,
-        acepta_ninos: item.acepta_ninos || null,
       }
 
-      // 3. Upsert en alojamientos_aprobados (usando solo los campos permitidos)
-      const { error: approveError } = await supabase
-        .from('alojamientos_aprobados')
-        .upsert(publicData, { onConflict: 'slug' })
+      if (typeof item.user_id !== "undefined") publicData.user_id = item.user_id
+      if (item.tipo_alojamiento) publicData.tipo_alojamiento = item.tipo_alojamiento
+      if (typeof item.capacidad_total !== "undefined" && item.capacidad_total !== null && item.capacidad_total !== "") {
+        publicData.capacidad_total = Number(item.capacidad_total)
+      }
+      if (typeof item.mascotas !== "undefined") publicData.mascotas = item.mascotas
+      if (typeof item.acepta_ninos !== "undefined") publicData.acepta_ninos = item.acepta_ninos
 
-      if (approveError) {
-        console.error("Error detallado de Supabase:", {
-          message: approveError.message,
-          code: approveError.code,
-          details: approveError.details,
-          hint: approveError.hint
-        });
-        throw new Error(`${approveError.message}${approveError.hint ? ` - Hint: ${approveError.hint}` : ""}`);
+      const upsertWithFallback = async () => {
+        const payload: Record<string, unknown> = { ...publicData }
+        // Intento 1: update si existe
+        const { data: existing } = await supabase
+          .from("alojamientos_aprobados")
+          .select("id")
+          .eq("slug", payload.slug as string)
+          .limit(1)
+        if (existing && existing.length > 0) {
+          const { error } = await supabase
+            .from("alojamientos_aprobados")
+            .update(payload)
+            .eq("slug", payload.slug as string)
+          if (!error) return
+        }
+
+        // Intento 2: upsert con eliminación progresiva de columnas desconocidas
+        for (let i = 0; i < 4; i++) {
+          const { error } = await supabase
+            .from("alojamientos_aprobados")
+            .upsert(payload, { onConflict: "slug" })
+
+          if (!error) return
+
+          const msg = error.message || ""
+          const match = msg.match(/Could not find the '([^']+)' column/i)
+          if (match) {
+            const missingKey = match[1]
+            if (missingKey in payload) {
+              delete payload[missingKey]
+              continue
+            }
+          }
+
+          // Intento 3: fallback a API server (service role) para superar RLS
+          try {
+            const res = await fetch("/api/admin/approve", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ payload, pendingId: item.id }),
+            })
+            const json = await res.json()
+            if (json?.reason === "missing_env") {
+              throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para aprobar con privilegios.")
+            }
+            if (res.ok && json?.ok) return
+            throw new Error(json?.error || "Server approve failed")
+          } catch (serverErr: any) {
+            throw new Error(serverErr?.message || "Fallo al aprobar (server)")
+          }
+        }
+        throw new Error("Error al aprobar: no se pudo guardar el registro en aprobados.")
       }
 
-      // 4. Feedback y recarga
+      await upsertWithFallback()
+
       alert(`¡${item.nombre_complejo} ha sido aprobado con éxito!`);
+      fetchAprobados();
       fetchPendientes();
       
     } catch (err: any) {
@@ -210,10 +347,193 @@ export default function AdminDashboard() {
     }
   }
 
-  const filteredItems = pendientes.filter(item => 
-    item.nombre_complejo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    item.propietario?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  const approvedSlugSet = React.useMemo(() => {
+    return new Set((aprobados || []).map((a: any) => a?.slug).filter(Boolean))
+  }, [aprobados])
+
+  const isPendingSyncedWithApproved = (pending: any) => {
+    const slug = getPendingSlug(pending)
+    const approved = aprobadosBySlug[slug]
+    if (!approved) return false
+
+    const pendingServicios = normalizeServicios(pending?.servicios)
+    const approvedServicios = normalizeServicios(approved?.servicios)
+    const serviciosEqual = pendingServicios.join("|") === approvedServicios.join("|")
+
+    const pendingDescripcion = String(pending?.descripcion || "").trim()
+    const approvedDescripcion = String(approved?.descripcion || "").trim()
+    const descripcionEqual = pendingDescripcion === approvedDescripcion
+
+    const pendingLocalidad = String(pending?.localidad || "").trim()
+    const approvedLocalidad = String(approved?.localidad || "").trim()
+    const localidadEqual = pendingLocalidad === approvedLocalidad
+
+    const pendingPrecio = pending?.precio_desde != null && pending?.precio_desde !== "" ? Number(pending.precio_desde) : null
+    const approvedPrecio = approved?.precio_base != null && approved?.precio_base !== "" ? Number(approved.precio_base) : null
+    const precioEqual =
+      (pendingPrecio === null && approvedPrecio === null) ||
+      (pendingPrecio !== null && approvedPrecio !== null && pendingPrecio === approvedPrecio)
+
+    const pendingMin = pending?.estadia_minima != null && pending?.estadia_minima !== "" ? Number(pending.estadia_minima) : 1
+    const approvedMin = approved?.noches_minimas != null && approved?.noches_minimas !== "" ? Number(approved.noches_minimas) : 1
+    const minEqual = pendingMin === approvedMin
+
+    return serviciosEqual && descripcionEqual && localidadEqual && precioEqual && minEqual
+  }
+
+  const getPendingChangeSummary = (pending: any) => {
+    const slug = getPendingSlug(pending)
+    const approved = aprobadosBySlug[slug]
+    if (!approved) return []
+
+    const changes: string[] = []
+
+    const pendingServicios = normalizeServicios(pending?.servicios)
+    const approvedServicios = normalizeServicios(approved?.servicios)
+    const added = pendingServicios.filter((s) => !approvedServicios.includes(s))
+    const removed = approvedServicios.filter((s) => !pendingServicios.includes(s))
+    if (added.length > 0) changes.push(`Servicios +${added.length}`)
+    if (removed.length > 0) changes.push(`Servicios -${removed.length}`)
+
+    const pendingDescripcion = String(pending?.descripcion || "").trim()
+    const approvedDescripcion = String(approved?.descripcion || "").trim()
+    if (pendingDescripcion !== approvedDescripcion) changes.push("Descripción")
+
+    const pendingPrecio = pending?.precio_desde != null && pending?.precio_desde !== "" ? Number(pending.precio_desde) : null
+    const approvedPrecio = approved?.precio_base != null && approved?.precio_base !== "" ? Number(approved.precio_base) : null
+    if (pendingPrecio !== approvedPrecio) changes.push("Precio")
+
+    const pendingMin = pending?.estadia_minima != null && pending?.estadia_minima !== "" ? Number(pending.estadia_minima) : 1
+    const approvedMin = approved?.noches_minimas != null && approved?.noches_minimas !== "" ? Number(approved.noches_minimas) : 1
+    if (pendingMin !== approvedMin) changes.push("Estadía mín.")
+
+    const pendingDrive = String(pending?.link_drive || "").trim()
+    const approvedDrive = String(approved?.link_drive || "").trim()
+    if (pendingDrive && pendingDrive !== approvedDrive) changes.push("Multimedia")
+
+    return changes
+  }
+
+  const duplicatePendingCount = React.useMemo(() => {
+    return (pendientes || []).filter((p: any) => isPendingSyncedWithApproved(p)).length
+  }, [aprobadosBySlug, pendientes])
+
+  const handleCleanDuplicates = async () => {
+    const duplicateIds = (pendientes || [])
+      .filter((p: any) => isPendingSyncedWithApproved(p))
+      .map((p: any) => p?.id)
+      .filter(Boolean)
+
+    if (duplicateIds.length === 0) {
+      alert("No se encontraron pendientes duplicados para limpiar.")
+      return
+    }
+
+    const confirmed = window.confirm(
+      `Se van a eliminar ${duplicateIds.length} registros de "alojamientos_pendientes" que ya están sincronizados con "alojamientos_aprobados" (sin cambios pendientes). ¿Continuar?`
+    )
+    if (!confirmed) return
+
+    setCleaningDuplicates(true)
+    try {
+      for (let i = 0; i < duplicateIds.length; i += 100) {
+        const chunk = duplicateIds.slice(i, i + 100)
+        const { error } = await supabase
+          .from("alojamientos_pendientes")
+          .delete()
+          .in("id", chunk)
+
+        if (error) throw error
+      }
+
+      await fetchPendientes()
+      alert("Pendientes duplicados eliminados correctamente.")
+    } catch (err: any) {
+      alert(err?.message || "Error al limpiar pendientes duplicados")
+    } finally {
+      setCleaningDuplicates(false)
+    }
+  }
+
+  const handleNormalizeAprobadosServicios = async () => {
+    const confirmed = window.confirm(
+      `Esto normaliza y deduplica el campo "servicios" en "alojamientos_aprobados" (ej: Asador/Parrilla/Quincho → Parrilla / Quincho, Piscina → Pileta) para todos los registros. ¿Continuar?`
+    )
+    if (!confirmed) return
+
+    setNormalizingApproved(true)
+    try {
+      let from = 0
+      const pageSize = 200
+      let updatedCount = 0
+
+      while (true) {
+        let pageData: any[] | null = null
+
+        const { data, error } = await supabase
+          .from("alojamientos_aprobados")
+          .select("id, servicios")
+          .range(from, from + pageSize - 1)
+
+        if (error) {
+          console.error("Error fetching aprobados for normalization:", error)
+          break
+        }
+
+        pageData = data || []
+        if (pageData.length === 0) break
+
+        for (const row of pageData) {
+          const currentRaw = row?.servicios
+          const normalized = normalizeServicios(currentRaw)
+
+          let desired: unknown
+          let hasChange = false
+
+          if (Array.isArray(currentRaw)) {
+            const currentList = normalizeServicios(currentRaw)
+            const desiredList = normalized
+            desired = desiredList
+            hasChange = currentList.join("|") !== desiredList.join("|")
+          } else {
+            const currentStr = String(currentRaw || "").trim()
+            const desiredStr = normalized.join(", ").trim()
+            desired = desiredStr
+            hasChange = currentStr !== desiredStr
+          }
+
+          if (!hasChange) continue
+
+          const { error: updateError } = await supabase
+            .from("alojamientos_aprobados")
+            .update({ servicios: desired })
+            .eq("id", row.id)
+
+          if (!updateError) updatedCount++
+        }
+
+        if (pageData.length < pageSize) break
+        from += pageSize
+      }
+
+      await fetchAprobados()
+      await fetchPendientes()
+      alert(`Normalización completada. Registros actualizados: ${updatedCount}.`)
+    } catch (err: any) {
+      alert(err?.message || "Error al normalizar servicios en aprobados")
+    } finally {
+      setNormalizingApproved(false)
+    }
+  }
+
+  const filteredItems = pendientes
+    .filter((item) =>
+      item.nombre_complejo?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.propietario?.toLowerCase().includes(searchTerm.toLowerCase())
+    )
+    .filter((item) => {
+      return !isPendingSyncedWithApproved(item)
+    })
 
   const filteredAprobados = aprobados.filter((item) =>
     item.nombre?.toLowerCase().includes(approvedSearchTerm.toLowerCase()) ||
@@ -328,6 +648,14 @@ export default function AdminDashboard() {
             <Button variant="outline" onClick={fetchPendientes} disabled={loading} className="bg-white">
               <RefreshCcw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
             </Button>
+            <Button
+              variant="outline"
+              onClick={handleCleanDuplicates}
+              disabled={cleaningDuplicates || loading || loadingAprobados || duplicatePendingCount === 0}
+              className="bg-white font-bold"
+            >
+              {cleaningDuplicates ? "Limpiando..." : `Limpiar duplicados${duplicatePendingCount > 0 ? ` (${duplicatePendingCount})` : ""}`}
+            </Button>
             <Button variant="ghost" onClick={handleLogout} className="text-slate-400 hover:text-red-500 hover:bg-red-50 font-bold gap-2">
               <LogOut className="w-4 h-4" />
               Salir
@@ -356,6 +684,14 @@ export default function AdminDashboard() {
                 </div>
                 <Button variant="outline" onClick={fetchAprobados} disabled={loadingAprobados} className="bg-white">
                   <RefreshCcw className={`w-4 h-4 ${loadingAprobados ? "animate-spin" : ""}`} />
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={handleNormalizeAprobadosServicios}
+                  disabled={normalizingApproved || loadingAprobados}
+                  className="bg-white font-bold"
+                >
+                  {normalizingApproved ? "Normalizando..." : "Normalizar servicios"}
                 </Button>
               </div>
             </div>
@@ -413,30 +749,45 @@ export default function AdminDashboard() {
               </Card>
             ) : (
               <AnimatePresence>
-                {filteredItems.map((item) => (
-                  <motion.div
-                    key={item.id}
-                    layout
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                  >
+                {filteredItems.map((item) => {
+                  const slug = getPendingSlug(item)
+                  const isUpdateRequest = Boolean(aprobadosBySlug[slug])
+                  const changeSummary = isUpdateRequest ? getPendingChangeSummary(item) : []
+
+                  return (
+                    <motion.div
+                      key={item.id}
+                      layout
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                    >
                     <Card className="border-slate-200 hover:shadow-xl transition-all duration-500 group overflow-hidden bg-white">
                       <div className="flex flex-col lg:flex-row">
                         {/* Status Bar Vertical */}
-                        <div className="w-2 bg-yellow-400 group-hover:bg-primary transition-colors" />
+                        <div className={`w-2 ${isUpdateRequest ? "bg-blue-500" : "bg-yellow-400"} group-hover:bg-primary transition-colors`} />
                         
                         <CardContent className="p-8 flex-grow">
                           <div className="flex flex-col md:flex-row justify-between gap-8">
                             <div className="space-y-4 flex-grow">
                               <div className="flex flex-wrap items-center gap-3">
-                                <Badge className="bg-yellow-100 text-yellow-700 hover:bg-yellow-100 border-none px-3 py-1 font-bold text-[10px] uppercase tracking-wider">
-                                  Pendiente de Revisión
+                                <Badge className={`${isUpdateRequest ? "bg-blue-100 text-blue-700 hover:bg-blue-100" : "bg-yellow-100 text-yellow-700 hover:bg-yellow-100"} border-none px-3 py-1 font-bold text-[10px] uppercase tracking-wider`}>
+                                  {isUpdateRequest ? "Actualización solicitada" : "Pendiente de Revisión"}
                                 </Badge>
                                 <span className="text-[11px] text-slate-400 font-bold uppercase tracking-widest">
                                   Registrado el {new Date(item.created_at).toLocaleDateString()}
                                 </span>
                               </div>
+
+                              {isUpdateRequest && changeSummary.length > 0 && (
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {changeSummary.map((c) => (
+                                    <Badge key={c} variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 font-bold text-[10px] uppercase tracking-wider">
+                                      {c}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
                               
                               <div>
                                 <h2 className="text-2xl font-black text-slate-900 group-hover:text-primary transition-colors leading-tight">
@@ -497,7 +848,8 @@ export default function AdminDashboard() {
                       </div>
                     </Card>
                   </motion.div>
-                ))}
+                  )
+                })}
               </AnimatePresence>
             )}
           </div>

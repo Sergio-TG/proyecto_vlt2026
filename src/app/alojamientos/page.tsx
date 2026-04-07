@@ -201,7 +201,7 @@ export default function AlojamientosPage() {
           {[
             { id: "wifi", label: "Wi-Fi Gratis", icon: Wifi },
             { id: "pet", label: "Pet Friendly", icon: PawPrint },
-            { id: "pool", label: "Piscina", icon: Waves },
+            { id: "pool", label: "Pileta", icon: Waves },
             { id: "parking", label: "Cochera", icon: Car },
             { id: "bbq", label: "Parrilla / Quincho", icon: Utensils },
             { id: "breakfast", label: "Desayuno", icon: Coffee },

@@ -39,7 +39,7 @@ export async function getAlojamientos() {
     return [];
   }
 
-  return data as AlojamientoAprobado[];
+  return (data ?? []).map(normalizeAlojamiento);
 }
 
 function uniqueById(items: AlojamientoAprobado[]) {
@@ -48,9 +48,75 @@ function uniqueById(items: AlojamientoAprobado[]) {
   return Array.from(map.values());
 }
 
+function normalizeServicioName(value: string) {
+  const s = value.trim();
+  if (s.length === 0) return null;
+  if (/^(tipo|capacidad)\s*:/i.test(s)) return null;
+  if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho";
+  if (s === "Ropa Blanca") return "Ropa de Cama y Toallas";
+  if (s === "Cochera cubierta") return "Cochera";
+  if (s === "Pileta propia" || s === "Piscina") return "Pileta";
+  if (s === "Acepta Mascotas") return "Pet Friendly";
+  if (s === "Calefacción") return "Estufa a leña";
+  return s;
+}
+
+function parseServiciosFromUnknown(raw: unknown): string[] {
+  if (Array.isArray(raw)) return raw.map((v) => String(v));
+  if (typeof raw !== "string") return [];
+
+  const t = raw.trim();
+  if (t.length === 0) return [];
+
+  if (t.startsWith("[") && t.endsWith("]")) {
+    try {
+      const parsed = JSON.parse(t);
+      if (Array.isArray(parsed)) return parsed.map((v) => String(v));
+    } catch {
+    }
+  }
+
+  if (t.startsWith("{") && t.endsWith("}")) {
+    const inner = t.slice(1, -1);
+    return inner
+      .split(",")
+      .map((p) => p.trim().replace(/^"+|"+$/g, ""))
+      .filter(Boolean);
+  }
+
+  return t
+    .split(",")
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+function normalizeServicios(raw: unknown) {
+  const list = parseServiciosFromUnknown(raw)
+    .map(normalizeServicioName)
+    .filter((s): s is string => Boolean(s));
+
+  return Array.from(new Set(list));
+}
+
+function normalizeAlojamiento(item: any): AlojamientoAprobado {
+  const servicios = normalizeServicios(item?.servicios);
+  return {
+    ...(item as AlojamientoAprobado),
+    servicios,
+  };
+}
+
 function toPostgresTextArrayLiteral(values: string[]) {
   const escaped = values.map((v) => `"${v.replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"`);
   return `{${escaped.join(",")}}`;
+}
+
+function safeStringify(value: unknown) {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return null;
+  }
 }
 
 function logPostgrestError(prefix: string, error: unknown) {
@@ -60,6 +126,8 @@ function logPostgrestError(prefix: string, error: unknown) {
     hint: (error as { hint?: string })?.hint,
     code: (error as { code?: string })?.code,
     raw: String(error),
+    json: safeStringify(error),
+    keys: typeof error === "object" && error !== null ? Object.keys(error as Record<string, unknown>) : [],
   });
 }
 
@@ -77,17 +145,80 @@ export async function getAlojamientosFiltered(input: {
   const hasFilters = requiredServicios.length > 0 || localidades.length > 0 || requirePet;
   if (!hasFilters) return getAlojamientos();
 
+  let serviciosKind: "array" | "text" | "unknown" = "unknown";
+  const { data: probeData, error: probeError } = await supabase
+    .from("alojamientos_aprobados")
+    .select("servicios")
+    .limit(1);
+
+  if (probeError) {
+    logPostgrestError("Error probing servicios type:", probeError);
+  } else {
+    const first = (probeData ?? [])[0] as { servicios?: unknown } | undefined;
+    const v = first?.servicios;
+    if (Array.isArray(v)) serviciosKind = "array";
+    else if (typeof v === "string") serviciosKind = "text";
+  }
+
   const baseServicios = [...requiredServicios];
 
   const serviceVariants: string[][] = [];
+  serviceVariants.push(baseServicios);
+
   if (allowLegacyParking && baseServicios.includes("Cochera")) {
-    serviceVariants.push(baseServicios);
     serviceVariants.push(baseServicios.map((s) => (s === "Cochera" ? "Cochera cubierta" : s)));
-  } else {
-    serviceVariants.push(baseServicios);
   }
 
+  if (baseServicios.includes("Pileta")) {
+    serviceVariants.push(baseServicios.map((s) => (s === "Pileta" ? "Piscina" : s)));
+    serviceVariants.push(baseServicios.map((s) => (s === "Pileta" ? "Pileta propia" : s)));
+  }
+
+  if (baseServicios.includes("Parrilla / Quincho")) {
+    serviceVariants.push(baseServicios.map((s) => (s === "Parrilla / Quincho" ? "Parrilla" : s)));
+    serviceVariants.push(baseServicios.map((s) => (s === "Parrilla / Quincho" ? "Asador" : s)));
+    serviceVariants.push(baseServicios.map((s) => (s === "Parrilla / Quincho" ? "Quincho" : s)));
+    serviceVariants.push(baseServicios.map((s) => (s === "Parrilla / Quincho" ? "Parrillero / Quincho" : s)));
+  }
+
+  const normalizedVariants = Array.from(new Set(serviceVariants.map((v) => v.join("|"))))
+    .map((key) => key.split("|").filter(Boolean));
+
   const runQuery = async (opts: { servicios: string[]; mascotasEq?: boolean }) => {
+    if (serviciosKind === "text") {
+      const runAttempt = async (mascotasValue?: "Sí" | true) => {
+        let q = supabase.from("alojamientos_aprobados").select("*");
+
+        for (const service of opts.servicios) {
+          q = q.ilike("servicios", `%${service}%`);
+        }
+
+        if (localidades.length > 0) {
+          q = q.in("localidad", localidades);
+        }
+
+        if (typeof mascotasValue !== "undefined") {
+          q = q.eq("mascotas", mascotasValue);
+        }
+
+        const { data, error } = await q;
+        if (error) {
+          logPostgrestError("Error fetching alojamientos (filtered, mode=ilike):", error);
+          return [] as AlojamientoAprobado[];
+        }
+
+        return (data ?? []).map(normalizeAlojamiento);
+      };
+
+      if (opts.mascotasEq === true) {
+        const a = await runAttempt("Sí");
+        const b = await runAttempt(true);
+        return uniqueById([...a, ...b]);
+      }
+
+      return await runAttempt();
+    }
+
     const tryMode = async (mode: "contains" | "cs_literal") => {
       const parts: AlojamientoAprobado[] = [];
       let hadSuccess = false;
@@ -113,11 +244,10 @@ export async function getAlojamientosFiltered(input: {
 
         const { data, error } = await q;
         if (error) {
-          logPostgrestError(`Error fetching alojamientos (filtered, mode=${mode}):`, error);
           return;
         }
         hadSuccess = true;
-        parts.push(...((data ?? []) as AlojamientoAprobado[]));
+        parts.push(...((data ?? []).map(normalizeAlojamiento)));
       };
 
       if (opts.mascotasEq === true) {
@@ -142,7 +272,7 @@ export async function getAlojamientosFiltered(input: {
 
   const results: AlojamientoAprobado[] = [];
 
-  for (const servicios of serviceVariants) {
+  for (const servicios of normalizedVariants) {
     if (!requirePet) {
       results.push(...(await runQuery({ servicios })));
       continue;

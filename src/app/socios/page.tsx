@@ -15,7 +15,7 @@ import {
   Check, ArrowRight, ArrowLeft, Info, AlertTriangle, 
   ChevronRight, Instagram, Globe, MessageCircle, Lock, Mail, Key
 } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn, slugify } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 
 const steps = [
@@ -33,6 +33,7 @@ export default function SociosPage() {
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
+  const [userId, setUserId] = React.useState<string | null>(null)
   const [editingAccommodation, setEditingAccommodation] = React.useState<any | null>(null)
   const [currentStep, setCurrentStep] = React.useState(1)
   const [formData, setFormData] = React.useState({
@@ -91,6 +92,101 @@ export default function SociosPage() {
     return data
   }
 
+  const checkUserApprovedAccommodations = async (id: string) => {
+    const tryEq = async (column: string, value: string) => {
+      const { data, error } = await supabase
+        .from("alojamientos_aprobados")
+        .select("*")
+        .eq(column, value)
+
+      if (error) {
+        const msg = (error as { message?: string })?.message || ""
+        const missingMatch = msg.match(/Could not find the '([^']+)' column/i)
+        if (missingMatch && missingMatch[1] === column) return null
+        return null
+      }
+      return data || []
+    }
+
+    const byUserId = await tryEq("user_id", id)
+    if (byUserId && byUserId.length > 0) return byUserId
+
+    if (userEmail) {
+      const emailCandidates = ["email", "email_contacto", "email_propietario", "correo", "correo_contacto"]
+      for (const col of emailCandidates) {
+        const byEmail = await tryEq(col, userEmail)
+        if (byEmail && byEmail.length > 0) return byEmail
+      }
+    }
+
+    return []
+  }
+
+  const mergeUserAccommodations = (pendientes: any[], aprobados: any[]) => {
+    const items: any[] = []
+    for (const p of pendientes) {
+      const pendingSlug =
+        (typeof p?.slug === "string" && p.slug.trim().length > 0)
+          ? p.slug.trim()
+          : slugify(String(p?.nombre_complejo || ""))
+      items.push({ ...p, slug: pendingSlug, __source: "pendiente" })
+    }
+    for (const a of aprobados) {
+      const approvedSlug =
+        (typeof a?.slug === "string" && a.slug.trim().length > 0)
+          ? a.slug.trim()
+          : slugify(String(a?.nombre || ""))
+      items.push({
+        id: a.id,
+        user_id: a.user_id,
+        propietario: "",
+        whatsapp: "",
+        email: "",
+        nombre_complejo: a.nombre,
+        localidad: a.localidad,
+        tipo_alojamiento: a.tipo_alojamiento,
+        capacidad_total: a.capacidad_total ?? "",
+        distribucion_camas: "",
+        unidades: "",
+        precio_desde: a.precio_base ?? "",
+        estadia_minima: a.noches_minimas ?? "",
+        direccion: "",
+        google_maps: "",
+        distancia_termas: "",
+        tipo_acceso: "",
+        perfiles: [],
+        servicios: a.servicios ?? [],
+        mascotas: a.mascotas ?? "",
+        check_in: "",
+        check_out: "",
+        cancelacion: "",
+        acepta_ninos: a.acepta_ninos ?? "",
+        link_drive: a.link_drive ?? "",
+        descripcion: a.descripcion ?? "",
+        slug: approvedSlug,
+        __source: "aprobado",
+      })
+    }
+
+    const byKey = new Map<string, any>()
+    for (const item of items) {
+      const key =
+        (typeof item.slug === "string" && item.slug.trim().length > 0 && item.slug.trim()) ||
+        (typeof item.nombre_complejo === "string" && item.nombre_complejo.trim().length > 0 && slugify(item.nombre_complejo)) ||
+        (typeof item.id === "string" && item.id) ||
+        item.nombre_complejo
+      const existing = byKey.get(key)
+      if (!existing) {
+        byKey.set(key, item)
+        continue
+      }
+      if (existing.__source === "aprobado" && item.__source === "pendiente") {
+        byKey.set(key, item)
+      }
+    }
+    return Array.from(byKey.values())
+  }
+
   const progress = Math.max(17, (currentStep / steps.length) * 100)
 
   React.useEffect(() => {
@@ -106,10 +202,13 @@ export default function SociosPage() {
       if (session) {
         console.log("Sesión encontrada para:", session.user.id);
         setUserEmail(session.user.email ?? null)
-        const accommodations = await checkUserAccommodations(session.user.id)
-        console.log("Alojamientos encontrados en checkSession:", accommodations);
-        setUserAccommodations(accommodations)
-        if (accommodations.length > 0) {
+        setUserId(session.user.id)
+        const pendientes = await checkUserAccommodations(session.user.id)
+        const aprobados = await checkUserApprovedAccommodations(session.user.id)
+        const merged = mergeUserAccommodations(pendientes, aprobados)
+        console.log("Alojamientos encontrados en checkSession:", merged);
+        setUserAccommodations(merged)
+        if (merged.length > 0) {
           setView("dashboard")
         } else {
           setView("form")
@@ -150,6 +249,7 @@ export default function SociosPage() {
                 if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
                 if (s === "Cochera cubierta") return "Cochera"
                 if (s === "Pileta propia") return "Pileta"
+                if (s === "Piscina") return "Pileta"
                 return s
               })
           )
@@ -201,6 +301,7 @@ export default function SociosPage() {
               if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
                 if (s === "Cochera cubierta") return "Cochera"
                 if (s === "Pileta propia") return "Pileta"
+              if (s === "Piscina") return "Pileta"
               return s
             })
           )
@@ -281,6 +382,7 @@ export default function SociosPage() {
     try {
       await supabase.auth.signOut()
       setUserEmail(null)
+      setUserId(null)
     } catch (err) {
       console.error("Error al cerrar sesión:", err)
     }
@@ -306,6 +408,7 @@ export default function SociosPage() {
               if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
               if (s === "Cochera cubierta") return "Cochera"
               if (s === "Pileta propia") return "Pileta"
+              if (s === "Piscina") return "Pileta"
               return s
             })
         )
@@ -320,6 +423,7 @@ export default function SociosPage() {
         propietario: formData.propietario,
         whatsapp: formData.whatsapp,
         email: formData.email,
+        slug: editingAccommodation?.slug || slugify(formData.nombreComplejo),
         nombre_complejo: formData.nombreComplejo,
         localidad: formData.localidad,
         tipo_alojamiento: formData.tipoAlojamiento,
@@ -380,8 +484,9 @@ export default function SociosPage() {
 
       // Refresh user accommodations after update/insert
       if (user) {
-        const accommodations = await checkUserAccommodations(user.id)
-        setUserAccommodations(accommodations)
+        const pendientes = await checkUserAccommodations(user.id)
+        const aprobados = await checkUserApprovedAccommodations(user.id)
+        setUserAccommodations(mergeUserAccommodations(pendientes, aprobados))
       }
 
       setView("success")
@@ -417,7 +522,7 @@ export default function SociosPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <p className="text-white/60 leading-relaxed">
-                Sergio revisará los datos y el material multimedia a la brevedad. 
+                El Administrador revisará los datos y el material multimedia a la brevedad. 
                 Te contactaremos por WhatsApp o Email si necesitamos algo más.
               </p>
               <div className="pt-4">
@@ -475,11 +580,71 @@ export default function SociosPage() {
                         size="sm" 
                         className="flex-shrink-0 border-white/20 text-white hover:bg-white/10 font-bold rounded-full h-9 px-4 text-xs text-slate-900"
                         onClick={() => {
-                          if (confirm(`¿Estás seguro que deseas modificar los datos de ${acc.nombre_complejo}?`)) {
-                            setEditingAccommodation(acc)
+                          const startEditing = async () => {
+                            if (!confirm(`¿Estás seguro que deseas modificar los datos de ${acc.nombre_complejo}?`)) return
+
+                            if (acc.__source === "aprobado") {
+                              if (!userId) return
+                              const { data: existingPending } = await supabase
+                                .from("alojamientos_pendientes")
+                                .select("*")
+                                .eq("user_id", userId)
+                                .eq("slug", acc.slug)
+                                .limit(1)
+
+                              if (existingPending && existingPending.length > 0) {
+                                setEditingAccommodation(existingPending[0])
+                              } else {
+                                const base = {
+                                  user_id: userId,
+                                  propietario: "",
+                                  whatsapp: "",
+                                  email: userEmail || "",
+                                  nombre_complejo: acc.nombre_complejo,
+                                  slug: acc.slug,
+                                  localidad: acc.localidad,
+                                  tipo_alojamiento: acc.tipo_alojamiento,
+                                  capacidad_total: acc.capacidad_total,
+                                  distribucion_camas: "",
+                                  unidades: "",
+                                  precio_desde: acc.precio_desde,
+                                  estadia_minima: acc.estadia_minima,
+                                  direccion: "",
+                                  google_maps: "",
+                                  distancia_termas: "",
+                                  tipo_acceso: "",
+                                  perfiles: [],
+                                  servicios: acc.servicios || [],
+                                  mascotas: acc.mascotas || "",
+                                  check_in: "",
+                                  check_out: "",
+                                  cancelacion: "",
+                                  acepta_ninos: acc.acepta_ninos || "",
+                                  link_drive: acc.link_drive || "",
+                                  descripcion: acc.descripcion || "",
+                                  acepto_terminos: true,
+                                  acepto_responsabilidad: true,
+                                  clausula_veracidad: true,
+                                }
+                                const { data: inserted, error: insertErr } = await supabase
+                                  .from("alojamientos_pendientes")
+                                  .insert([base])
+                                  .select("*")
+                                  .single()
+                                if (insertErr) throw insertErr
+                                setEditingAccommodation(inserted)
+                              }
+                            } else {
+                              setEditingAccommodation(acc)
+                            }
+
                             setCurrentStep(1)
                             setView("form")
                           }
+
+                          startEditing().catch((err: any) => {
+                            alert(err?.message || "Error al iniciar edición")
+                          })
                         }}
                       >
                         Modificar

@@ -35,12 +35,14 @@ import {
   Snowflake
 } from "lucide-react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { useRef, use, useState, useEffect } from "react";
+import { useRef, use, useState, useEffect, useMemo } from "react";
 
 function normalizeServiceLabel(service: string) {
   const s = service.trim();
   if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho";
   if (s === "Ropa Blanca") return "Ropa de Cama y Toallas";
+  if (s === "Piscina") return "Pileta";
+  if (s === "Pileta propia") return "Pileta";
   if (s === "Estufa a leña") return "Calefacción";
   return s;
 }
@@ -49,6 +51,8 @@ function normalizeServiceCanonical(service: string) {
   const s = service.trim();
   if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho";
   if (s === "Ropa Blanca") return "Ropa de Cama y Toallas";
+  if (s === "Piscina") return "Pileta";
+  if (s === "Pileta propia") return "Pileta";
   if (s === "Calefacción") return "Estufa a leña";
   return s;
 }
@@ -72,6 +76,16 @@ export default function AccommodationPage({ params }: PageProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [showShareToast, setShowShareToast] = useState(false);
   const [taxonomyByName, setTaxonomyByName] = useState<Record<string, string>>({});
+
+  const servicesToDisplay = useMemo(() => {
+    if (!accommodation?.servicios) return []
+    const list = accommodation.servicios
+      .filter((service) => !/^(tipo|capacidad)\s*:/i.test(service))
+      .map((service) => normalizeServiceLabel(service))
+      .map((service) => service.trim())
+      .filter(Boolean)
+    return Array.from(new Set(list))
+  }, [accommodation?.servicios])
 
   useEffect(() => {
     async function loadData() {
@@ -185,7 +199,7 @@ export default function AccommodationPage({ params }: PageProps) {
       case "bathrooms": return `${value} Baños`;
       case "wifi": return value ? "Wi-Fi Gratis" : "Sin Wi-Fi";
       case "ac": return value ? "Aire Acondicionado" : null;
-      case "pool": return value ? "Piscina" : null;
+      case "pool": return value ? "Pileta" : null;
       case "pet": return value ? "Pet Friendly" : "No Mascotas";
       default: return null;
     }
@@ -290,35 +304,35 @@ export default function AccommodationPage({ params }: PageProps) {
               <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter leading-none drop-shadow-2xl">
                 {accommodation.nombre}
               </h1>
-              <div className="flex flex-wrap items-center gap-6 text-lg md:text-xl font-light">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-6 h-6 text-primary" />
-                  <span className="opacity-90">{accommodation.localidad}</span>
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-lg md:text-xl font-light">
+                <div className="flex flex-wrap items-center gap-6">
+                  <div className="flex items-center gap-2">
+                    <MapPin className="w-6 h-6 text-primary" />
+                    <span className="opacity-90">{accommodation.localidad}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                    <span className="font-bold">{accommodation.rating_google || "—"}</span>
+                    <span className="text-base opacity-60">(Google Maps)</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                  <span className="font-bold">{accommodation.rating_google || "—"}</span>
-                  <span className="text-base opacity-60">(Google Maps)</span>
-                </div>
+
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex-shrink-0"
+                >
+                  <Button
+                    onClick={handleShare}
+                    variant="outline"
+                    className="bg-transparent border-white/20 hover:bg-primary hover:border-primary text-white rounded-full h-10 px-4 flex items-center gap-2 transition-all"
+                  >
+                    <Share2 className="w-4 h-4" />
+                    <span className="font-bold">Compartir</span>
+                  </Button>
+                </motion.div>
               </div>
             </div>
-
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex-shrink-0"
-            >
-              <Button
-                onClick={handleShare}
-                variant="outline"
-                className="bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20 text-white rounded-2xl h-16 px-8 flex items-center gap-3 transition-all shadow-2xl group"
-              >
-                <div className="bg-white/20 p-2 rounded-xl group-hover:bg-primary transition-colors">
-                  <Share2 className="w-6 h-6" />
-                </div>
-                <span className="font-bold text-lg">Compartir</span>
-              </Button>
-            </motion.div>
           </motion.div>
         </div>
       </section>
@@ -380,12 +394,12 @@ export default function AccommodationPage({ params }: PageProps) {
                 <div className="space-y-6 pt-12 border-t border-slate-100">
                   <h3 className="text-xl font-black text-slate-900 tracking-tight">Servicios Incluidos</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {accommodation.servicios?.filter((service) => !/^(tipo|capacidad)\s*:/i.test(service)).map((service, index) => (
+                    {servicesToDisplay.map((service, index) => (
                       <div key={index} className="flex items-center gap-3 text-slate-600 group">
                         <div className="p-1 rounded-full bg-green-100 text-green-600 group-hover:bg-green-600 group-hover:text-white transition-colors">
                           {getServiceIcon(service)}
                         </div>
-                        <span className="text-base font-light">{normalizeServiceLabel(service)}</span>
+                        <span className="text-base font-light">{service}</span>
                       </div>
                     ))}
                   </div>
