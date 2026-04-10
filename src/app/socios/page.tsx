@@ -92,7 +92,7 @@ export default function SociosPage() {
     return data
   }
 
-  const checkUserApprovedAccommodations = async (id: string) => {
+  const checkUserApprovedAccommodations = async (id: string, emailOverride?: string | null) => {
     const tryEq = async (column: string, value: string) => {
       const { data, error } = await supabase
         .from("alojamientos_aprobados")
@@ -111,10 +111,11 @@ export default function SociosPage() {
     const byUserId = await tryEq("user_id", id)
     if (byUserId && byUserId.length > 0) return byUserId
 
-    if (userEmail) {
+    const emailToUse = emailOverride ?? userEmail
+    if (emailToUse) {
       const emailCandidates = ["email", "email_contacto", "email_propietario", "correo", "correo_contacto"]
       for (const col of emailCandidates) {
-        const byEmail = await tryEq(col, userEmail)
+        const byEmail = await tryEq(col, emailToUse)
         if (byEmail && byEmail.length > 0) return byEmail
       }
     }
@@ -145,11 +146,11 @@ export default function SociosPage() {
         nombre_complejo: a.nombre,
         localidad: a.localidad,
         tipo_alojamiento: a.tipo_alojamiento,
-        capacidad_total: a.capacidad_total ?? "",
+        capacidad_total: a.capacidad_total ?? null,
         distribucion_camas: "",
         unidades: "",
-        precio_desde: a.precio_base ?? "",
-        estadia_minima: a.noches_minimas ?? "",
+        precio_desde: a.precio_base ?? null,
+        estadia_minima: a.noches_minimas ?? null,
         direccion: "",
         google_maps: "",
         distancia_termas: "",
@@ -189,6 +190,12 @@ export default function SociosPage() {
 
   const progress = Math.max(17, (currentStep / steps.length) * 100)
 
+  const goToDashboard = () => {
+    setEditingAccommodation(null)
+    setCurrentStep(1)
+    setView("dashboard")
+  }
+
   React.useEffect(() => {
     const checkSession = async () => {
       console.log("Verificando sesión inicial...");
@@ -201,14 +208,17 @@ export default function SociosPage() {
 
       if (session) {
         console.log("Sesión encontrada para:", session.user.id);
-        setUserEmail(session.user.email ?? null)
+        const email = session.user.email ?? null
+        setUserEmail(email)
         setUserId(session.user.id)
         const pendientes = await checkUserAccommodations(session.user.id)
-        const aprobados = await checkUserApprovedAccommodations(session.user.id)
+        const aprobados = await checkUserApprovedAccommodations(session.user.id, email)
         const merged = mergeUserAccommodations(pendientes, aprobados)
         console.log("Alojamientos encontrados en checkSession:", merged);
         setUserAccommodations(merged)
         if (merged.length > 0) {
+          setEditingAccommodation(null)
+          setCurrentStep(1)
           setView("dashboard")
         } else {
           setView("form")
@@ -418,6 +428,15 @@ export default function SociosPage() {
         normalizedServicios.push("Pet Friendly")
       }
 
+      const toNumberOrNull = (v: unknown) => {
+        if (v === null || typeof v === "undefined") return null
+        if (typeof v === "number") return Number.isFinite(v) ? v : null
+        const s = String(v).trim()
+        if (!s) return null
+        const n = Number(s)
+        return Number.isFinite(n) ? n : null
+      }
+
       const submissionData = {
         user_id: user.id,
         propietario: formData.propietario,
@@ -427,11 +446,11 @@ export default function SociosPage() {
         nombre_complejo: formData.nombreComplejo,
         localidad: formData.localidad,
         tipo_alojamiento: formData.tipoAlojamiento,
-        capacidad_total: formData.capacidadTotal,
+        capacidad_total: toNumberOrNull(formData.capacidadTotal),
         distribucion_camas: formData.distribucionCamas,
         unidades: formData.unidades,
-        precio_desde: formData.precio_desde,
-        estadia_minima: formData.estadia_minima,
+        precio_desde: toNumberOrNull(formData.precio_desde),
+        estadia_minima: toNumberOrNull(formData.estadia_minima),
         direccion: formData.direccion,
         google_maps: formData.googleMaps,
         distancia_termas: formData.distanciaTermas,
@@ -485,7 +504,7 @@ export default function SociosPage() {
       // Refresh user accommodations after update/insert
       if (user) {
         const pendientes = await checkUserAccommodations(user.id)
-        const aprobados = await checkUserApprovedAccommodations(user.id)
+        const aprobados = await checkUserApprovedAccommodations(user.id, (user as any)?.email ?? userEmail)
         setUserAccommodations(mergeUserAccommodations(pendientes, aprobados))
       }
 
@@ -583,6 +602,15 @@ export default function SociosPage() {
                           const startEditing = async () => {
                             if (!confirm(`¿Estás seguro que deseas modificar los datos de ${acc.nombre_complejo}?`)) return
 
+                            const toNumberOrNull = (v: unknown) => {
+                              if (v === null || typeof v === "undefined") return null
+                              if (typeof v === "number") return Number.isFinite(v) ? v : null
+                              const s = String(v).trim()
+                              if (!s) return null
+                              const n = Number(s)
+                              return Number.isFinite(n) ? n : null
+                            }
+
                             if (acc.__source === "aprobado") {
                               if (!userId) return
                               const { data: existingPending } = await supabase
@@ -604,11 +632,11 @@ export default function SociosPage() {
                                   slug: acc.slug,
                                   localidad: acc.localidad,
                                   tipo_alojamiento: acc.tipo_alojamiento,
-                                  capacidad_total: acc.capacidad_total,
+                                  capacidad_total: toNumberOrNull(acc.capacidad_total),
                                   distribucion_camas: "",
                                   unidades: "",
-                                  precio_desde: acc.precio_desde,
-                                  estadia_minima: acc.estadia_minima,
+                                  precio_desde: toNumberOrNull(acc.precio_desde),
+                                  estadia_minima: toNumberOrNull(acc.estadia_minima),
                                   direccion: "",
                                   google_maps: "",
                                   distancia_termas: "",
@@ -816,9 +844,9 @@ export default function SociosPage() {
             >
               <ArrowLeft className="w-3 h-3" /> Cerrar Sesión
             </button>
-            {userAccommodations.length > 0 && (
+            {userId && (
               <button 
-                onClick={() => setView("dashboard")}
+                onClick={goToDashboard}
                 className="text-xs font-bold text-white/80 hover:underline flex items-center gap-1 transition-colors"
               >
                 Ir a mi Dashboard <ArrowRight className="w-3 h-3" />
@@ -837,7 +865,7 @@ export default function SociosPage() {
           <h1 className="text-4xl md:text-5xl font-black text-white tracking-tighter drop-shadow-lg">Portal para Socios</h1>
           <p className="text-white/70 text-lg font-light">Gestiona tus alojamientos verificados</p>
           
-          {userAccommodations.length > 0 && !editingAccommodation && (
+          {userId && userAccommodations.length > 0 && (
             <div className="max-w-2xl mx-auto mt-6 p-5 bg-primary/20 backdrop-blur-xl border border-primary/30 rounded-2xl flex items-center justify-between shadow-2xl">
               <div className="flex items-center gap-3 text-white">
                 <div className="bg-primary/30 p-2 rounded-full">
@@ -845,7 +873,7 @@ export default function SociosPage() {
                 </div>
                 <span className="text-sm font-bold tracking-tight">Tienes {userAccommodations.length} alojamiento(s) registrado(s).</span>
               </div>
-              <Button size="sm" onClick={() => setView("dashboard")} className="bg-white text-primary hover:bg-white/90 font-black rounded-full px-6">
+              <Button size="sm" onClick={goToDashboard} className="bg-white text-primary hover:bg-white/90 font-black rounded-full px-6">
                 Ir a mi Dashboard
               </Button>
             </div>
@@ -1361,7 +1389,7 @@ export default function SociosPage() {
       {/* Background Image Layer */}
       <div className="fixed inset-0 z-0">
         <img 
-          src="/background-socios.jpg" 
+          src="https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-socios.webp?updatedAt=1775442807257" 
           alt="Background" 
           className="h-full w-full object-cover scale-105 animate-slow-zoom"
         />

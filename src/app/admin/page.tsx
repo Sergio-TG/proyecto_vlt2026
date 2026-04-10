@@ -156,7 +156,14 @@ export default function AdminDashboard() {
       const res = await fetch("/api/admin/pending", {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
       })
-      const json = await res.json()
+      const text = await res.text()
+      const json = (() => {
+        try {
+          return text ? JSON.parse(text) : null
+        } catch {
+          return null
+        }
+      })()
       if (json?.reason === "missing_env") {
         const { data, error } = await supabase
           .from('alojamientos_pendientes')
@@ -171,7 +178,7 @@ export default function AdminDashboard() {
           setAprobadosBySlug({})
         }
       } else if (!res.ok || !json?.ok) {
-        console.error("Error fetching pendientes (server):", json)
+        console.error("Error fetching pendientes (server):", { status: res.status, body: text, json })
         setPendientes([])
         setAprobadosBySlug({})
       } else {
@@ -238,6 +245,22 @@ export default function AdminDashboard() {
     setApproving(item.id)
     try {
       const slug = toSlug(item.nombre_complejo)
+      const rating = typeof item.rating_google !== "undefined" && item.rating_google !== null && item.rating_google !== ""
+        ? Number(item.rating_google)
+        : 4.5
+
+      const { error: rpcError } = await supabase.rpc("aprobar_alojamiento", {
+        pendiente_id: item.id,
+        nuevo_slug: slug,
+        rating,
+      })
+
+      if (!rpcError) {
+        alert(`¡${item.nombre_complejo} ha sido aprobado con éxito!`)
+        fetchAprobados()
+        fetchPendientes()
+        return
+      }
 
       const normalizeServicio = (value: string) => {
         const s = value.trim()
@@ -251,15 +274,10 @@ export default function AdminDashboard() {
       }
 
       const baseServicios = Array.isArray(item.servicios) ? item.servicios : []
-      const servicios = Array.from(
-        new Set(baseServicios.map((s: string) => normalizeServicio(s)).filter(Boolean))
-      )
+      const servicios = Array.from(new Set(baseServicios.map((s: string) => normalizeServicio(s)).filter(Boolean)))
+      if (item.mascotas === "Sí") servicios.push("Pet Friendly")
 
-      if (item.mascotas === "Sí") {
-        servicios.push("Pet Friendly")
-      }
-
-      const publicData: Record<string, unknown> = {
+      const payload: Record<string, unknown> = {
         nombre: item.nombre_complejo || "",
         slug: slug,
         descripcion: item.descripcion || "",
@@ -270,69 +288,26 @@ export default function AdminDashboard() {
         rating_google: item.rating_google || 4.5,
       }
 
-      if (typeof item.user_id !== "undefined") publicData.user_id = item.user_id
-      if (item.tipo_alojamiento) publicData.tipo_alojamiento = item.tipo_alojamiento
+      if (typeof item.user_id !== "undefined") payload.user_id = item.user_id
+      if (item.tipo_alojamiento) payload.tipo_alojamiento = item.tipo_alojamiento
       if (typeof item.capacidad_total !== "undefined" && item.capacidad_total !== null && item.capacidad_total !== "") {
-        publicData.capacidad_total = Number(item.capacidad_total)
+        payload.capacidad_total = Number(item.capacidad_total)
       }
-      if (typeof item.mascotas !== "undefined") publicData.mascotas = item.mascotas
-      if (typeof item.acepta_ninos !== "undefined") publicData.acepta_ninos = item.acepta_ninos
+      if (typeof item.mascotas !== "undefined") payload.mascotas = item.mascotas
+      if (typeof item.acepta_ninos !== "undefined") payload.acepta_ninos = item.acepta_ninos
 
-      const upsertWithFallback = async () => {
-        const payload: Record<string, unknown> = { ...publicData }
-        // Intento 1: update si existe
-        const { data: existing } = await supabase
-          .from("alojamientos_aprobados")
-          .select("id")
-          .eq("slug", payload.slug as string)
-          .limit(1)
-        if (existing && existing.length > 0) {
-          const { error } = await supabase
-            .from("alojamientos_aprobados")
-            .update(payload)
-            .eq("slug", payload.slug as string)
-          if (!error) return
-        }
-
-        // Intento 2: upsert con eliminación progresiva de columnas desconocidas
-        for (let i = 0; i < 4; i++) {
-          const { error } = await supabase
-            .from("alojamientos_aprobados")
-            .upsert(payload, { onConflict: "slug" })
-
-          if (!error) return
-
-          const msg = error.message || ""
-          const match = msg.match(/Could not find the '([^']+)' column/i)
-          if (match) {
-            const missingKey = match[1]
-            if (missingKey in payload) {
-              delete payload[missingKey]
-              continue
-            }
-          }
-
-          // Intento 3: fallback a API server (service role) para superar RLS
-          try {
-            const res = await fetch("/api/admin/approve", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ payload, pendingId: item.id }),
-            })
-            const json = await res.json()
-            if (json?.reason === "missing_env") {
-              throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para aprobar con privilegios.")
-            }
-            if (res.ok && json?.ok) return
-            throw new Error(json?.error || "Server approve failed")
-          } catch (serverErr: any) {
-            throw new Error(serverErr?.message || "Fallo al aprobar (server)")
-          }
-        }
-        throw new Error("Error al aprobar: no se pudo guardar el registro en aprobados.")
+      const res = await fetch("/api/admin/approve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ payload, pendingId: item.id }),
+      })
+      const json = await res.json()
+      if (json?.reason === "missing_env") {
+        throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para aprobar con privilegios.")
       }
-
-      await upsertWithFallback()
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "Error al aprobar (server)")
+      }
 
       alert(`¡${item.nombre_complejo} ha sido aprobado con éxito!`);
       fetchAprobados();

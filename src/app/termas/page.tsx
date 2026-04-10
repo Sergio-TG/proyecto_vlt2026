@@ -7,16 +7,25 @@ import { AccommodationGallery } from "@/components/accommodations/AccommodationG
 import { Droplets, Sun, Coffee, Mountain, Sparkles, Clock, MapPin, Navigation } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
+import { IMAGE_FOLDERS, IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
 
-// Imágenes seleccionadas de alta calidad y orientación horizontal para mejor visualización
-const termasImages = [
-  "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=1200&auto=format&fit=crop", // Piscina infinita
-  "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=1200&auto=format&fit=crop", // Spa relax
-  "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=1200&auto=format&fit=crop", // Piscina con borde al paisaje
-  "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1200&auto=format&fit=crop", // Personas en piscina
-  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1200&auto=format&fit=crop", // Resort view
-  "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?q=80&w=1200&auto=format&fit=crop"  // Ambiente relax
+const toImageKitUrl = (relativePath: string) => {
+  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+  const rel = relativePath.trim().replace(/^\/+/, "")
+  return `${base}/${rel}`
+}
+
+const termasImageFiles = [
+  "pileta-interior001.webp",
+  "pileta-interior002.webp",
+  "termas-dron003.webp",
+  "termas-aerea001.webp",
+  "pileta-exterior001.webp",
 ]
+
+const termasImages = termasImageFiles.map((file) =>
+  toImageKitUrl(`${IMAGE_FOLDERS.GALERIA}/termas/${file}`)
+)
 
 export default function TermasPage() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -39,7 +48,7 @@ export default function TermasPage() {
         >
           <div className="absolute inset-0 bg-black/40 z-10" />
           <img 
-            src="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop"
+            src="https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron002.webp?updatedAt=1775687332929&q=80&w=2070&auto=format&fit=crop"
             alt="Termas del Sol - Paisaje"
             className="w-full h-full object-cover"
           />

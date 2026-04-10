@@ -171,7 +171,7 @@ export function NarrativeFilter() {
   }, [selectedFeatureIds])
 
   return (
-    <div className="w-full max-w-5xl mx-auto -mt-20 relative z-30 px-4">
+    <div className="w-full max-w-5xl mx-auto -mt-20 [@media(max-height:1100px)]:-mt-8 [@media(max-height:950px)]:mt-0 relative z-30 px-4">
       <Card className="shadow-xl border-none">
         <div className="p-6 md:p-8">
             <div className="space-y-4 mb-8">

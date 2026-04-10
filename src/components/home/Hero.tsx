@@ -22,7 +22,7 @@ export function Hero() {
   return (
     <section 
       ref={containerRef}
-      className="relative h-[110vh] w-full overflow-hidden flex items-center justify-center bg-black"
+      className="relative h-[110vh] [@media(max-height:1100px)]:h-[100vh] w-full overflow-hidden flex items-center justify-center bg-black"
     >
       {/* Background with Parallax and Apple-style scale */}
       <motion.div 
@@ -32,9 +32,9 @@ export function Hero() {
         {/* Overlay gradiente oscuro para legibilidad superior e inferior */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70 z-10" />
         <CustomImage 
-          path="termas_001.JPG" 
-          folder="GALERIA" 
-          alt="Termas naturales de Viví las Termas"
+          path="/bg-paginas/hero-termas.webp" 
+          folder="ENTORNO" 
+          alt="Termas en El Durazno"
           fill
           priority
           className="transition-transform duration-1000 ease-out"
@@ -80,7 +80,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1, duration: 0.8 }}
-            className="flex flex-wrap justify-center gap-4 md:gap-6 py-8 text-sm md:text-base font-medium text-white"
+            className="flex flex-wrap justify-center gap-4 md:gap-6 py-4 [@media(max-height:800px)]:py-2 text-sm md:text-base font-medium text-white"
           >
             <div className="flex items-center gap-3 group px-4 py-2 rounded-xl bg-gradient-to-t from-black/40 to-transparent backdrop-blur-[2px] border border-white/5">
                 <div className="p-2 rounded-full bg-green-500/30 group-hover:bg-green-500/50 transition-colors shadow-lg">
@@ -106,7 +106,7 @@ export function Hero() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.2, duration: 0.8 }}
-            className="flex flex-col md:flex-row items-center justify-center gap-6 pt-6"
+            className="flex flex-col md:flex-row items-center justify-center gap-4 pt-2 [@media(max-height:800px)]:pt-1 [@media(max-height:800px)]:gap-3"
           >
             <Link href="/alojamientos" className="w-full md:w-auto">
                 <Button size="lg" className="h-16 px-10 text-xl rounded-full bg-white text-black hover:bg-white/90 shadow-[0_20px_50px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-105 w-full font-bold">

@@ -5,6 +5,7 @@ import "./globals.css";
 import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import ImageKitProviderWrapper from "@/components/common/ImageKitProviderWrapper";
+import WhatsAppFloatingButton from "@/components/common/WhatsAppFloatingButton";
 
 // IMPORTACIÓN FALTANTE:
 import { usePathname } from 'next/navigation'; 
@@ -39,6 +40,7 @@ export default function RootLayout({
           </main>
           
           {!hideLayout && <Footer />}
+          {!hideLayout && <WhatsAppFloatingButton />}
         </ImageKitProviderWrapper>
       </body>
     </html>

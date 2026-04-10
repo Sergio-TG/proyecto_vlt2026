@@ -24,11 +24,10 @@ export async function GET(req: Request) {
     }
 
     const supabaseAuth = createClient(url, anonKey, {
-      global: { headers: { Authorization: `Bearer ${token}` } },
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    const { data: userData, error: userErr } = await supabaseAuth.auth.getUser();
+    const { data: userData, error: userErr } = await supabaseAuth.auth.getUser(token);
     if (userErr || !userData?.user) {
       return NextResponse.json({ ok: false, reason: "invalid_token" }, { status: 401 });
     }
