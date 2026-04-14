@@ -55,12 +55,12 @@ export async function POST(req: Request) {
 
         return { ok: false, error: upErr };
       }
-      return { ok: false, error: { message: "Failed saving after column fallback" } as any };
+      return { ok: false, error: { message: "Failed saving after column fallback" } };
     };
 
     const saveRes = await saveWithColumnFallback();
     if (!saveRes.ok) {
-      const err = saveRes.error as any;
+      const err = saveRes.error as { message?: string; details?: unknown; hint?: unknown; code?: unknown } | null;
       return NextResponse.json(
         { ok: false, error: err?.message || "Error saving", details: err?.details, hint: err?.hint, code: err?.code },
         { status: 500 }
@@ -87,7 +87,8 @@ export async function POST(req: Request) {
     }
 
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

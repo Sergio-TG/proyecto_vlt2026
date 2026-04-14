@@ -7,11 +7,13 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
-import { getAlojamientosFiltered, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { getAlojamientosFiltered, AlojamientoAprobado, getTaxonomiaServicios, type TaxonomiaServicio } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { motion, AnimatePresence } from "framer-motion"
 import React, { useState, useMemo, useEffect } from "react"
 import CustomImage from "@/components/common/CustomImage"
+import { IK_TRANSFORMS } from "@/lib/imagekit.config"
+import { getIconByKey } from "@/lib/icons"
 import {
   Sheet,
   SheetContent,
@@ -31,9 +33,44 @@ function normalizeServiceForSearch(service: string) {
     .replace(/[^a-z0-9]/g, "")
 }
 
+const premiumEase: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
+const cardHoverTransition = { duration: 0.7, ease: premiumEase }
+const imageHoverTransition = { duration: 1.5, ease: premiumEase }
+
+const cardHoverVariants = {
+  rest: { y: 0, scale: 1, rotate: 0 },
+  hover: { y: -8, scale: 1.008, rotate: -0.15 },
+  tap: { y: -2, scale: 0.99, rotate: 0 },
+}
+
+const imageHoverVariants = {
+  rest: { scale: 1, y: 0 },
+  hover: { scale: 1.1, y: -6 },
+}
+
+const ctaHoverVariants = {
+  rest: { scale: 1, y: 0 },
+  hover: { scale: 1.03, y: -1 },
+  tap: { scale: 0.98, y: 0 },
+}
+
+const priceHoverVariants = {
+  rest: { y: 0, opacity: 1 },
+  hover: { y: -1, opacity: 1 },
+}
+
+const revealVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: 10, scale: 0.98 },
+}
+
 export default function AlojamientosPage() {
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
+  const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
+  const [taxonomia, setTaxonomia] = useState<TaxonomiaServicio[]>([])
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => {
     if (typeof window === "undefined") return []
@@ -87,6 +124,42 @@ export default function AlojamientosPage() {
       ignore = true
     }
   }, [buildSupabaseFilters])
+
+  useEffect(() => {
+    let ignore = false
+    async function loadTaxonomia() {
+      const data = await getTaxonomiaServicios()
+      if (ignore) return
+      setTaxonomia(data)
+    }
+    loadTaxonomia()
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let ignore = false
+    async function loadPortadas() {
+      const slugs = accommodations
+        .map((a) => (a.slug ? String(a.slug).trim() : slugify(a.nombre)))
+        .filter(Boolean)
+      if (slugs.length === 0) return
+      const res = await fetch("/api/portadas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slugs }),
+      }).catch(() => null)
+      const json = (await res?.json().catch(() => null)) as unknown
+      const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
+      if (ignore) return
+      setPortadaBySlug(map)
+    }
+    loadPortadas()
+    return () => {
+      ignore = true
+    }
+  }, [accommodations])
 
   // Función para compartir alojamiento
   const handleShare = async (e: React.MouseEvent, slug: string, title: string) => {
@@ -161,19 +234,24 @@ export default function AlojamientosPage() {
     setSelectedFeatures([])
   }
 
-  const getServiceIcon = (service: string) => {
-    const s = normalizeServiceForSearch(service)
-    if (s.includes("wifi")) return <Wifi className="w-3.5 h-3.5" />;
-    if (s.includes("piscina") || s.includes("pileta")) return <Waves className="w-3.5 h-3.5" />;
-    if (s.includes("cochera")) return <Car className="w-3.5 h-3.5" />;
-    if (s.includes("tv") || s.includes("cable")) return <Tv className="w-3.5 h-3.5" />;
-    if (s.includes("desayuno")) return <Coffee className="w-3.5 h-3.5" />;
-    if (s.includes("cocina") || s.includes("vajilla")) return <Utensils className="w-3.5 h-3.5" />;
-    if (s.includes("estufa") || s.includes("calefaccion")) return <Flame className="w-3.5 h-3.5" />;
-    if (s.includes("aire") || s.includes("ac")) return <Snowflake className="w-3.5 h-3.5" />;
-    if (s.includes("parrilla") || s.includes("asador") || s.includes("quincho")) return <Utensils className="w-3.5 h-3.5" />;
-    return <CheckCircle2 className="w-3.5 h-3.5" />;
-  };
+  const getServiciosPrincipales = React.useCallback(
+    (serviciosAlojamiento: string[], max = 3) => {
+      const base = Array.isArray(serviciosAlojamiento) ? serviciosAlojamiento : []
+      if (base.length === 0) return []
+
+      const principales = taxonomia.filter((t) => t.es_filtro_principal)
+      const matches = principales.filter((t) => {
+        const tn = normalizeServiceForSearch(t.nombre)
+        return base.some((s) => {
+          const sn = normalizeServiceForSearch(s)
+          return sn.includes(tn) || tn.includes(sn)
+        })
+      })
+
+      return matches.slice(0, max)
+    },
+    [taxonomia]
+  )
 
   const renderFilterContent = (isDesktop = false) => (
     <div className={`space-y-8 ${isDesktop ? "" : "pb-20"}`}>
@@ -322,43 +400,56 @@ export default function AlojamientosPage() {
               <motion.div
                 key={item.id}
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ 
-                  duration: 0.4,
+                variants={revealVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-80px" }}
+                exit="exit"
+                transition={{
+                  duration: 0.7,
                   delay: (index % 6) * 0.05,
-                  ease: [0.22, 1, 0.36, 1]
+                  ease: premiumEase,
                 }}
                 className="flex"
               >
-                <Card className="group w-full overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col rounded-[2rem] bg-white relative">
-                  {/* Link envolvente para toda la card (excepto botones de acción) */}
-                  <Link href={`/alojamientos/${item.slug}`} className="absolute inset-0 z-10">
-                    <span className="sr-only">Ver detalles de {item.nombre}</span>
-                  </Link>
+                <Link href={`/alojamientos/${item.slug}`} className="block w-full">
+                  <motion.div
+                    variants={cardHoverVariants}
+                    initial="rest"
+                    whileHover="hover"
+                    whileTap="tap"
+                    transition={cardHoverTransition}
+                    className="w-full"
+                  >
+                  <Card className="group w-full overflow-hidden border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
 
                   {/* Image Container */}
-                  <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 p-2 pb-0">
+                  <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem]">
                     <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.6 }}
-                      className="w-full h-full overflow-hidden rounded-[1.8rem]"
+                      variants={imageHoverVariants}
+                      transition={imageHoverTransition}
+                      className="relative w-full h-full"
                     >
-                      <CustomImage 
-                        path="portada.webp"
-                        folder="ALOJAMIENTOS"
-                        subfolder={item.slug || slugify(item.nombre)}
-                        alt={item.nombre}
-                        alternatePaths={["portada.jpg"]}
-                        fallbackCandidates={[{ folder: "ENTORNO", path: "placeholder-vlt.webp" }]}
-                        fill
-                        className="object-cover"
-                      />
+                      {portadaBySlug[item.slug || slugify(item.nombre)] ? (
+                        <CustomImage
+                          path={`${String(portadaBySlug[item.slug || slugify(item.nombre)]).split("?")[0]}?${IK_TRANSFORMS.card}`}
+                          folder="ALOJAMIENTOS"
+                          subfolder={item.slug || slugify(item.nombre)}
+                          alt={item.nombre}
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-stone-100 flex items-center justify-center">
+                          <div className="px-6 text-center text-slate-600 font-black text-sm md:text-base leading-snug">
+                            {item.nombre}
+                          </div>
+                        </div>
+                      )}
                     </motion.div>
                     
                     {/* Dynamic Badge like the image */}
-                    <div className="absolute top-4 left-4 z-20">
+                    <motion.div variants={priceHoverVariants} className="absolute top-4 left-4 z-20">
                       <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2.5 py-1 rounded-full font-black text-[8px] uppercase tracking-wider flex items-center gap-1">
                         {item.rating_google && item.rating_google >= 4.8 ? (
                           <><Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> MÁS PEDIDO</>
@@ -368,7 +459,7 @@ export default function AlojamientosPage() {
                           <><Leaf className="w-2.5 h-2.5 text-green-500" /> ECO-FRIENDLY</>
                         )}
                       </Badge>
-                    </div>
+                    </motion.div>
 
                     {/* Botón Compartir */}
                     <motion.button
@@ -386,7 +477,7 @@ export default function AlojamientosPage() {
                   <div className="flex flex-col flex-grow p-5 pt-4 space-y-3 relative z-20">
                     <div className="flex justify-between items-start gap-2">
                       <div className="space-y-0.5 flex-grow">
-                        <h3 className="font-black text-[15px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors">
+                        <h3 className="font-black text-[15px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors duration-300">
                           {item.nombre}
                         </h3>
                         <div className="flex items-center text-[#38bdf8] text-[10px] font-bold">
@@ -404,51 +495,51 @@ export default function AlojamientosPage() {
 
                     {/* Amenities List - Clean Horizontal Style */}
                     {item.servicios && item.servicios.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
-                        {/* Capacidad / Personas */}
-                        <div className="flex items-center gap-1 text-slate-400">
-                          <Users className="w-3 h-3" />
-                          <span className="text-[10px] font-bold">
-                            {item.capacidad_total || item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
-                          </span>
-                        </div>
-                        {/* WiFi */}
-                        {item.servicios.some(s => normalizeServiceForSearch(s).includes('wifi')) && (
-                          <div className="flex items-center gap-1 text-slate-400">
-                            <Wifi className="w-3 h-3" />
-                            <span className="text-[10px] font-bold">Wi‑Fi</span>
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                            <div className="flex items-center gap-1 text-slate-400">
+                              <Users className="w-3 h-3" />
+                              <span className="text-[10px] font-bold">
+                                {item.capacidad_total || item.servicios.find((s) => s.includes("Capacidad"))?.match(/\d+/)?.[0] || "—"} Pers.
+                              </span>
+                            </div>
+                            {getServiciosPrincipales(item.servicios, 3).map((servicio) => {
+                              const IconComponent = getIconByKey(servicio.icono_key)
+                              return (
+                                <div key={servicio.id} className="flex items-center gap-1 text-slate-400">
+                                  <IconComponent className="w-3 h-3" />
+                                  <span className="text-[10px] font-bold">{servicio.nombre}</span>
+                                </div>
+                              )
+                            })}
                           </div>
-                        )}
-                        {/* Mascotas */}
-                        {item.servicios.some(s => normalizeServiceForSearch(s).includes('mascota') || normalizeServiceForSearch(s).includes('pet')) && (
-                          <div className="flex items-center gap-1 text-slate-400">
-                            <PawPrint className="w-3 h-3" />
-                            <span className="text-[10px] font-bold">Pet Friendly</span>
-                          </div>
-                        )}
-                      </div>
                     )}
 
-                    <div className="pt-4 flex items-center justify-between mt-auto border-t border-slate-50">
-                      <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-[20px] font-black text-slate-900 leading-none">
-                            {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
-                          </span>
-                          <span className="text-[9px] text-slate-400 font-bold ml-0.5">/noche</span>
-                        </div>
-                      </div>
-                      <div className="relative z-30">
-                        <Link href={`/alojamientos/${item.slug}`}>
-                          <Button className="h-9 px-6 rounded-full font-black text-[11px] bg-[#1a1f2c] hover:bg-primary text-white shadow-lg shadow-slate-200 transition-all duration-300">
-                            Detalles
-                          </Button>
-                        </Link>
-                      </div>
+                    <div className="pt-4 flex items-center justify-between gap-2 mt-auto border-t border-slate-50">
+                      <motion.div variants={priceHoverVariants} className="flex flex-col min-w-0">
+                        {item.precio_base ? (
+                          <div className="flex items-baseline flex-wrap gap-x-1">
+                            <span className="text-lg xl:text-xl font-black text-slate-900 leading-none">
+                              {`$${item.precio_base.toLocaleString("es-AR")}`}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">por noche</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm font-black text-slate-900 leading-none">Consultar</span>
+                        )}
+                      </motion.div>
+
+                      <motion.div
+                        variants={ctaHoverVariants}
+                        transition={cardHoverTransition}
+                        className="flex-shrink-0 h-9 sm:h-10 px-4 sm:px-5 rounded-full font-bold text-[11px] sm:text-[12px] bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center whitespace-nowrap"
+                      >
+                        Ver disponibilidad
+                      </motion.div>
                     </div>
                   </div>
                 </Card>
+                </motion.div>
+                </Link>
               </motion.div>
             ))}
           </AnimatePresence>

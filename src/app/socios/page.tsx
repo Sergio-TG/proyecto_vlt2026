@@ -27,6 +27,38 @@ const steps = [
   { id: 6, title: "Acuerdo", icon: ShieldCheck },
 ]
 
+type SocioAccommodation = {
+  id?: string
+  created_at?: string | null
+  slug?: string
+  nombre_complejo?: string
+  propietario?: string
+  whatsapp?: string
+  email?: string
+  localidad?: string
+  tipo_alojamiento?: string
+  capacidad_total?: unknown
+  distribucion_camas?: string
+  unidades?: string
+  precio_desde?: unknown
+  estadia_minima?: unknown
+  direccion?: string
+  google_maps?: string
+  distancia_termas?: string
+  tipo_acceso?: string
+  perfiles?: unknown
+  servicios?: unknown
+  mascotas?: string
+  check_in?: string
+  check_out?: string
+  cancelacion?: string
+  acepta_ninos?: string
+  link_drive?: string
+  descripcion?: string
+  __source?: "pendiente" | "aprobado"
+  [key: string]: unknown
+}
+
 export default function SociosPage() {
   const [view, setView] = React.useState<"auth" | "form" | "success" | "dashboard">("auth")
   const [authMode, setAuthMode] = React.useState<"login" | "register">("login")
@@ -34,16 +66,13 @@ export default function SociosPage() {
   const [error, setError] = React.useState<string | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [userId, setUserId] = React.useState<string | null>(null)
-  const [editingAccommodation, setEditingAccommodation] = React.useState<any | null>(null)
+  const [editingAccommodation, setEditingAccommodation] = React.useState<SocioAccommodation | null>(null)
   const [currentStep, setCurrentStep] = React.useState(1)
   const [formData, setFormData] = React.useState({
-    // Sección 1: Identidad
     propietario: "",
     whatsapp: "",
     email: "",
     nombreComplejo: "",
-    
-    // Sección 2: Ficha Técnica
     localidad: "",
     tipoAlojamiento: "",
     capacidadTotal: "",
@@ -51,14 +80,10 @@ export default function SociosPage() {
     unidades: "",
     precio_desde: "",
     estadia_minima: "",
-    
-    // Sección 3: Logística
     direccion: "",
     googleMaps: "",
     distanciaTermas: "",
     tipoAcceso: "",
-    
-    // Sección 4: Perfiles y Servicios
     perfiles: [] as string[],
     servicios: [] as string[],
     mascotas: "",
@@ -66,24 +91,22 @@ export default function SociosPage() {
     checkOut: "",
     cancelacion: "",
     aceptaNinos: "",
-
-    // Sección 5: Multimedia
     linkDrive: "",
     descripcion: "",
-    
-    // Sección 6: Acuerdo
     aceptoTerminos: false,
     aceptoResponsabilidad: false,
     clausulaVeracidad: false
   })
 
-  const [userAccommodations, setUserAccommodations] = React.useState<any[]>([])
+  const [userAccommodations, setUserAccommodations] = React.useState<SocioAccommodation[]>([])
 
+  // ✅ FIX 1: Ordenar por created_at descendente para obtener siempre el más reciente
   const checkUserAccommodations = async (userId: string) => {
     const { data, error } = await supabase
       .from('alojamientos_pendientes')
       .select('*')
       .eq('user_id', userId)
+      .order('created_at', { ascending: false })
 
     if (error) {
       console.error("Error fetching accommodations:", error)
@@ -123,8 +146,8 @@ export default function SociosPage() {
     return []
   }
 
-  const mergeUserAccommodations = (pendientes: any[], aprobados: any[]) => {
-    const items: any[] = []
+  const mergeUserAccommodations = (pendientes: SocioAccommodation[], aprobados: SocioAccommodation[]) => {
+    const items: SocioAccommodation[] = []
     for (const p of pendientes) {
       const pendingSlug =
         (typeof p?.slug === "string" && p.slug.trim().length > 0)
@@ -139,50 +162,59 @@ export default function SociosPage() {
           : slugify(String(a?.nombre || ""))
       items.push({
         id: a.id,
-        user_id: a.user_id,
-        propietario: "",
-        whatsapp: "",
-        email: "",
-        nombre_complejo: a.nombre,
-        localidad: a.localidad,
-        tipo_alojamiento: a.tipo_alojamiento,
+        user_id: String(a.user_id || ""),
+        propietario: String(a.propietario || ""),
+        whatsapp: String(a.whatsapp || ""),
+        email: String(a.email_contacto || a.email || ""),
+        nombre_complejo: String(a.nombre || a.nombre_complejo || ""),
+        localidad: String(a.localidad || ""),
+        tipo_alojamiento: String(a.tipo_alojamiento || ""),
         capacidad_total: a.capacidad_total ?? null,
-        distribucion_camas: "",
-        unidades: "",
+        distribucion_camas: String(a.distribucion_camas || ""),
+        unidades: String(a.unidades || ""),
         precio_desde: a.precio_base ?? null,
         estadia_minima: a.noches_minimas ?? null,
-        direccion: "",
-        google_maps: "",
-        distancia_termas: "",
-        tipo_acceso: "",
-        perfiles: [],
-        servicios: a.servicios ?? [],
-        mascotas: a.mascotas ?? "",
-        check_in: "",
-        check_out: "",
-        cancelacion: "",
-        acepta_ninos: a.acepta_ninos ?? "",
-        link_drive: a.link_drive ?? "",
-        descripcion: a.descripcion ?? "",
+        direccion: String(a.direccion || ""),
+        google_maps: String(a.google_maps || a.ubicacion_google_maps || ""),
+        distancia_termas: String(a.distancia_termas || ""),
+        tipo_acceso: String(a.tipo_acceso || ""),
+        perfiles: Array.isArray(a.perfiles) ? a.perfiles : [],
+        servicios: Array.isArray(a.servicios) ? a.servicios : [],
+        mascotas: String(a.mascotas || ""),
+        check_in: String(a.check_in || ""),
+        check_out: String(a.check_out || ""),
+        cancelacion: String(a.cancelacion || ""),
+        acepta_ninos: String(a.acepta_ninos || ""),
+        link_drive: String(a.link_drive || ""),
+        descripcion: String(a.descripcion || ""),
         slug: approvedSlug,
         __source: "aprobado",
       })
     }
 
-    const byKey = new Map<string, any>()
+    const byKey = new Map<string, SocioAccommodation>()
     for (const item of items) {
       const key =
         (typeof item.slug === "string" && item.slug.trim().length > 0 && item.slug.trim()) ||
-        (typeof item.nombre_complejo === "string" && item.nombre_complejo.trim().length > 0 && slugify(item.nombre_complejo)) ||
+        (typeof item.nombre_complejo === "string" && item.nombre_complejo.trim().length > 0 && slugify(item.nombre_complejo || "")) ||
         (typeof item.id === "string" && item.id) ||
-        item.nombre_complejo
+        (item.nombre_complejo || "")
       const existing = byKey.get(key)
       if (!existing) {
         byKey.set(key, item)
         continue
       }
+
+      // ✅ FIX 2: pendiente siempre gana sobre aprobado;
+      // entre dos pendientes, gana el más reciente
       if (existing.__source === "aprobado" && item.__source === "pendiente") {
         byKey.set(key, item)
+      } else if (existing.__source === "pendiente" && item.__source === "pendiente") {
+        const existingDate = new Date(existing.created_at || 0).getTime()
+        const itemDate = new Date(item.created_at || 0).getTime()
+        if (itemDate > existingDate) {
+          byKey.set(key, item)
+        }
       }
     }
     return Array.from(byKey.values())
@@ -198,7 +230,7 @@ export default function SociosPage() {
 
   React.useEffect(() => {
     const checkSession = async () => {
-      console.log("Verificando sesión inicial...");
+      console.log("Verificando sesión inicial...")
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError) {
         console.error("Error al obtener la sesión:", sessionError)
@@ -207,14 +239,14 @@ export default function SociosPage() {
       }
 
       if (session) {
-        console.log("Sesión encontrada para:", session.user.id);
+        console.log("Sesión encontrada para:", session.user.id)
         const email = session.user.email ?? null
         setUserEmail(email)
         setUserId(session.user.id)
         const pendientes = await checkUserAccommodations(session.user.id)
         const aprobados = await checkUserApprovedAccommodations(session.user.id, email)
         const merged = mergeUserAccommodations(pendientes, aprobados)
-        console.log("Alojamientos encontrados en checkSession:", merged);
+        console.log("Alojamientos encontrados en checkSession:", merged)
         setUserAccommodations(merged)
         if (merged.length > 0) {
           setEditingAccommodation(null)
@@ -240,19 +272,19 @@ export default function SociosPage() {
         nombreComplejo: editingAccommodation.nombre_complejo || "",
         localidad: editingAccommodation.localidad || "",
         tipoAlojamiento: editingAccommodation.tipo_alojamiento || "",
-        capacidadTotal: editingAccommodation.capacidad_total || "",
+        capacidadTotal: String(editingAccommodation.capacidad_total || ""),
         distribucionCamas: editingAccommodation.distribucion_camas || "",
         unidades: editingAccommodation.unidades || "",
-        precio_desde: editingAccommodation.precio_desde || "",
-        estadia_minima: editingAccommodation.estadia_minima || "",
+        precio_desde: String(editingAccommodation.precio_desde || ""),
+        estadia_minima: String(editingAccommodation.estadia_minima || ""),
         direccion: editingAccommodation.direccion || "",
         googleMaps: editingAccommodation.google_maps || "",
         distanciaTermas: editingAccommodation.distancia_termas || "",
         tipoAcceso: editingAccommodation.tipo_acceso || "",
-        perfiles: editingAccommodation.perfiles || [],
+        perfiles: Array.isArray(editingAccommodation.perfiles) ? editingAccommodation.perfiles : [],
         servicios: Array.from(
           new Set(
-            (editingAccommodation.servicios || [])
+            (Array.isArray(editingAccommodation.servicios) ? editingAccommodation.servicios : [])
               .filter((s: string) => !/^(tipo|capacidad)\s*:/i.test(s))
               .map((s: string) => {
                 if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
@@ -271,9 +303,9 @@ export default function SociosPage() {
         aceptaNinos: editingAccommodation.acepta_ninos || "",
         linkDrive: editingAccommodation.link_drive || "",
         descripcion: editingAccommodation.descripcion || "",
-        aceptoTerminos: editingAccommodation.acepto_terminos || false,
-        aceptoResponsabilidad: editingAccommodation.acepto_responsabilidad || false,
-        clausulaVeracidad: editingAccommodation.clausula_veracidad || false,
+        aceptoTerminos: Boolean(editingAccommodation.acepto_terminos || false),
+        aceptoResponsabilidad: Boolean(editingAccommodation.acepto_responsabilidad || false),
+        clausulaVeracidad: Boolean(editingAccommodation.clausula_veracidad || false),
       })
     }
   }, [editingAccommodation])
@@ -307,13 +339,13 @@ export default function SociosPage() {
             prev.servicios
               .filter((s: string) => !/^(tipo|capacidad)\s*:/i.test(s))
               .map((s: string) => {
-              if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
-              if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
+                if (s === "Asador" || s === "Parrilla" || s === "Quincho" || s === "Parrillero / Quincho") return "Parrilla / Quincho"
+                if (s === "Ropa Blanca") return "Ropa de Cama y Toallas"
                 if (s === "Cochera cubierta") return "Cochera"
                 if (s === "Pileta propia") return "Pileta"
-              if (s === "Piscina") return "Pileta"
-              return s
-            })
+                if (s === "Piscina") return "Pileta"
+                return s
+              })
           )
         )
 
@@ -345,7 +377,7 @@ export default function SociosPage() {
     const email = (form.elements.namedItem("email") as HTMLInputElement).value
     const password = (form.elements.namedItem("password") as HTMLInputElement).value
 
-    console.log("Intentando autenticación...", { authMode, email });
+    console.log("Intentando autenticación...", { authMode, email })
 
     try {
       if (authMode === "register") {
@@ -356,32 +388,34 @@ export default function SociosPage() {
             emailRedirectTo: `${window.location.origin}/auth/callback`,
           }
         })
-        console.log("Resultado signUp:", { data, error });
+        console.log("Resultado signUp:", { data, error })
         if (error) throw error
         alert("¡Cuenta creada! Revisa tu email para confirmar el registro.")
         setAuthMode("login")
       } else {
         const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-        console.log("Resultado signIn:", { data, error });
+        console.log("Resultado signIn:", { data, error })
         if (error) throw error
         
         setUserEmail(data.user.email ?? null)
-        // Wait a small moment to ensure auth is synced
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 500))
         
-        const accommodations = await checkUserAccommodations(data.user.id)
-        console.log("Alojamientos encontrados post-login:", accommodations.length);
-        setUserAccommodations(accommodations)
+        const pendientes = await checkUserAccommodations(data.user.id)
+        const aprobados = await checkUserApprovedAccommodations(data.user.id, data.user.email ?? null)
+        const merged = mergeUserAccommodations(pendientes, aprobados)
+        console.log("Alojamientos encontrados post-login:", merged.length)
+        setUserAccommodations(merged)
 
-        if (accommodations.length > 0) {
+        if (merged.length > 0) {
           setView("dashboard")
         } else {
           setView("form")
         }
       }
-    } catch (err: any) {
-      console.error("Error en handleAuth:", err);
-      setError(err.message || "Ocurrió un error en la autenticación")
+    } catch (err: unknown) {
+      console.error("Error en handleAuth:", err)
+      const message = err instanceof Error ? err.message : "Ocurrió un error en la autenticación"
+      setError(message)
     } finally {
       setLoading(false)
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -403,7 +437,7 @@ export default function SociosPage() {
   const handleSubmitForm = async () => {
     setLoading(true)
     setError(null)
-    console.log("Iniciando envío de formulario...", formData);
+    console.log("Iniciando envío de formulario...", formData)
     try {
       const { data: { user }, error: userError } = await supabase.auth.getUser()
       if (userError) throw userError
@@ -469,23 +503,26 @@ export default function SociosPage() {
         clausula_veracidad: formData.clausulaVeracidad
       }
 
-      let error
-      if (editingAccommodation) {
-        // Update existing accommodation
-        const { error: updateError } = await supabase
-          .from('alojamientos_pendientes')
-          .update(submissionData)
-          .eq('id', editingAccommodation.id)
-        error = updateError
-      } else {
-        // Insert new accommodation
-        const { error: insertError } = await supabase
-          .from('alojamientos_pendientes')
-          .insert([submissionData])
-        error = insertError
-      }
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión.")
 
-      if (error) throw error
+      const saveRes = await fetch("/api/socios/save-pending", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          record: submissionData,
+          editingId: editingAccommodation?.id ?? null,
+        }),
+      })
+      const saveJson = (await saveRes.json()) as { ok?: boolean; error?: string; reason?: string }
+      if (!saveRes.ok || !saveJson?.ok) {
+        const msg = saveJson?.error || saveJson?.reason || "No se pudo guardar la actualización. Volvé a intentar."
+        throw new Error(msg)
+      }
       
       // Notificar al administrador
       try {
@@ -496,24 +533,25 @@ export default function SociosPage() {
             record: submissionData,
             type: editingAccommodation ? 'UPDATE' : 'INSERT'
           }),
-        });
+        })
       } catch (notifyErr) {
-        console.error("Error al enviar notificación:", notifyErr);
+        console.error("Error al enviar notificación:", notifyErr)
       }
 
-      // Refresh user accommodations after update/insert
+      // Refrescar alojamientos del usuario
       if (user) {
         const pendientes = await checkUserAccommodations(user.id)
-        const aprobados = await checkUserApprovedAccommodations(user.id, (user as any)?.email ?? userEmail)
+        const aprobados = await checkUserApprovedAccommodations(user.id, user.email ?? userEmail)
         setUserAccommodations(mergeUserAccommodations(pendientes, aprobados))
       }
 
       setView("success")
-      setEditingAccommodation(null) // Reset editing state
-    } catch (err: any) {
-      console.error("Error en handleSubmitForm:", err);
-      setError(err.message || "Error al enviar el formulario")
-      alert("Error al enviar: " + (err.message || "Intente nuevamente"))
+      setEditingAccommodation(null)
+    } catch (err: unknown) {
+      console.error("Error en handleSubmitForm:", err)
+      const message = err instanceof Error ? err.message : "Error al enviar el formulario"
+      setError(message)
+      alert("Error al enviar: " + message)
     } finally {
       setLoading(false)
     }
@@ -618,35 +656,70 @@ export default function SociosPage() {
                                 .select("*")
                                 .eq("user_id", userId)
                                 .eq("slug", acc.slug)
+                                .order("created_at", { ascending: false }) // ✅ Tomar el más reciente
                                 .limit(1)
 
                               if (existingPending && existingPending.length > 0) {
-                                setEditingAccommodation(existingPending[0])
+                                const p = existingPending[0]
+                                const filled: Record<string, unknown> = { ...p }
+                                const accRecord: Record<string, unknown> = acc as Record<string, unknown>
+                                const fillString = (key: string) => {
+                                  const pv = String(p?.[key] ?? "").trim()
+                                  const av = String(accRecord[key] ?? "").trim()
+                                  if (!pv && av) filled[key] = accRecord[key]
+                                }
+
+                                fillString("propietario")
+                                fillString("whatsapp")
+                                fillString("email")
+                                fillString("unidades")
+                                fillString("distribucion_camas")
+                                fillString("direccion")
+                                fillString("google_maps")
+                                fillString("distancia_termas")
+                                fillString("tipo_acceso")
+                                fillString("check_in")
+                                fillString("check_out")
+                                fillString("cancelacion")
+                                fillString("acepta_ninos")
+                                fillString("link_drive")
+                                fillString("descripcion")
+
+                                const accPerfiles = accRecord["perfiles"]
+                                if (Array.isArray(p?.perfiles) && p.perfiles.length === 0 && Array.isArray(accPerfiles) && accPerfiles.length > 0) {
+                                  filled["perfiles"] = accPerfiles
+                                }
+                                const accServicios = accRecord["servicios"]
+                                if (Array.isArray(p?.servicios) && p.servicios.length === 0 && Array.isArray(accServicios) && accServicios.length > 0) {
+                                  filled["servicios"] = accServicios
+                                }
+
+                                setEditingAccommodation(filled)
                               } else {
                                 const base = {
                                   user_id: userId,
-                                  propietario: "",
-                                  whatsapp: "",
-                                  email: userEmail || "",
+                                  propietario: acc.propietario || "",
+                                  whatsapp: acc.whatsapp || "",
+                                  email: acc.email || userEmail || "",
                                   nombre_complejo: acc.nombre_complejo,
                                   slug: acc.slug,
                                   localidad: acc.localidad,
                                   tipo_alojamiento: acc.tipo_alojamiento,
                                   capacidad_total: toNumberOrNull(acc.capacidad_total),
-                                  distribucion_camas: "",
-                                  unidades: "",
+                                  distribucion_camas: acc.distribucion_camas || "",
+                                  unidades: acc.unidades || "",
                                   precio_desde: toNumberOrNull(acc.precio_desde),
                                   estadia_minima: toNumberOrNull(acc.estadia_minima),
-                                  direccion: "",
-                                  google_maps: "",
-                                  distancia_termas: "",
-                                  tipo_acceso: "",
-                                  perfiles: [],
+                                  direccion: acc.direccion || "",
+                                  google_maps: acc.google_maps || "",
+                                  distancia_termas: acc.distancia_termas || "",
+                                  tipo_acceso: acc.tipo_acceso || "",
+                                  perfiles: Array.isArray(acc.perfiles) ? acc.perfiles : [],
                                   servicios: acc.servicios || [],
                                   mascotas: acc.mascotas || "",
-                                  check_in: "",
-                                  check_out: "",
-                                  cancelacion: "",
+                                  check_in: acc.check_in || "",
+                                  check_out: acc.check_out || "",
+                                  cancelacion: acc.cancelacion || "",
                                   acepta_ninos: acc.acepta_ninos || "",
                                   link_drive: acc.link_drive || "",
                                   descripcion: acc.descripcion || "",
@@ -670,8 +743,9 @@ export default function SociosPage() {
                             setView("form")
                           }
 
-                          startEditing().catch((err: any) => {
-                            alert(err?.message || "Error al iniciar edición")
+                          startEditing().catch((err: unknown) => {
+                            const message = err instanceof Error ? err.message : "Error al iniciar edición"
+                            alert(message)
                           })
                         }}
                       >
@@ -832,7 +906,7 @@ export default function SociosPage() {
       )
     }
 
-    // Default: return the form view
+    // Default: form view
     return (
       <div className="container mx-auto px-4 max-w-4xl">
         {/* Header & Progress */}
@@ -1224,7 +1298,7 @@ export default function SociosPage() {
                   <div className="space-y-8">
                     <div className="border-b border-white/10 pb-4">
                       <h2 className="text-2xl font-bold text-white">Sección 5: Material Multimedia</h2>
-                      <p className="text-sm text-white/60 mt-1">El "motor" visual de tu publicación.</p>
+                      <p className="text-sm text-white/60 mt-1">El &quot;motor&quot; visual de tu publicación.</p>
                     </div>
 
                     <div className="space-y-6">
@@ -1285,7 +1359,7 @@ export default function SociosPage() {
                         </div>
                         <div className="space-y-3">
                           <h4 className="font-black text-white uppercase tracking-widest text-xs">4. Alojamiento Verificado</h4>
-                          <p>El sello de "Alojamiento Verificado" indica que el establecimiento cumple con estándares básicos de calidad y legalidad constatados al momento de su alta, pero no garantiza el comportamiento futuro del prestador.</p>
+                          <p>El sello de &quot;Alojamiento Verificado&quot; indica que el establecimiento cumple con estándares básicos de calidad y legalidad constatados al momento de su alta, pero no garantiza el comportamiento futuro del prestador.</p>
                         </div>
                         <div className="space-y-3">
                           <h4 className="font-black text-white uppercase tracking-widest text-xs">5. Paridad de Tarifas y Actualización</h4>
@@ -1303,33 +1377,21 @@ export default function SociosPage() {
 
                     <div className="space-y-4 pt-4">
                       <div className="flex items-start space-x-4 bg-white/5 p-5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer" onClick={() => setFormData({...formData, aceptoTerminos: !formData.aceptoTerminos})}>
-                        <Checkbox 
-                          id="terms1" 
-                          checked={formData.aceptoTerminos}
-                          className="border-white/30 mt-1"
-                        />
+                        <Checkbox id="terms1" checked={formData.aceptoTerminos} className="border-white/30 mt-1" />
                         <Label htmlFor="terms1" className="text-sm leading-relaxed cursor-pointer text-white/80">
                           Entiendo que esta información será utilizada por el sitio web <strong className="text-white">vivilastermas.com.ar</strong> para asesoramiento turístico y derivación de ventas.
                         </Label>
                       </div>
 
                       <div className="flex items-start space-x-4 bg-white/5 p-5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer" onClick={() => setFormData({...formData, aceptoResponsabilidad: !formData.aceptoResponsabilidad})}>
-                        <Checkbox 
-                          id="terms2" 
-                          checked={formData.aceptoResponsabilidad}
-                          className="border-white/30 mt-1"
-                        />
+                        <Checkbox id="terms2" checked={formData.aceptoResponsabilidad} className="border-white/30 mt-1" />
                         <Label htmlFor="terms2" className="text-sm leading-relaxed cursor-pointer text-white/80">
                           Acepto que Viví las Termas y Termas del Sol actúan como canal de promoción y que la responsabilidad civil, legal y comercial por la estadía recae íntegramente sobre mi administración. Asimismo, ratifico mi compromiso con la paridad tarifaria y el esquema de comisiones del 10% por reserva efectiva derivado de la plataforma.
                         </Label>
                       </div>
 
                       <div className="flex items-start space-x-4 bg-white/5 p-5 rounded-2xl border border-white/10 hover:bg-white/10 transition-colors cursor-pointer" onClick={() => setFormData({...formData, clausulaVeracidad: !formData.clausulaVeracidad})}>
-                        <Checkbox 
-                          id="terms3" 
-                          checked={formData.clausulaVeracidad}
-                          className="border-white/30 mt-1"
-                        />
+                        <Checkbox id="terms3" checked={formData.clausulaVeracidad} className="border-white/30 mt-1" />
                         <Label htmlFor="terms3" className="text-sm leading-relaxed cursor-pointer text-white/80">
                           Declaro que la información proporcionada es veraz. Entiendo que reclamos por información engañosa o incumplimiento de las condiciones comerciales resultarán en la baja inmediata del listado.
                         </Label>
@@ -1386,7 +1448,6 @@ export default function SociosPage() {
 
   return (
     <div className="relative min-h-screen w-full overflow-x-hidden selection:bg-primary selection:text-white">
-      {/* Background Image Layer */}
       <div className="fixed inset-0 z-0">
         <img 
           src="https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-socios.webp?updatedAt=1775442807257" 
@@ -1396,7 +1457,6 @@ export default function SociosPage() {
         <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[3px] bg-gradient-to-b from-slate-950/20 via-slate-950/70 to-slate-950" />
       </div>
 
-      {/* Content Layer */}
       <div className="relative z-10 min-h-screen pt-24 pb-16 flex items-center justify-center">
         {renderContent()}
       </div>

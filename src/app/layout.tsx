@@ -30,8 +30,11 @@ export default function RootLayout({
   const hideLayout = isSociosPage || isAdminPage;
 
   return (
-    <html lang="es" className="overflow-x-hidden">
-      <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col w-full max-w-full overflow-x-hidden`}>
+    <html lang="es" className="overflow-x-hidden" suppressHydrationWarning>
+      <body
+        className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col w-full max-w-full overflow-x-hidden`}
+        suppressHydrationWarning
+      >
         <ImageKitProviderWrapper>
           {!hideLayout && <Header />}
           

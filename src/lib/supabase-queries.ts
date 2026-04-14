@@ -16,12 +16,41 @@ export interface AlojamientoAprobado {
   mascotas?: string | null;
 }
 
-export interface TaxonomiaServicio {
+export type TaxonomiaServicio = {
   id: string;
   nombre: string;
-  categoria: string | null;
-  icono_key: string | null;
-  es_filtro_principal: boolean | null;
+  categoria: string;
+  icono_key: string;
+  es_filtro_principal: boolean;
+};
+
+export async function getTaxonomiaServicios(): Promise<TaxonomiaServicio[]> {
+  const { data, error } = await supabase
+    .from("taxonomia_servicios")
+    .select("*")
+    .order("es_filtro_principal", { ascending: false })
+    .order("nombre", { ascending: true });
+
+  if (error) {
+    console.error("[Supabase] Error al cargar taxonomia_servicios:", error);
+    return [];
+  }
+
+  if (!data) return [];
+
+  return (data as unknown as Array<{
+    id: unknown;
+    nombre: unknown;
+    categoria: unknown;
+    icono_key: unknown;
+    es_filtro_principal: unknown;
+  }>).map((row) => ({
+    id: String(row.id || ""),
+    nombre: String(row.nombre || "").trim(),
+    categoria: String(row.categoria || "Otros").trim() || "Otros",
+    icono_key: String(row.icono_key || "").trim(),
+    es_filtro_principal: Boolean(row.es_filtro_principal),
+  })).filter((x) => x.id && x.nombre);
 }
 
 export async function getAlojamientos() {
@@ -57,7 +86,6 @@ function normalizeServicioName(value: string) {
   if (s === "Cochera cubierta") return "Cochera";
   if (s === "Pileta propia" || s === "Piscina") return "Pileta";
   if (s === "Acepta Mascotas") return "Pet Friendly";
-  if (s === "Calefacción") return "Estufa a leña";
   return s;
 }
 
@@ -98,8 +126,9 @@ function normalizeServicios(raw: unknown) {
   return Array.from(new Set(list));
 }
 
-function normalizeAlojamiento(item: any): AlojamientoAprobado {
-  const servicios = normalizeServicios(item?.servicios);
+function normalizeAlojamiento(item: unknown): AlojamientoAprobado {
+  const raw = item as { servicios?: unknown };
+  const servicios = normalizeServicios(raw?.servicios);
   return {
     ...(item as AlojamientoAprobado),
     servicios,
@@ -283,27 +312,6 @@ export async function getAlojamientosFiltered(input: {
   }
 
   return uniqueById(results);
-}
-
-export async function getTaxonomiaServicios() {
-  const { data, error } = await supabase
-    .from("taxonomia_servicios")
-    .select("*")
-    .order("es_filtro_principal", { ascending: false })
-    .order("categoria", { ascending: true })
-    .order("nombre", { ascending: true });
-
-  if (error) {
-    console.error("Error fetching taxonomia_servicios:", {
-      message: (error as { message?: string })?.message,
-      details: (error as { details?: string })?.details,
-      hint: (error as { hint?: string })?.hint,
-      code: (error as { code?: string })?.code,
-    });
-    return [];
-  }
-
-  return (data ?? []) as TaxonomiaServicio[];
 }
 
 export async function getAlojamientoBySlug(slug: string) {

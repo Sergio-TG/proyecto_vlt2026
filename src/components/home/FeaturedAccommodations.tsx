@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, ArrowRight, Gem, Leaf, Share2, CheckCircle2 } from "lucide-react"
+import { MapPin, Star, Users, ArrowRight, Gem, Leaf, Share2, CheckCircle2 } from "lucide-react"
 import {
   Carousel,
   CarouselContent,
@@ -11,11 +11,13 @@ import {
 } from "@/components/ui/carousel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { getAlojamientos, AlojamientoAprobado, getTaxonomiaServicios, type TaxonomiaServicio } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState, useEffect } from "react"
 import CustomImage from "@/components/common/CustomImage"
+import { IK_TRANSFORMS } from "@/lib/imagekit.config"
+import { getIconByKey } from "@/lib/icons"
 
 function normalizeServiceForSearch(service: string) {
   return service
@@ -29,6 +31,8 @@ export function FeaturedAccommodations() {
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
   const [showShareToast, setShowShareToast] = useState(false)
+  const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
+  const [taxonomia, setTaxonomia] = useState<TaxonomiaServicio[]>([])
   const sectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -40,6 +44,42 @@ export function FeaturedAccommodations() {
     }
     loadData()
   }, [])
+
+  useEffect(() => {
+    let ignore = false
+    async function loadTaxonomia() {
+      const data = await getTaxonomiaServicios()
+      if (ignore) return
+      setTaxonomia(data)
+    }
+    loadTaxonomia()
+    return () => {
+      ignore = true
+    }
+  }, [])
+
+  useEffect(() => {
+    let ignore = false
+    async function loadPortadas() {
+      const slugs = accommodations
+        .map((a) => (a.slug ? String(a.slug).trim() : slugify(a.nombre)))
+        .filter(Boolean)
+      if (slugs.length === 0) return
+      const res = await fetch("/api/portadas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slugs }),
+      }).catch(() => null)
+      const json = (await res?.json().catch(() => null)) as unknown
+      const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
+      if (ignore) return
+      setPortadaBySlug(map)
+    }
+    loadPortadas()
+    return () => {
+      ignore = true
+    }
+  }, [accommodations])
 
   // Función para compartir alojamiento
   const handleShare = async (e: React.MouseEvent, slug: string, title: string) => {
@@ -73,6 +113,20 @@ export function FeaturedAccommodations() {
 
   // Efecto Parallax para las imágenes de las tarjetas
   const imageY = useTransform(scrollYProgress, [0, 1], ["-15%", "15%"])
+
+  const getServiciosPrincipales = (serviciosAlojamiento: string[], max = 3) => {
+    const base = Array.isArray(serviciosAlojamiento) ? serviciosAlojamiento : []
+    if (base.length === 0) return []
+    const principales = taxonomia.filter((t) => t.es_filtro_principal)
+    const matches = principales.filter((t) => {
+      const tn = normalizeServiceForSearch(t.nombre)
+      return base.some((s) => {
+        const sn = normalizeServiceForSearch(s)
+        return sn.includes(tn) || tn.includes(sn)
+      })
+    })
+    return matches.slice(0, max)
+  }
 
   return (
     <section ref={sectionRef} className="py-24 md:py-40 bg-white overflow-hidden">
@@ -139,29 +193,40 @@ export function FeaturedAccommodations() {
                     transition={{ delay: index * 0.05, duration: 0.5 }}
                     className="flex w-full p-0.5"
                   >
-                    <div className="group w-full overflow-hidden shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-500 flex flex-col rounded-[2rem] bg-white relative">
+                    <motion.div
+                      whileHover={{ y: -10, scale: 1.01 }}
+                      transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                      className="w-full"
+                    >
+                    <div className="group w-full overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] border border-slate-100 transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative">
                       {/* Link envolvente para toda la card */}
                       <Link href={`/alojamientos/${item.slug}`} className="absolute inset-0 z-10">
                         <span className="sr-only">Ver detalles de {item.nombre}</span>
                       </Link>
 
                       {/* Image Container */}
-                      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 p-2 pb-0">
+                      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem]">
                         <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ duration: 0.6 }}
-                          className="w-full h-full overflow-hidden rounded-[1.8rem]"
+                          whileHover={{ scale: 1.15 }}
+                          transition={{ duration: 1.5 }}
+                          className="relative w-full h-full"
                         >
-                          <CustomImage 
-                            path="portada.webp"
-                            folder="ALOJAMIENTOS"
-                            subfolder={item.slug || slugify(item.nombre)}
-                            alt={item.nombre}
-                            alternatePaths={["portada.jpg"]}
-                            fallbackCandidates={[{ folder: "ENTORNO", path: "placeholder-vlt.webp" }]}
-                            fill
-                            className="object-cover"
-                          />
+                          {portadaBySlug[item.slug || slugify(item.nombre)] ? (
+                            <CustomImage
+                              path={`${String(portadaBySlug[item.slug || slugify(item.nombre)]).split("?")[0]}?${IK_TRANSFORMS.card}`}
+                              folder="ALOJAMIENTOS"
+                              subfolder={item.slug || slugify(item.nombre)}
+                              alt={item.nombre}
+                              fill
+                              className="object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-stone-100 flex items-center justify-center">
+                              <div className="px-6 text-center text-slate-600 font-black text-sm leading-snug">
+                                {item.nombre}
+                              </div>
+                            </div>
+                          )}
                         </motion.div>
                         
                         {/* Dynamic Badge like the image */}
@@ -209,41 +274,53 @@ export function FeaturedAccommodations() {
                           </div>
                         </div>
 
-                        {/* Amenities List - Simple Icons */}
+                        {/* Amenities List - Clean Horizontal Style */}
                         {item.servicios && item.servicios.length > 0 && (
-                          <div className="flex items-center gap-3 pt-0.5">
+                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
+                            {/* Capacidad / Personas */}
                             <div className="flex items-center gap-1 text-slate-400">
                               <Users className="w-3 h-3" />
                               <span className="text-[10px] font-bold">
-                                {item.capacidad_total || item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
+                                {item.capacidad_total || item.servicios.find((s) => s.includes("Capacidad"))?.match(/\d+/)?.[0] || "—"} Pers.
                               </span>
                             </div>
-                            {item.servicios.some(s => normalizeServiceForSearch(s).includes('wifi')) && (
-                              <Wifi className="w-3 h-3 text-slate-400" />
-                            )}
-                            {item.servicios.some(s => normalizeServiceForSearch(s).includes('mascota') || normalizeServiceForSearch(s).includes('pet')) && (
-                              <PawPrint className="w-3 h-3 text-slate-400" />
-                            )}
+                            {getServiciosPrincipales(item.servicios, 3).map((servicio) => {
+                              const IconComponent = getIconByKey(servicio.icono_key)
+                              return (
+                                <div key={servicio.id} className="flex items-center gap-1 text-slate-400">
+                                  <IconComponent className="w-3 h-3" />
+                                  <span className="text-[10px] font-bold">{servicio.nombre}</span>
+                                </div>
+                              )
+                            })}
                           </div>
                         )}
 
-                        <div className="pt-4 flex items-center justify-between mt-auto border-t border-slate-50">
-                          <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
-                            <div className="flex items-baseline gap-0.5">
-                              <span className="text-[18px] font-black text-slate-900 leading-none">
-                                {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
-                              </span>
-                              <span className="text-[8px] text-slate-400 font-bold ml-0.5">/noche</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 text-primary font-black text-[10px] uppercase tracking-wider">
-                            Detalles
-                            <ArrowRight className="w-2.5 h-2.5" />
-                          </div>
+                        <div className="pt-4 flex items-center justify-between gap-2 mt-auto border-t border-slate-50 relative z-20">
+                          <motion.div className="flex flex-col min-w-0 pointer-events-none">
+                            {item.precio_base ? (
+                              <div className="flex items-baseline flex-wrap gap-x-1">
+                                <span className="text-lg xl:text-xl font-black text-slate-900 leading-none">
+                                  {`$${item.precio_base.toLocaleString("es-AR")}`}
+                                </span>
+                                <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">por noche</span>
+                              </div>
+                            ) : (
+                              <span className="text-sm font-black text-slate-900 leading-none">Consultar</span>
+                            )}
+                          </motion.div>
+
+                          <motion.div
+                            whileHover={{ scale: 1.03, y: -1 }}
+                            whileTap={{ scale: 0.98, y: 0 }}
+                            className="flex-shrink-0 h-9 sm:h-10 px-4 sm:px-5 rounded-full font-bold text-[11px] sm:text-[12px] bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center whitespace-nowrap pointer-events-none"
+                          >
+                            Ver disponibilidad
+                          </motion.div>
                         </div>
                       </div>
                     </div>
+                    </motion.div>
                   </motion.div>
                 </CarouselItem>
               ))}

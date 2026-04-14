@@ -3,6 +3,7 @@ import { NarrativeFilter } from "@/components/home/NarrativeFilter";
 import { TrustBuilders } from "@/components/home/TrustBuilders";
 import { TermasTeaser } from "@/components/home/TermasTeaser";
 import { FeaturedAccommodations } from "@/components/home/FeaturedAccommodations";
+import { HomeVideoSection } from "@/components/home/HomeVideoSection";
 import { SocialProof } from "@/components/home/SocialProof";
 
 export default function Home() {
@@ -15,6 +16,7 @@ export default function Home() {
       <TrustBuilders />
       <TermasTeaser />
       <FeaturedAccommodations />
+      <HomeVideoSection />
       <SocialProof />
     </div>
   );

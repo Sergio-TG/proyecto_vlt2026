@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { getServerSupabase } from "@/lib/supabase-server";
 
 const ADMIN_EMAIL = "sergiotg.web@gmail.com";
@@ -11,23 +10,13 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, reason: "missing_env" });
     }
 
-    const url = process.env.NEXT_PUBLIC_SUPABASE_URL as string;
-    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string;
-    if (!url || !anonKey) {
-      return NextResponse.json({ ok: false, reason: "missing_public_env" }, { status: 500 });
-    }
-
     const authHeader = req.headers.get("authorization") || "";
     const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
     if (!token) {
       return NextResponse.json({ ok: false, reason: "missing_token" }, { status: 401 });
     }
 
-    const supabaseAuth = createClient(url, anonKey, {
-      auth: { persistSession: false, autoRefreshToken: false },
-    });
-
-    const { data: userData, error: userErr } = await supabaseAuth.auth.getUser(token);
+    const { data: userData, error: userErr } = await supabaseService.auth.getUser(token);
     if (userErr || !userData?.user) {
       return NextResponse.json({ ok: false, reason: "invalid_token" }, { status: 401 });
     }
@@ -46,10 +35,11 @@ export async function GET(req: Request) {
     }
 
     const slugs = (pendientes || [])
-      .map((p: any) => {
-        const s = typeof p?.slug === "string" ? p.slug.trim() : "";
+      .map((p: unknown) => {
+        const row = p as { slug?: unknown; nombre_complejo?: unknown };
+        const s = typeof row?.slug === "string" ? row.slug.trim() : "";
         if (s) return s;
-        const base = String(p?.nombre_complejo || "alojamiento-sin-nombre");
+        const base = String(row?.nombre_complejo || "alojamiento-sin-nombre");
         return base
           .toLowerCase()
           .normalize("NFD")
@@ -60,7 +50,7 @@ export async function GET(req: Request) {
       })
       .filter(Boolean);
 
-    const aprobadosBySlug: Record<string, any> = {};
+    const aprobadosBySlug: Record<string, unknown> = {};
     for (let i = 0; i < slugs.length; i += 100) {
       const chunk = slugs.slice(i, i + 100);
       const { data: approvedData, error: approvedErr } = await supabaseService
@@ -70,13 +60,15 @@ export async function GET(req: Request) {
 
       if (approvedErr) continue;
       for (const row of approvedData || []) {
-        if (row?.slug) aprobadosBySlug[row.slug] = row;
+        const slug = (row as { slug?: unknown })?.slug;
+        if (typeof slug === "string" && slug) aprobadosBySlug[slug] = row;
       }
     }
 
     return NextResponse.json({ ok: true, pendientes: pendientes || [], aprobadosBySlug });
-  } catch (e: any) {
-    return NextResponse.json({ ok: false, error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    const message = e instanceof Error ? e.message : "Server error";
+    return NextResponse.json({ ok: false, error: message }, { status: 500 });
   }
 }
 

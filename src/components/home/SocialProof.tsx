@@ -63,7 +63,7 @@ export function SocialProof() {
                 <div className="flex gap-1 mb-2 text-yellow-400">
                     {[...Array(item.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
                 </div>
-                <p className="font-medium text-sm italic mb-2">"{item.quote}"</p>
+                <p className="font-medium text-sm italic mb-2">&quot;{item.quote}&quot;</p>
                 <div className="flex justify-between items-end">
                     <div>
                         <p className="font-bold">{item.name}</p>

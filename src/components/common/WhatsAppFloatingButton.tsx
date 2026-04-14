@@ -2,20 +2,15 @@
 
 import { MessageCircle } from "lucide-react"
 import { motion } from "framer-motion"
-import { createPortal } from "react-dom"
-import { useEffect, useState } from "react"
 
 const DEFAULT_WHATSAPP_PHONE = "5493546525404"
 
 export default function WhatsAppFloatingButton() {
-  const [mounted, setMounted] = useState(false)
-  useEffect(() => setMounted(true), [])
-
   const phone = (process.env.NEXT_PUBLIC_WHATSAPP_PHONE || DEFAULT_WHATSAPP_PHONE).replace(/[^\d]/g, "")
   const prefill = "Hola, quiero comenzar mi experiencia de bienestar en Viví las Termas. ¿Me podrían asesorar?"
   const href = `https://wa.me/${phone}?text=${encodeURIComponent(prefill)}`
 
-  const button = (
+  return (
     <motion.a
       href={href}
       target="_blank"
@@ -72,7 +67,4 @@ export default function WhatsAppFloatingButton() {
       </span>
     </motion.a>
   )
-
-  if (!mounted) return null
-  return createPortal(button, document.body)
 }
