@@ -29,8 +29,12 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
 
   const list = Array.from(new Set(archivos.filter(Boolean).map((n) => String(n).trim()).filter(Boolean)))
 
-  const thumbUrls = buildGaleriaUrls(folderSlug, list, "galThumb")
-  const fullUrls = buildGaleriaUrls(folderSlug, list, "galFull")
+  const portadaFromList = list.find((n) => (n.split("?")[0] ?? "").toLowerCase() === "portada.webp")
+  const portada = portadaFromList || (portadaPath ? String(portadaPath).trim() : "")
+  const ordered = portada ? [portada, ...list.filter((n) => n !== portada)] : list
+
+  const thumbUrls = buildGaleriaUrls(folderSlug, ordered, "galThumb")
+  const fullUrls = buildGaleriaUrls(folderSlug, ordered, "galFull")
 
   return (
     <AccommodationDetailClient

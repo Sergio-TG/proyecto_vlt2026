@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function GET() {
   const supabase = getServerSupabase();
@@ -15,6 +16,14 @@ export async function POST(req: Request) {
     if (!supabase) {
       return NextResponse.json({ ok: false, reason: "missing_env" });
     }
+
+    try {
+      await requireAdmin(req);
+    } catch (e: unknown) {
+      if (e instanceof Response) return e;
+      throw e;
+    }
+
     const body = await req.json();
     const payloadInput = body?.payload as Record<string, unknown>;
     const pendingId = body?.pendingId as string | undefined;

@@ -1,19 +1,16 @@
 "use client"
 
-import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves, Share2, CheckCircle2, Tv, Coffee, Utensils, Flame, Snowflake, ArrowRight, Gem, Leaf, Car } from "lucide-react"
+import { Wifi, PawPrint, Filter, X, Waves, CheckCircle2, Coffee, Utensils, Car } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { getAlojamientosFiltered, AlojamientoAprobado, getTaxonomiaServicios, type TaxonomiaServicio } from "@/lib/supabase-queries"
+import { getAlojamientosFiltered, AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
-import { motion, AnimatePresence } from "framer-motion"
-import React, { useState, useMemo, useEffect } from "react"
-import CustomImage from "@/components/common/CustomImage"
-import { IK_TRANSFORMS } from "@/lib/imagekit.config"
-import { getIconByKey } from "@/lib/icons"
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
+import React, { useState, useMemo, useEffect, useRef } from "react"
+import { AccommodationCard } from "@/components/accommodations/AccommodationCard"
+import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+import dynamic from "next/dynamic"
 import {
   Sheet,
   SheetContent,
@@ -35,42 +32,36 @@ function normalizeServiceForSearch(service: string) {
 
 const premiumEase: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
-const cardHoverTransition = { duration: 0.7, ease: premiumEase }
-const imageHoverTransition = { duration: 1.5, ease: premiumEase }
-
-const cardHoverVariants = {
-  rest: { y: 0, scale: 1, rotate: 0 },
-  hover: { y: -8, scale: 1.008, rotate: -0.15 },
-  tap: { y: -2, scale: 0.99, rotate: 0 },
-}
-
-const imageHoverVariants = {
-  rest: { scale: 1, y: 0 },
-  hover: { scale: 1.1, y: -6 },
-}
-
-const ctaHoverVariants = {
-  rest: { scale: 1, y: 0 },
-  hover: { scale: 1.03, y: -1 },
-  tap: { scale: 0.98, y: 0 },
-}
-
-const priceHoverVariants = {
-  rest: { y: 0, opacity: 1 },
-  hover: { y: -1, opacity: 1 },
-}
-
 const revealVariants = {
   hidden: { opacity: 0, y: 30, scale: 0.98 },
   visible: { opacity: 1, y: 0, scale: 1 },
   exit: { opacity: 0, y: 10, scale: 0.98 },
 }
 
+const toImageKitUrl = (relativePath: string) => {
+  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+  const rel = relativePath.trim().replace(/^\/+/, "")
+  return `${base}/${rel}`
+}
+
+const heroAlojamientosImage = toImageKitUrl("entorno/bg-paginas/hero-alojamientos.webp")
+const MapAlojamiento = dynamic(() => import("@/components/maps/MapAlojamiento"), {
+  ssr: false,
+})
+
 export default function AlojamientosPage() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  })
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
   const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
-  const [taxonomia, setTaxonomia] = useState<TaxonomiaServicio[]>([])
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => {
     if (typeof window === "undefined") return []
@@ -124,19 +115,6 @@ export default function AlojamientosPage() {
       ignore = true
     }
   }, [buildSupabaseFilters])
-
-  useEffect(() => {
-    let ignore = false
-    async function loadTaxonomia() {
-      const data = await getTaxonomiaServicios()
-      if (ignore) return
-      setTaxonomia(data)
-    }
-    loadTaxonomia()
-    return () => {
-      ignore = true
-    }
-  }, [])
 
   useEffect(() => {
     let ignore = false
@@ -234,24 +212,6 @@ export default function AlojamientosPage() {
     setSelectedFeatures([])
   }
 
-  const getServiciosPrincipales = React.useCallback(
-    (serviciosAlojamiento: string[], max = 3) => {
-      const base = Array.isArray(serviciosAlojamiento) ? serviciosAlojamiento : []
-      if (base.length === 0) return []
-
-      const principales = taxonomia.filter((t) => t.es_filtro_principal)
-      const matches = principales.filter((t) => {
-        const tn = normalizeServiceForSearch(t.nombre)
-        return base.some((s) => {
-          const sn = normalizeServiceForSearch(s)
-          return sn.includes(tn) || tn.includes(sn)
-        })
-      })
-
-      return matches.slice(0, max)
-    },
-    [taxonomia]
-  )
 
   const renderFilterContent = (isDesktop = false) => (
     <div className={`space-y-8 ${isDesktop ? "" : "pb-20"}`}>
@@ -259,16 +219,28 @@ export default function AlojamientosPage() {
       <div className="space-y-4">
         <h4 className="text-lg font-bold tracking-tight">Localidad</h4>
         <div className="grid grid-cols-1 gap-3">
-          {locations.map(loc => (
-            <div key={loc} className="flex items-center space-x-2 group cursor-pointer" onClick={() => toggleLocation(loc)}>
-              <Checkbox 
-                id={`${isDesktop ? 'desktop' : 'mobile'}-loc-${loc}`} 
-                checked={selectedLocation.includes(loc)}
-                className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-              />
-              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-loc-${loc}`} className="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors cursor-pointer">{loc}</Label>
-            </div>
-          ))}
+          {locations.map((loc) => {
+            const id = `${isDesktop ? "desktop" : "mobile"}-loc-${loc}`
+            return (
+              <label
+                key={loc}
+                htmlFor={id}
+                onClick={(e) => {
+                  e.preventDefault()
+                  toggleLocation(loc)
+                }}
+                className="flex items-center gap-2 group cursor-pointer rounded-lg px-2 py-2 -mx-2 hover:bg-slate-50"
+              >
+                <Checkbox
+                  id={id}
+                  checked={selectedLocation.includes(loc)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                />
+                <span className="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors">{loc}</span>
+              </label>
+            )
+          })}
         </div>
       </div>
 
@@ -283,19 +255,31 @@ export default function AlojamientosPage() {
             { id: "parking", label: "Cochera", icon: Car },
             { id: "bbq", label: "Parrilla / Quincho", icon: Utensils },
             { id: "breakfast", label: "Desayuno", icon: Coffee },
-          ].map(feat => (
-            <div key={feat.id} className="flex items-center space-x-2 group cursor-pointer" onClick={() => toggleFeature(feat.id)}>
-              <Checkbox 
-                id={`${isDesktop ? 'desktop' : 'mobile'}-feat-${feat.id}`} 
-                checked={selectedFeatures.includes(feat.id)}
-                className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-              />
-              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-feat-${feat.id}`} className="text-sm font-medium text-slate-600 flex items-center gap-2 group-hover:text-primary transition-colors cursor-pointer">
-                <feat.icon className="w-4 h-4 opacity-60" />
-                {feat.label}
-              </Label>
-            </div>
-          ))}
+          ].map((feat) => {
+            const id = `${isDesktop ? "desktop" : "mobile"}-feat-${feat.id}`
+            return (
+              <label
+                key={feat.id}
+                htmlFor={id}
+                onClick={(e) => {
+                  e.preventDefault()
+                  toggleFeature(feat.id)
+                }}
+                className="flex items-center gap-2 group cursor-pointer rounded-lg px-2 py-2 -mx-2 hover:bg-slate-50"
+              >
+                <Checkbox
+                  id={id}
+                  checked={selectedFeatures.includes(feat.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                />
+                <span className="text-sm font-medium text-slate-600 flex items-center gap-2 group-hover:text-primary transition-colors">
+                  <feat.icon className="w-4 h-4 opacity-60" />
+                  {feat.label}
+                </span>
+              </label>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -303,7 +287,39 @@ export default function AlojamientosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-32">
+      <section ref={containerRef} className="relative h-[70vh] w-full overflow-hidden flex items-center justify-center">
+        <motion.div
+          style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
+          className="absolute inset-0 z-0"
+        >
+          <div className="absolute inset-0 bg-black/50 z-10" />
+          <img
+            src={heroAlojamientosImage}
+            alt="Alojamientos en El Durazno"
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white p-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-5xl md:text-8xl font-bold mb-4 drop-shadow-2xl tracking-tighter"
+          >
+            Alojamientos
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 1 }}
+            className="text-xl md:text-3xl max-w-2xl font-light drop-shadow-md text-white/90"
+          >
+            Encontrá tu lugar ideal en las sierras
+          </motion.p>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-24">
         {/* Header with Reveal */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -370,6 +386,22 @@ export default function AlojamientosPage() {
           </div>
         </motion.div>
 
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-10 space-y-3"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Mapa de alojamientos</h2>
+            <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+              {filteredAccommodations.length} resultados
+            </p>
+          </div>
+          <MapAlojamiento accommodations={filteredAccommodations} portadaBySlug={portadaBySlug} />
+        </motion.div>
+
         {/* Layout Grid */}
         <div className="flex flex-col md:flex-row gap-12">
           {/* Desktop Sidebar */}
@@ -412,134 +444,12 @@ export default function AlojamientosPage() {
                 }}
                 className="flex"
               >
-                <Link href={`/alojamientos/${item.slug}`} className="block w-full">
-                  <motion.div
-                    variants={cardHoverVariants}
-                    initial="rest"
-                    whileHover="hover"
-                    whileTap="tap"
-                    transition={cardHoverTransition}
-                    className="w-full"
-                  >
-                  <Card className="group w-full overflow-hidden border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
-
-                  {/* Image Container */}
-                  <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem]">
-                    <motion.div
-                      variants={imageHoverVariants}
-                      transition={imageHoverTransition}
-                      className="relative w-full h-full"
-                    >
-                      {portadaBySlug[item.slug || slugify(item.nombre)] ? (
-                        <CustomImage
-                          path={`${String(portadaBySlug[item.slug || slugify(item.nombre)]).split("?")[0]}?${IK_TRANSFORMS.card}`}
-                          folder="ALOJAMIENTOS"
-                          subfolder={item.slug || slugify(item.nombre)}
-                          alt={item.nombre}
-                          fill
-                          className="object-cover"
-                        />
-                      ) : (
-                        <div className="w-full h-full bg-stone-100 flex items-center justify-center">
-                          <div className="px-6 text-center text-slate-600 font-black text-sm md:text-base leading-snug">
-                            {item.nombre}
-                          </div>
-                        </div>
-                      )}
-                    </motion.div>
-                    
-                    {/* Dynamic Badge like the image */}
-                    <motion.div variants={priceHoverVariants} className="absolute top-4 left-4 z-20">
-                      <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2.5 py-1 rounded-full font-black text-[8px] uppercase tracking-wider flex items-center gap-1">
-                        {item.rating_google && item.rating_google >= 4.8 ? (
-                          <><Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> MÁS PEDIDO</>
-                        ) : item.precio_base && item.precio_base > 100000 ? (
-                          <><Gem className="w-2.5 h-2.5 text-blue-500" /> PREMIUM</>
-                        ) : (
-                          <><Leaf className="w-2.5 h-2.5 text-green-500" /> ECO-FRIENDLY</>
-                        )}
-                      </Badge>
-                    </motion.div>
-
-                    {/* Botón Compartir */}
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={(e) => handleShare(e, item.slug, item.nombre)}
-                      className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-md border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
-                      title="Compartir alojamiento"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                    </motion.button>
-                  </div>
-
-                  {/* Content Area - New Design from Image */}
-                  <div className="flex flex-col flex-grow p-5 pt-4 space-y-3 relative z-20">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="space-y-0.5 flex-grow">
-                        <h3 className="font-black text-[15px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors duration-300">
-                          {item.nombre}
-                        </h3>
-                        <div className="flex items-center text-[#38bdf8] text-[10px] font-bold">
-                          <MapPin className="w-3 h-3 mr-1 fill-[#7dd3fc]/20 flex-shrink-0" />
-                          <span className="truncate uppercase tracking-tight">{item.localidad}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Rating Badge next to Title */}
-                      <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-2.5 py-1 rounded-lg font-black text-[11px] shadow-sm flex-shrink-0">
-                        <Star className="w-3 h-3 fill-[#2563eb]" />
-                        {item.rating_google || "—"}
-                      </div>
-                    </div>
-
-                    {/* Amenities List - Clean Horizontal Style */}
-                    {item.servicios && item.servicios.length > 0 && (
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
-                            <div className="flex items-center gap-1 text-slate-400">
-                              <Users className="w-3 h-3" />
-                              <span className="text-[10px] font-bold">
-                                {item.capacidad_total || item.servicios.find((s) => s.includes("Capacidad"))?.match(/\d+/)?.[0] || "—"} Pers.
-                              </span>
-                            </div>
-                            {getServiciosPrincipales(item.servicios, 3).map((servicio) => {
-                              const IconComponent = getIconByKey(servicio.icono_key)
-                              return (
-                                <div key={servicio.id} className="flex items-center gap-1 text-slate-400">
-                                  <IconComponent className="w-3 h-3" />
-                                  <span className="text-[10px] font-bold">{servicio.nombre}</span>
-                                </div>
-                              )
-                            })}
-                          </div>
-                    )}
-
-                    <div className="pt-4 flex items-center justify-between gap-2 mt-auto border-t border-slate-50">
-                      <motion.div variants={priceHoverVariants} className="flex flex-col min-w-0">
-                        {item.precio_base ? (
-                          <div className="flex items-baseline flex-wrap gap-x-1">
-                            <span className="text-lg xl:text-xl font-black text-slate-900 leading-none">
-                              {`$${item.precio_base.toLocaleString("es-AR")}`}
-                            </span>
-                            <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">por noche</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm font-black text-slate-900 leading-none">Consultar</span>
-                        )}
-                      </motion.div>
-
-                      <motion.div
-                        variants={ctaHoverVariants}
-                        transition={cardHoverTransition}
-                        className="flex-shrink-0 h-9 sm:h-10 px-4 sm:px-5 rounded-full font-bold text-[11px] sm:text-[12px] bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center whitespace-nowrap"
-                      >
-                        Ver disponibilidad
-                      </motion.div>
-                    </div>
-                  </div>
-                </Card>
-                </motion.div>
-                </Link>
+                <AccommodationCard
+                  variant="listing"
+                  item={item}
+                  portadaFile={portadaBySlug[item.slug || slugify(item.nombre)]}
+                  onShare={handleShare}
+                />
               </motion.div>
             ))}
           </AnimatePresence>

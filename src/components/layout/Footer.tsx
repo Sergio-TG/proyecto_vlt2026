@@ -4,25 +4,40 @@ import Link from "next/link"
 import { Facebook, Instagram, MessageCircle, CheckCircle2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useState } from "react"
+import { usePathname } from "next/navigation"
 
 export function Footer() {
   const [email, setEmail] = useState("")
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle")
+  const [message, setMessage] = useState<string | null>(null)
+  const pathname = usePathname()
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email || !email.includes("@")) return
+    const value = email.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return
 
     setStatus("loading")
+    setMessage(null)
 
-    // Simular llamada a API
-    await new Promise(resolve => setTimeout(resolve, 1500))
-
-    setStatus("success")
-    setEmail("")
-
-    // Resetear mensaje de éxito después de 5 segundos
-    setTimeout(() => setStatus("idle"), 5000)
+    try {
+      const res = await fetch("/api/newsletter/subscribe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: value, source: `footer:${pathname || ""}` }),
+      })
+      const json = (await res.json().catch(() => null)) as { ok?: boolean; message?: string; error?: string } | null
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "Ocurrió un error. Intentá de nuevo.")
+      }
+      setStatus("success")
+      setMessage(json?.message || "¡Gracias por suscribirte!")
+      setEmail("")
+      setTimeout(() => setStatus("idle"), 5000)
+    } catch (err: unknown) {
+      setStatus("error")
+      setMessage(err instanceof Error ? err.message : "Ocurrió un error. Intentá de nuevo.")
+    }
   }
 
   return (
@@ -115,7 +130,7 @@ export function Footer() {
             {status === "success" ? (
               <div className="flex items-center gap-3 bg-green-500/10 text-green-400 p-4 rounded-xl border border-green-500/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                <p className="text-sm font-medium">¡Gracias por suscribirte! Revisá tu correo.</p>
+                <p className="text-sm font-medium">{message || "¡Gracias por suscribirte!"}</p>
               </div>
             ) : (
               <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
@@ -142,7 +157,7 @@ export function Footer() {
                   </Button>
                 </div>
                 {status === "error" && (
-                  <p className="text-xs text-red-400 ml-1">Ocurrió un error. Intentá de nuevo.</p>
+                  <p className="text-xs text-red-400 ml-1">{message || "Ocurrió un error. Intentá de nuevo."}</p>
                 )}
               </form>
             )}

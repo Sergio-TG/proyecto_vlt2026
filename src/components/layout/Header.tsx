@@ -24,7 +24,15 @@ export function Header() {
   const pathname = usePathname()
 
   // Pages that have a dark hero section and support transparent header
-  const isTransparentPage = pathname === "/" || pathname === "/termas" || pathname === "/experiencias" || (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
+  const isTransparentPage =
+    pathname === "/" ||
+    pathname === "/termas" ||
+    pathname === "/experiencias" ||
+    pathname === "/alojamientos" ||
+    pathname === "/contacto" ||
+    pathname === "/admin" ||
+    pathname === "/socios" ||
+    (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     // Logic moved to native scroll listener for better performance

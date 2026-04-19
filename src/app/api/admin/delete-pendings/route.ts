@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase-server";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function POST(req: Request) {
   try {
@@ -8,15 +9,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, reason: "missing_env" }, { status: 500 });
     }
 
-    const authHeader = req.headers.get("authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
-    if (!token) {
-      return NextResponse.json({ ok: false, reason: "missing_token" }, { status: 401 });
-    }
-
-    const { data: userData, error: userErr } = await supabase.auth.getUser(token);
-    if (userErr || !userData?.user) {
-      return NextResponse.json({ ok: false, reason: "invalid_token" }, { status: 401 });
+    try {
+      await requireAdmin(req);
+    } catch (e: unknown) {
+      if (e instanceof Response) return e;
+      throw e;
     }
 
     const body = await req.json();

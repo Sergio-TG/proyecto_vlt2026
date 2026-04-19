@@ -9,6 +9,7 @@ import CustomImage from "@/components/common/CustomImage"
 import { IK_TRANSFORMS } from "@/lib/imagekit.config"
 import { slugify } from "@/lib/utils"
 import { getIconByKey } from "@/lib/icons"
+import dynamic from "next/dynamic"
 import {
   MapPin,
   Star,
@@ -23,6 +24,10 @@ import {
   CheckCircle2,
   ArrowLeft,
   Share2,
+  ExternalLink,
+  Clock,
+  CalendarX2,
+  LogOut,
 } from "lucide-react"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import * as React from "react"
@@ -32,6 +37,22 @@ type AccommodationWithExtras = AlojamientoAprobado & {
   google_maps?: string | null
   ubicacion_google_maps?: string | null
   link_drive?: string | null
+  direccion?: string | null
+  distribucion_camas?: string | null
+  check_in?: string | null
+  check_out?: string | null
+  cancelacion?: string | null
+}
+
+const MapAlojamientoSingle = dynamic(() => import("@/components/maps/MapAlojamientoSingle"), { ssr: false })
+
+function toNum(v: unknown): number | null {
+  if (typeof v === "number" && Number.isFinite(v)) return v
+  if (typeof v === "string") {
+    const n = Number(v.trim())
+    return Number.isFinite(n) ? n : null
+  }
+  return null
 }
 
 function normalizeServiceForSearch(service: string) {
@@ -123,7 +144,7 @@ export function AccommodationDetailClient({
   const getFeatureLabel = (key: string, value: unknown) => {
     switch (key) {
       case "guests":
-        return `${value} Huéspedes`
+        return `${value} Personas`
       case "bedrooms":
         return `${value} Dormitorios`
       case "bathrooms":
@@ -161,9 +182,18 @@ export function AccommodationDetailClient({
     }
   }, [accommodation])
 
-  const serviciosAgrupados = React.useMemo(() => {
+  type ServicioDisplay = { key: string; nombre: string; icono_key: string }
+
+  const serviciosFlat = React.useMemo<ServicioDisplay[]>(() => {
     const serviciosAlojamiento = Array.isArray(accommodation.servicios) ? accommodation.servicios : []
-    if (serviciosAlojamiento.length === 0 || taxonomia.length === 0) return {}
+    if (serviciosAlojamiento.length === 0) return []
+    if (taxonomia.length === 0) {
+      return serviciosAlojamiento
+        .filter((s) => !/^(tipo|capacidad)\s*:/i.test(String(s || "").trim()))
+        .map((s) => String(s))
+        .filter(Boolean)
+        .map((nombre) => ({ key: `raw:${nombre}`, nombre, icono_key: "" }))
+    }
 
     const matches = taxonomia.filter((t) => {
       const tn = normalizeServiceForSearch(t.nombre)
@@ -173,26 +203,40 @@ export function AccommodationDetailClient({
       })
     })
 
-    const grouped = matches.reduce((acc, servicio) => {
-      const categoria = servicio.categoria || "Otros"
-      if (!acc[categoria]) acc[categoria] = []
-      acc[categoria].push(servicio)
-      return acc
-    }, {} as Record<string, TaxonomiaServicio[]>)
+    const known = matches
+      .slice()
+      .sort((a, b) => {
+        const aStar = a.es_filtro_principal ? 1 : 0
+        const bStar = b.es_filtro_principal ? 1 : 0
+        if (aStar !== bStar) return bStar - aStar
+        return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" })
+      })
+      .map((s) => ({ key: `tax:${s.id}`, nombre: s.nombre, icono_key: s.icono_key }))
 
-    for (const key of Object.keys(grouped)) {
-      grouped[key] = grouped[key].sort((a, b) => a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }))
-    }
+    const unknown = serviciosAlojamiento
+      .map((s) => String(s || "").trim())
+      .filter(Boolean)
+      .filter((s) => !/^(tipo|capacidad)\s*:/i.test(s))
+      .filter((raw) => {
+        const rn = normalizeServiceForSearch(raw)
+        return !matches.some((t) => {
+          const tn = normalizeServiceForSearch(t.nombre)
+          return rn.includes(tn) || tn.includes(rn)
+        })
+      })
 
-    const sortedEntries = Object.entries(grouped).sort(([aKey, aVal], [bKey, bVal]) => {
-      const aStar = aVal.some((x) => x.es_filtro_principal)
-      const bStar = bVal.some((x) => x.es_filtro_principal)
-      if (aStar !== bStar) return aStar ? -1 : 1
-      return aKey.localeCompare(bKey, "es", { sensitivity: "base" })
-    })
+    const unknownUnique = Array.from(new Set(unknown)).sort((a, b) => a.localeCompare(b, "es", { sensitivity: "base" }))
+    const unknownDisplay = unknownUnique.map((nombre) => ({ key: `raw:${nombre}`, nombre, icono_key: "" }))
 
-    return Object.fromEntries(sortedEntries)
+    return [...known, ...unknownDisplay]
   }, [accommodation.servicios, taxonomia])
+
+  const uniqueServices = React.useMemo(() => {
+    return Array.from(new Map(serviciosFlat.map((s) => [s.key, s])).values())
+  }, [serviciosFlat])
+
+  const lat = toNum((accommodation as { latitud?: unknown }).latitud)
+  const lng = toNum((accommodation as { longitud?: unknown }).longitud)
 
   const folderSlug = (accommodation.slug || slugify(accommodation.nombre || "")).trim()
   const heroPath = portadaPath ? `${portadaPath.split("?")[0]}?${IK_TRANSFORMS.heroPage}` : null
@@ -241,33 +285,58 @@ export function AccommodationDetailClient({
               <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter leading-none drop-shadow-2xl">
                 {accommodation.nombre}
               </h1>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-lg md:text-xl font-light">
-                <div className="flex flex-wrap items-center gap-6">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="w-6 h-6 text-primary" />
-                    <span className="opacity-90">{accommodation.localidad}</span>
+              <div className="flex flex-col gap-3 text-lg md:text-xl font-light">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div className="flex flex-wrap items-center gap-6">
+                    <div className="flex items-center gap-2">
+                      <MapPin className="w-6 h-6 text-primary" />
+                      <span className="opacity-90">{accommodation.localidad}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
+                      <span className="font-bold">{accommodation.rating_google || "—"}</span>
+                      <span className="text-base opacity-60">(Google Maps)</span>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Star className="w-6 h-6 text-yellow-400 fill-yellow-400" />
-                    <span className="font-bold">{accommodation.rating_google || "—"}</span>
-                    <span className="text-base opacity-60">(Google Maps)</span>
-                  </div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    className="flex-shrink-0 pointer-events-auto"
+                  >
+                    <Button
+                      onClick={handleShare}
+                      variant="outline"
+                      className="bg-transparent border-white/20 hover:bg-primary hover:border-primary text-white rounded-full h-10 px-4 flex items-center gap-2 transition-all"
+                    >
+                      <Share2 className="w-4 h-4" />
+                      <span className="font-bold">Compartir</span>
+                    </Button>
+                  </motion.div>
                 </div>
 
-                <motion.div
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="flex-shrink-0 pointer-events-auto"
-                >
-                  <Button
-                    onClick={handleShare}
-                    variant="outline"
-                    className="bg-transparent border-white/20 hover:bg-primary hover:border-primary text-white rounded-full h-10 px-4 flex items-center gap-2 transition-all"
-                  >
-                    <Share2 className="w-4 h-4" />
-                    <span className="font-bold">Compartir</span>
-                  </Button>
-                </motion.div>
+                {(String(accommodation.direccion || "").trim() ||
+                  String(accommodation.google_maps || accommodation.ubicacion_google_maps || "").trim()) && (
+                  <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/60 pointer-events-auto">
+                    {String(accommodation.direccion || "").trim() && (
+                      <div className="flex items-center gap-2">
+                        <MapPin className="w-4 h-4" />
+                        <span className="font-medium">{String(accommodation.direccion || "").trim()}</span>
+                      </div>
+                    )}
+                    {String(accommodation.google_maps || accommodation.ubicacion_google_maps || "").trim() && (
+                      <a
+                        href={String(accommodation.google_maps || accommodation.ubicacion_google_maps)}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-2 font-bold hover:text-white transition-colors"
+                      >
+                        Ver en Google Maps
+                        <ExternalLink className="w-4 h-4" />
+                      </a>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>
@@ -327,11 +396,85 @@ export function AccommodationDetailClient({
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Sobre este alojamiento</h3>
                     <p className="text-lg leading-relaxed font-light">{accommodation.descripcion}</p>
                   </div>
+
+                  <div className="space-y-4">
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Información de estadía</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
+                        <Users className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Personas</div>
+                          <div className="text-sm font-bold text-slate-800">
+                            {derivedFeatures.guests || accommodation.capacidad_total || "—"}
+                          </div>
+                        </div>
+                      </div>
+
+                      {String(accommodation.distribucion_camas || "").trim() && (
+                        <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
+                          <BedDouble className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
+                              Distribución de camas
+                            </div>
+                            <div className="text-sm font-bold text-slate-800 break-words">
+                              {String(accommodation.distribucion_camas)}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {String(accommodation.check_in || "").trim() && (
+                        <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
+                          <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Check-in</div>
+                            <div className="text-sm font-bold text-slate-800">{String(accommodation.check_in)}</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {String(accommodation.check_out || "").trim() && (
+                        <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
+                          <LogOut className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Check-out</div>
+                            <div className="text-sm font-bold text-slate-800">{String(accommodation.check_out)}</div>
+                          </div>
+                        </div>
+                      )}
+
+                      {String(accommodation.cancelacion || "").trim() && (
+                        <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100 sm:col-span-2">
+                          <CalendarX2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Cancelación</div>
+                            <div className="text-sm font-bold text-slate-800 break-words">
+                              {String(accommodation.cancelacion)}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {lat != null && lng != null && (
+                        <div className="sm:col-span-2">
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Ubicación</div>
+                          <MapAlojamientoSingle
+                            lat={lat}
+                            lng={lng}
+                            nombre={accommodation.nombre}
+                            localidad={accommodation.localidad}
+                            precioBase={accommodation.precio_base ?? null}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
 
-            <hr className="border-slate-100 my-12 md:my-16" />
+            <hr className="border-slate-100 my-8 md:my-10" />
 
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -342,27 +485,20 @@ export function AccommodationDetailClient({
               <Card className="border-none shadow-[0_40px_100px_rgba(0,0,0,0.08)] rounded-[3rem] overflow-hidden bg-white">
                 <CardContent className="p-10 md:p-16">
                   <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Servicios Incluidos</h3>
-                  {Object.keys(serviciosAgrupados).length === 0 ? (
+                  {uniqueServices.length === 0 ? (
                     <div className="text-slate-500 text-sm font-medium">No hay servicios para mostrar.</div>
                   ) : (
-                    Object.entries(serviciosAgrupados).map(([categoria, servicios]) => (
-                      <div key={categoria} className="mb-10 last:mb-0">
-                        <h4 className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">
-                          {categoria}
-                        </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
-                          {servicios.map((servicio) => {
-                            const IconComponent = getIconByKey(servicio.icono_key)
-                            return (
-                              <div key={servicio.id} className="flex items-center gap-2 text-slate-700">
-                                <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
-                                <span className="text-sm font-medium">{servicio.nombre}</span>
-                              </div>
-                            )
-                          })}
-                        </div>
-                      </div>
-                    ))
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
+                      {uniqueServices.map((servicio) => {
+                        const IconComponent = getIconByKey(servicio.icono_key)
+                        return (
+                          <div key={servicio.key} className="flex items-center gap-2 text-slate-700">
+                            <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
+                            <span className="text-sm font-medium">{servicio.nombre}</span>
+                          </div>
+                        )
+                      })}
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -413,7 +549,7 @@ export function AccommodationDetailClient({
           </div>
         </div>
 
-        <hr className="border-slate-100 my-12 md:my-16" />
+        <hr className="border-slate-100 my-8 md:my-10" />
 
         {thumbUrls.length > 0 && fullUrls.length > 0 && (
           <section className="mt-16 md:mt-24">

@@ -3,6 +3,7 @@
 import * as React from "react"
 import { GaleriaGrid } from "@/components/alojamientos/GaleriaGrid"
 import { GaleriaLightbox } from "@/components/alojamientos/GaleriaLightbox"
+import { IK_TRANSFORMS } from "@/lib/imagekit.config"
 
 export interface GaleriaAlojamientoProps {
   thumbUrls: string[]
@@ -17,6 +18,13 @@ export function GaleriaAlojamiento({ thumbUrls, fullUrls, nombreAlojamiento }: G
 
   const safeThumbUrls = React.useMemo(() => thumbUrls ?? [], [thumbUrls])
   const safeFullUrls = React.useMemo(() => fullUrls ?? [], [fullUrls])
+
+  const mainUrl = React.useMemo(() => {
+    const u = safeThumbUrls[0]
+    if (!u) return undefined
+    const base = u.split("?")[0] ?? u
+    return `${base}?${IK_TRANSFORMS.galFull}`
+  }, [safeThumbUrls])
 
   const handleOpenAt = (index: number) => {
     setInitialIndex(index)
@@ -47,6 +55,7 @@ export function GaleriaAlojamiento({ thumbUrls, fullUrls, nombreAlojamiento }: G
     <>
       <GaleriaGrid
         thumbUrls={safeThumbUrls}
+        mainUrl={mainUrl}
         nombreAlojamiento={nombreAlojamiento}
         onFotoClick={handleOpenAt}
         onVerTodas={handleVerTodas}

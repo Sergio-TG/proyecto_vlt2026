@@ -11,6 +11,7 @@ import {
   Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
@@ -35,6 +36,8 @@ type PendingRow = {
   unidades?: string | null
   direccion?: string | null
   google_maps?: string | null
+  latitud?: number | null
+  longitud?: number | null
   distribucion_camas?: string | null
   distancia_termas?: string | null
   tipo_acceso?: string | null
@@ -66,6 +69,8 @@ type ApprovedRow = {
   unidades?: string | null
   direccion?: string | null
   google_maps?: string | null
+  latitud?: number | null
+  longitud?: number | null
   propietario?: string | null
   distribucion_camas?: string | null
   distancia_termas?: string | null
@@ -154,11 +159,20 @@ export default function AdminDashboard() {
   const checkAdminSession = async () => {
     setAuthLoading(true)
     const { data: { session } } = await supabase.auth.getSession()
-    const adminEmail = "sergiotg.web@gmail.com"
-    if (session && session.user.email === adminEmail) {
-      setIsAdmin(true)
-      fetchPendientes()
-      fetchAprobados()
+    const token = session?.access_token
+    if (token) {
+      const res = await fetch("/api/admin/verify", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => null)
+      const json = (await res?.json().catch(() => null)) as unknown
+      const ok = Boolean(res?.ok) && Boolean((json as { ok?: boolean } | null)?.ok)
+      if (ok) {
+        setIsAdmin(true)
+        fetchPendientes()
+        fetchAprobados()
+      } else {
+        setIsAdmin(false)
+      }
     } else {
       setIsAdmin(false)
     }
@@ -177,14 +191,27 @@ export default function AdminDashboard() {
     const form = e.target as HTMLFormElement
     const email = (form.elements.namedItem("email") as HTMLInputElement).value
     const password = (form.elements.namedItem("password") as HTMLInputElement).value
-    const adminEmail = "sergiotg.web@gmail.com"
 
     try {
-      if (email !== adminEmail) {
-        throw new Error("No tienes permisos para acceder a este panel.")
-      }
       const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
       if (signInError) throw signInError
+
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        throw new Error("Sesión inválida o expirada.")
+      }
+
+      const res = await fetch("/api/admin/verify", {
+        headers: { Authorization: `Bearer ${token}` },
+      }).catch(() => null)
+      const json = (await res?.json().catch(() => null)) as unknown
+      const ok = Boolean(res?.ok) && Boolean((json as { ok?: boolean } | null)?.ok)
+      if (!ok) {
+        await supabase.auth.signOut()
+        throw new Error("No tienes permisos para acceder a este panel.")
+      }
+
       setIsAdmin(true)
       fetchPendientes()
       fetchAprobados()
@@ -286,6 +313,12 @@ export default function AdminDashboard() {
     if (!confirmed) return
     setDeletingApprovedId(item.id)
     try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión en el panel de Admin.")
+      }
+
       const pendingIds = (pendientes || [])
         .filter((p) => getPendingSlug(p) === item.slug)
         .map((p) => p?.id)
@@ -293,7 +326,7 @@ export default function AdminDashboard() {
 
       const res = await fetch("/api/admin/delete", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ approvedId: item.id, pendingIds }),
       })
       const json = await res.json()
@@ -374,6 +407,8 @@ export default function AdminDashboard() {
       if (typeof item.unidades !== "undefined") payload.unidades = item.unidades
       if (typeof item.direccion !== "undefined") payload.direccion = item.direccion
       if (typeof item.google_maps !== "undefined") payload.google_maps = item.google_maps
+      if (typeof item.latitud !== "undefined") payload.latitud = item.latitud
+      if (typeof item.longitud !== "undefined") payload.longitud = item.longitud
       if (typeof item.propietario !== "undefined") payload.propietario = item.propietario
       if (typeof item.distribucion_camas !== "undefined") payload.distribucion_camas = item.distribucion_camas
       if (typeof item.distancia_termas !== "undefined") payload.distancia_termas = item.distancia_termas
@@ -383,9 +418,15 @@ export default function AdminDashboard() {
       if (typeof item.check_out !== "undefined") payload.check_out = item.check_out
       if (typeof item.cancelacion !== "undefined") payload.cancelacion = item.cancelacion
 
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión en el panel de Admin.")
+      }
+
       const res = await fetch("/api/admin/approve", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({ payload, pendingId: item.id }),
       })
       const json = await res.json()
@@ -484,6 +525,8 @@ export default function AdminDashboard() {
 
     // Google Maps
     if (String(pending?.google_maps || "").trim() !== String(approved?.google_maps || "").trim()) return false
+    if (Number(pending?.latitud ?? NaN) !== Number(approved?.latitud ?? NaN)) return false
+    if (Number(pending?.longitud ?? NaN) !== Number(approved?.longitud ?? NaN)) return false
 
     // Propietario
     if (String(pending?.propietario || "").trim() !== String(approved?.propietario || "").trim()) return false
@@ -599,6 +642,10 @@ export default function AdminDashboard() {
     // Google Maps
     if (String(pending?.google_maps || "").trim() !== String(approved?.google_maps || "").trim())
       changes.push("Google Maps")
+    if (Number(pending?.latitud ?? NaN) !== Number(approved?.latitud ?? NaN))
+      changes.push("Latitud")
+    if (Number(pending?.longitud ?? NaN) !== Number(approved?.longitud ?? NaN))
+      changes.push("Longitud")
 
     // Propietario
     if (String(pending?.propietario || "").trim() !== String(approved?.propietario || "").trim())
@@ -814,6 +861,11 @@ export default function AdminDashboard() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Link href="/admin/invitar" className="flex-shrink-0">
+              <Button variant="outline" className="bg-white font-bold">
+                Invitar admin
+              </Button>
+            </Link>
             <Button variant="outline" onClick={fetchPendientes} disabled={loading} className="bg-white">
               <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             </Button>

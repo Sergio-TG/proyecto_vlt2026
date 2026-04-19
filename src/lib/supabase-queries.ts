@@ -14,6 +14,14 @@ export interface AlojamientoAprobado {
   capacidad_total?: number | null;
   acepta_ninos?: string | null;
   mascotas?: string | null;
+  direccion?: string | null;
+  google_maps?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  distribucion_camas?: string | null;
+  check_in?: string | null;
+  check_out?: string | null;
+  cancelacion?: string | null;
 }
 
 export type TaxonomiaServicio = {

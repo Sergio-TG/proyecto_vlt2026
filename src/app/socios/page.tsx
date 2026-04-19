@@ -10,10 +10,27 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
-import { 
-  User, Home, MapPin, ListChecks, Image as ImageIcon, ShieldCheck, 
-  Check, ArrowRight, ArrowLeft, Info, AlertTriangle, 
-  ChevronRight, Instagram, Globe, MessageCircle, Lock, Mail, Key
+import {
+  User,
+  Home,
+  MapPin,
+  ListChecks,
+  Image as ImageIcon,
+  ShieldCheck,
+  Check,
+  ArrowRight,
+  ArrowLeft,
+  Info,
+  AlertTriangle,
+  ChevronRight,
+  Instagram,
+  Globe,
+  MessageCircle,
+  Lock,
+  Mail,
+  Key,
+  Dog,
+  Baby,
 } from "lucide-react"
 import { cn, slugify } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
@@ -44,6 +61,8 @@ type SocioAccommodation = {
   estadia_minima?: unknown
   direccion?: string
   google_maps?: string
+  latitud?: unknown
+  longitud?: unknown
   distancia_termas?: string
   tipo_acceso?: string
   perfiles?: unknown
@@ -60,10 +79,12 @@ type SocioAccommodation = {
 }
 
 export default function SociosPage() {
+  const didCheckSessionRef = React.useRef(false)
   const [view, setView] = React.useState<"auth" | "form" | "success" | "dashboard">("auth")
   const [authMode, setAuthMode] = React.useState<"login" | "register">("login")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [stepValidation, setStepValidation] = React.useState<{ title: string; missing: string[] } | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [userId, setUserId] = React.useState<string | null>(null)
   const [editingAccommodation, setEditingAccommodation] = React.useState<SocioAccommodation | null>(null)
@@ -82,6 +103,8 @@ export default function SociosPage() {
     estadia_minima: "",
     direccion: "",
     googleMaps: "",
+    latitud: "",
+    longitud: "",
     distanciaTermas: "",
     tipoAcceso: "",
     perfiles: [] as string[],
@@ -176,6 +199,8 @@ export default function SociosPage() {
         estadia_minima: a.noches_minimas ?? null,
         direccion: String(a.direccion || ""),
         google_maps: String(a.google_maps || a.ubicacion_google_maps || ""),
+        latitud: a.latitud ?? null,
+        longitud: a.longitud ?? null,
         distancia_termas: String(a.distancia_termas || ""),
         tipo_acceso: String(a.tipo_acceso || ""),
         perfiles: Array.isArray(a.perfiles) ? a.perfiles : [],
@@ -230,6 +255,8 @@ export default function SociosPage() {
 
   React.useEffect(() => {
     const checkSession = async () => {
+      if (didCheckSessionRef.current) return
+      didCheckSessionRef.current = true
       console.log("Verificando sesión inicial...")
       const { data: { session }, error: sessionError } = await supabase.auth.getSession()
       if (sessionError) {
@@ -279,6 +306,8 @@ export default function SociosPage() {
         estadia_minima: String(editingAccommodation.estadia_minima || ""),
         direccion: editingAccommodation.direccion || "",
         googleMaps: editingAccommodation.google_maps || "",
+        latitud: String(editingAccommodation.latitud || ""),
+        longitud: String(editingAccommodation.longitud || ""),
         distanciaTermas: editingAccommodation.distancia_termas || "",
         tipoAcceso: editingAccommodation.tipo_acceso || "",
         perfiles: Array.isArray(editingAccommodation.perfiles) ? editingAccommodation.perfiles : [],
@@ -310,7 +339,62 @@ export default function SociosPage() {
     }
   }, [editingAccommodation])
 
+  const isBlank = (v: unknown) => String(v ?? "").trim().length === 0
+
+  const validateCurrentStep = () => {
+    const missing: string[] = []
+
+    if (currentStep === 1) {
+      if (isBlank(formData.nombreComplejo)) missing.push("Nombre del Complejo / Alojamiento")
+      if (isBlank(formData.propietario)) missing.push("Nombre del Propietario / Administrador")
+      if (isBlank(formData.whatsapp)) missing.push("WhatsApp de contacto directo")
+      if (isBlank(formData.email)) missing.push("Email")
+    }
+
+    if (currentStep === 2) {
+      if (isBlank(formData.localidad)) missing.push("Localidad")
+      if (isBlank(formData.tipoAlojamiento)) missing.push("Tipo de Alojamiento")
+      if (isBlank(formData.capacidadTotal)) missing.push("Capacidad Total de Personas")
+      if (isBlank(formData.unidades)) missing.push("Cantidad de Unidades")
+      if (isBlank(formData.precio_desde)) missing.push("Precio desde ($)")
+      if (isBlank(formData.estadia_minima)) missing.push("Estadía mínima (noches)")
+    }
+
+    if (currentStep === 3) {
+      if (isBlank(formData.direccion)) missing.push("Dirección y Número")
+      if (isBlank(formData.googleMaps)) missing.push("Link para el botón 'Ver en Google Maps'")
+      if (isBlank(formData.distanciaTermas)) missing.push("Distancia a las Termas del Sol")
+      if (isBlank(formData.tipoAcceso)) missing.push("Tipo de Acceso")
+    }
+
+    if (currentStep === 4) {
+      if (isBlank(formData.checkIn)) missing.push("Check-in")
+      if (isBlank(formData.checkOut)) missing.push("Check-out")
+      if (isBlank(formData.cancelacion)) missing.push("Política de Cancelación")
+    }
+
+    if (currentStep === 5) {
+      if (isBlank(formData.linkDrive)) missing.push("Link a Material de Alta Calidad")
+      if (isBlank(formData.descripcion)) missing.push("Descripción para el Turista")
+    }
+
+    if (missing.length > 0) {
+      setStepValidation({
+        title: "Completá los campos obligatorios para continuar:",
+        missing,
+      })
+      return false
+    }
+
+    setStepValidation(null)
+    return true
+  }
+
   const handleNext = () => {
+    if (!validateCurrentStep()) {
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
     if (currentStep === 6) {
       handleSubmitForm()
       return
@@ -398,6 +482,7 @@ export default function SociosPage() {
         if (error) throw error
         
         setUserEmail(data.user.email ?? null)
+        setUserId(data.user.id)
         await new Promise(resolve => setTimeout(resolve, 500))
         
         const pendientes = await checkUserAccommodations(data.user.id)
@@ -487,6 +572,8 @@ export default function SociosPage() {
         estadia_minima: toNumberOrNull(formData.estadia_minima),
         direccion: formData.direccion,
         google_maps: formData.googleMaps,
+        latitud: toNumberOrNull(formData.latitud),
+        longitud: toNumberOrNull(formData.longitud),
         distancia_termas: formData.distanciaTermas,
         tipo_acceso: formData.tipoAcceso,
         perfiles: formData.perfiles,
@@ -650,12 +737,33 @@ export default function SociosPage() {
                             }
 
                             if (acc.__source === "aprobado") {
-                              if (!userId) return
+                              const { data: userData, error: userErr } = await supabase.auth.getUser()
+                              if (userErr || !userData?.user?.id) {
+                                throw new Error("No hay sesión activa. Volvé a iniciar sesión.")
+                              }
+
+                              const effectiveUserId = String(userData.user.id).trim()
+                              if (effectiveUserId) setUserId(effectiveUserId)
+
+                              const accSlug =
+                                (typeof acc.slug === "string" && acc.slug.trim()) || slugify(acc.nombre_complejo || "")
+
+                              if (!effectiveUserId || !accSlug) {
+                                console.warn("startEditing(aprobado) cancelado por parámetros inválidos:", {
+                                  accId: acc.id,
+                                  accSlug,
+                                  effectiveUserId,
+                                })
+                                return
+                              }
+
+                              console.log("startEditing(aprobado):", { accId: acc.id, accSlug, effectiveUserId })
                               const { data: existingPending } = await supabase
                                 .from("alojamientos_pendientes")
                                 .select("*")
-                                .eq("user_id", userId)
-                                .eq("slug", acc.slug)
+                                .eq("user_id", effectiveUserId)
+                                .not("user_id", "is", null)
+                                .eq("slug", accSlug)
                                 .order("created_at", { ascending: false }) // ✅ Tomar el más reciente
                                 .limit(1)
 
@@ -696,13 +804,13 @@ export default function SociosPage() {
 
                                 setEditingAccommodation(filled)
                               } else {
-                                const base = {
-                                  user_id: userId,
+                                const cleanedData: Record<string, unknown> = {
+                                  user_id: effectiveUserId,
                                   propietario: acc.propietario || "",
                                   whatsapp: acc.whatsapp || "",
                                   email: acc.email || userEmail || "",
                                   nombre_complejo: acc.nombre_complejo,
-                                  slug: acc.slug,
+                                  slug: accSlug,
                                   localidad: acc.localidad,
                                   tipo_alojamiento: acc.tipo_alojamiento,
                                   capacidad_total: toNumberOrNull(acc.capacidad_total),
@@ -712,10 +820,12 @@ export default function SociosPage() {
                                   estadia_minima: toNumberOrNull(acc.estadia_minima),
                                   direccion: acc.direccion || "",
                                   google_maps: acc.google_maps || "",
+                                  latitud: toNumberOrNull(acc.latitud),
+                                  longitud: toNumberOrNull(acc.longitud),
                                   distancia_termas: acc.distancia_termas || "",
                                   tipo_acceso: acc.tipo_acceso || "",
                                   perfiles: Array.isArray(acc.perfiles) ? acc.perfiles : [],
-                                  servicios: acc.servicios || [],
+                                  servicios: Array.isArray(acc.servicios) ? acc.servicios : [],
                                   mascotas: acc.mascotas || "",
                                   check_in: acc.check_in || "",
                                   check_out: acc.check_out || "",
@@ -727,12 +837,40 @@ export default function SociosPage() {
                                   acepto_responsabilidad: true,
                                   clausula_veracidad: true,
                                 }
-                                const { data: inserted, error: insertErr } = await supabase
-                                  .from("alojamientos_pendientes")
-                                  .insert([base])
-                                  .select("*")
-                                  .single()
-                                if (insertErr) throw insertErr
+
+                                console.log("insert(pendiente) cleanedData keys:", Object.keys(cleanedData))
+
+                                let inserted: SocioAccommodation | null = null
+                                for (let i = 0; i < 10; i++) {
+                                  const res = await supabase
+                                    .from("alojamientos_pendientes")
+                                    .insert([cleanedData])
+                                    .select("*")
+                                    .single()
+
+                                  if (!res.error) {
+                                    inserted = res.data as SocioAccommodation
+                                    break
+                                  }
+
+                                  console.error("Error detallado de Supabase:", JSON.stringify(res.error, null, 2))
+
+                                  const msg = res.error.message || ""
+                                  const match = msg.match(/Could not find the '([^']+)' column/i)
+                                  if (match) {
+                                    const missingKey = match[1]
+                                    if (missingKey in cleanedData) {
+                                      delete cleanedData[missingKey]
+                                      continue
+                                    }
+                                  }
+
+                                  throw res.error
+                                }
+
+                                if (!inserted) {
+                                  throw new Error("No se pudo crear el registro pendiente.")
+                                }
                                 setEditingAccommodation(inserted)
                               }
                             } else {
@@ -775,6 +913,8 @@ export default function SociosPage() {
                         estadia_minima: "",
                         direccion: "",
                         googleMaps: "",
+                        latitud: "",
+                        longitud: "",
                         distanciaTermas: "",
                         tipoAcceso: "",
                         perfiles: [],
@@ -1000,6 +1140,20 @@ export default function SociosPage() {
           >
             <Card className="border-white/10 bg-white/5 shadow-xl overflow-hidden backdrop-blur-lg">
               <CardContent className="p-6 md:p-10">
+
+                {stepValidation && (
+                  <div className="mb-6 bg-red-500/10 border border-red-500/20 text-red-200 p-4 rounded-2xl text-sm font-bold space-y-2">
+                    <div className="flex items-center gap-3">
+                      <AlertTriangle className="w-5 h-5 flex-shrink-0" />
+                      <span>{stepValidation.title}</span>
+                    </div>
+                    <ul className="list-disc pl-10 space-y-1 font-medium text-red-100/90">
+                      {stepValidation.missing.map((m) => (
+                        <li key={m}>{m}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
                 
                 {/* Step 1: Identidad */}
                 {currentStep === 1 && (
@@ -1134,15 +1288,6 @@ export default function SociosPage() {
                         />
                       </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-white/80">Distribución de Camas</Label>
-                      <Textarea 
-                        placeholder="Ej: 1 matrimonial, 2 individuales, sofá cama..." 
-                        className="h-24 bg-white/5 border-white/20 text-white placeholder:text-white/40 rounded-xl"
-                        value={formData.distribucionCamas}
-                        onChange={(e) => setFormData({...formData, distribucionCamas: e.target.value})}
-                      />
-                    </div>
                   </div>
                 )}
 
@@ -1164,11 +1309,33 @@ export default function SociosPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label className="text-white/80">Link de Google Maps / Coordenadas</Label>
+                        <Label className="text-white/80">Link para el botón Ver en Google Maps</Label>
                         <Input 
-                          placeholder="Pega la URL del mapa" 
+                          placeholder="Copiá el link de la app de Google Maps" 
                           value={formData.googleMaps}
                           onChange={(e) => setFormData({...formData, googleMaps: e.target.value})}
+                          className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-white/80">Latitud</Label>
+                        <Input
+                          type="number"
+                          step="any"
+                          placeholder="-32.17..."
+                          value={formData.latitud}
+                          onChange={(e) => setFormData({ ...formData, latitud: e.target.value })}
+                          className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-white/80">Longitud</Label>
+                        <Input
+                          type="number"
+                          step="any"
+                          placeholder="-64.76..."
+                          value={formData.longitud}
+                          onChange={(e) => setFormData({ ...formData, longitud: e.target.value })}
                           className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
                         />
                       </div>
@@ -1194,6 +1361,33 @@ export default function SociosPage() {
                           <option value="Huella 4x4" className="bg-slate-900">Requiere 4x4 / Huella</option>
                         </select>
                       </div>
+                    </div>
+                    <div>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          if (!navigator.geolocation) {
+                            setError("Tu navegador no soporta geolocalización.")
+                            return
+                          }
+                          navigator.geolocation.getCurrentPosition(
+                            (pos) => {
+                              setFormData((prev) => ({
+                                ...prev,
+                                latitud: String(pos.coords.latitude),
+                                longitud: String(pos.coords.longitude),
+                              }))
+                            },
+                            () => {
+                              setError("No se pudo obtener tu ubicación. Verificá permisos de geolocalización.")
+                            }
+                          )
+                        }}
+                        className="bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-xl"
+                      >
+                        Obtener coordenadas de mi ubicación
+                      </Button>
                     </div>
                   </div>
                 )}
@@ -1239,44 +1433,90 @@ export default function SociosPage() {
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
-                      <div className="space-y-2">
-                        <Label className="text-base text-white/80 font-bold">¿Acepta Mascotas?</Label>
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            className="w-5 h-5 accent-primary bg-white/5 border-white/20"
-                            checked={formData.mascotas === "Sí"}
-                            onChange={(e) => setFormData({ ...formData, mascotas: e.target.checked ? "Sí" : "No" })}
-                          />
-                          <span className="text-base text-white/80 group-hover:text-white transition-colors">
-                            Pet Friendly
-                          </span>
-                        </label>
-                      </div>
-                      <div className="space-y-2">
-                        <Label className="text-base text-white/80 font-bold">¿Acepta niños pequeños?</Label>
-                        <label className="flex items-center gap-3 cursor-pointer group">
-                          <input
-                            type="checkbox"
-                            className="w-5 h-5 accent-primary bg-white/5 border-white/20"
-                            checked={formData.aceptaNinos === "Sí"}
-                            onChange={(e) => setFormData({ ...formData, aceptaNinos: e.target.checked ? "Sí" : "No" })}
-                          />
-                          <span className="text-base text-white/80 group-hover:text-white transition-colors">
-                            Acepta niños
-                          </span>
-                        </label>
+                    <div className="space-y-2">
+                      <Label className="text-base text-white/80 font-bold">Distribución de camas</Label>
+                      <Textarea
+                        placeholder='Ej: "2 camas dobles, 1 cama individual"'
+                        className="h-24 bg-white/5 border-white/20 text-white placeholder:text-white/40 rounded-xl"
+                        value={formData.distribucionCamas}
+                        onChange={(e) => setFormData({ ...formData, distribucionCamas: e.target.value })}
+                      />
+                    </div>
+
+                    <div className="space-y-4 pt-4">
+                      <Label className="text-base text-white/80 font-bold">Condiciones</Label>
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <div
+                          className={cn(
+                            "flex items-center gap-2 p-4 rounded-xl border transition-all cursor-pointer bg-white/5",
+                            formData.mascotas === "Sí"
+                              ? "border-primary/60 bg-primary/20"
+                              : "border-white/10 hover:border-primary/50 hover:bg-white/10"
+                          )}
+                          onClick={() =>
+                            setFormData({ ...formData, mascotas: formData.mascotas === "Sí" ? "No" : "Sí" })
+                          }
+                        >
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0",
+                              formData.mascotas === "Sí"
+                                ? "bg-primary border-primary"
+                                : "border-white/30 bg-white/5"
+                            )}
+                          >
+                            {formData.mascotas === "Sí" ? <Check className="w-4 h-4 text-white" /> : null}
+                          </div>
+                          <Dog className="w-4 h-4 text-white/70" />
+                          <span className="text-sm text-white/90 font-medium">Pet Friendly</span>
+                        </div>
+
+                        <div
+                          className={cn(
+                            "flex items-center gap-2 p-4 rounded-xl border transition-all cursor-pointer bg-white/5",
+                            formData.aceptaNinos === "Sí"
+                              ? "border-primary/60 bg-primary/20"
+                              : "border-white/10 hover:border-primary/50 hover:bg-white/10"
+                          )}
+                          onClick={() =>
+                            setFormData({
+                              ...formData,
+                              aceptaNinos: formData.aceptaNinos === "Sí" ? "No" : "Sí",
+                            })
+                          }
+                        >
+                          <div
+                            className={cn(
+                              "w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0",
+                              formData.aceptaNinos === "Sí"
+                                ? "bg-primary border-primary"
+                                : "border-white/30 bg-white/5"
+                            )}
+                          >
+                            {formData.aceptaNinos === "Sí" ? <Check className="w-4 h-4 text-white" /> : null}
+                          </div>
+                          <Baby className="w-4 h-4 text-white/70" />
+                          <span className="text-sm text-white/90 font-medium">Acepta Niños</span>
+                        </div>
                       </div>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-white/10">
                       <div className="space-y-2">
-                        <Label className="text-white/80">Políticas de Check-in / Out</Label>
-                        <Input 
-                          placeholder="Ej: IN 14:00 - OUT 10:00" 
+                        <Label className="text-white/80">Check-in</Label>
+                        <Input
+                          placeholder="Ej: 14:00"
                           value={formData.checkIn}
-                          onChange={(e) => setFormData({...formData, checkIn: e.target.value})}
+                          onChange={(e) => setFormData({ ...formData, checkIn: e.target.value })}
+                          className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-white/80">Check-out</Label>
+                        <Input
+                          placeholder="Ej: 10:00"
+                          value={formData.checkOut}
+                          onChange={(e) => setFormData({ ...formData, checkOut: e.target.value })}
                           className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
                         />
                       </div>
@@ -1412,16 +1652,70 @@ export default function SociosPage() {
                   </Button>
                   
                   {currentStep < steps.length ? (
-                    <Button onClick={handleNext} className="gap-2 px-10 h-12 rounded-xl font-black shadow-2xl transition-all hover:scale-105 active:scale-95">
-                      Continuar <ArrowRight className="w-4 h-4" />
-                    </Button>
+                    <div className="flex items-center gap-3">
+                      <Button
+                        variant="ghost"
+                        onClick={() => {
+                          if (
+                            confirm(
+                              "¿Estás seguro de que querés cancelar la edición? Se perderán los cambios no guardados."
+                            )
+                          ) {
+                            setEditingAccommodation(null)
+                            setCurrentStep(1)
+                            setStepValidation(null)
+                            setFormData({
+                              propietario: "",
+                              whatsapp: "",
+                              email: "",
+                              nombreComplejo: "",
+                              localidad: "",
+                              tipoAlojamiento: "",
+                              capacidadTotal: "",
+                              distribucionCamas: "",
+                              unidades: "",
+                              precio_desde: "",
+                              estadia_minima: "",
+                              direccion: "",
+                              googleMaps: "",
+                              latitud: "",
+                              longitud: "",
+                              distanciaTermas: "",
+                              tipoAcceso: "",
+                              perfiles: [],
+                              servicios: [],
+                              mascotas: "",
+                              checkIn: "",
+                              checkOut: "",
+                              cancelacion: "",
+                              aceptaNinos: "",
+                              linkDrive: "",
+                              descripcion: "",
+                              aceptoTerminos: false,
+                              aceptoResponsabilidad: false,
+                              clausulaVeracidad: false,
+                            })
+                            setView("dashboard")
+                          }
+                        }}
+                        className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl px-6 h-12 font-bold"
+                      >
+                        Cancelar edición
+                      </Button>
+                      <Button
+                        onClick={handleNext}
+                        className="gap-2 px-10 h-12 rounded-xl font-black shadow-2xl transition-all hover:scale-105 active:scale-95"
+                      >
+                        Continuar <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
                   ) : (
                     <Button 
                       className="gap-2 px-10 h-12 rounded-xl font-black bg-green-500 hover:bg-green-600 shadow-2xl transition-all hover:scale-105 active:scale-95" 
                       disabled={loading || !formData.aceptoTerminos || !formData.aceptoResponsabilidad || !formData.clausulaVeracidad}
                       onClick={handleSubmitForm}
                     >
-                      {loading ? "Enviando..." : "Finalizar Registro"} <Check className="w-4 h-4" />
+                      {loading ? "Enviando..." : "Finalizar y volver al Dashboard"} <Check className="w-4 h-4" />
                     </Button>
                   )}
                 </div>

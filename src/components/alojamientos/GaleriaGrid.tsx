@@ -7,6 +7,7 @@ type Overlay = { label: string; count: number }
 
 export interface GaleriaGridProps {
   thumbUrls: string[]
+  mainUrl?: string
   nombreAlojamiento: string
   onFotoClick: (index: number) => void
   onVerTodas: () => void
@@ -61,6 +62,7 @@ function Tile({
 
 export function GaleriaGrid({
   thumbUrls,
+  mainUrl,
   nombreAlojamiento,
   onFotoClick,
   onVerTodas,
@@ -76,6 +78,8 @@ export function GaleriaGrid({
   const main = valid[0]
   const thumbs = valid.slice(1, 5)
   const total = valid.length
+
+  const mainSrc = main.index === 0 && mainUrl ? mainUrl : main.url
 
   const desktopRightGridClass =
     thumbs.length === 1
@@ -93,7 +97,7 @@ export function GaleriaGrid({
           <div className="w-full h-full flex gap-[2px]">
             <div className="relative h-full" style={{ width: "60%" }}>
               <Tile
-                src={main.url}
+                src={mainSrc}
                 alt={`${nombreAlojamiento} — foto 1 de ${total}`}
                 priority
                 sizes="(min-width: 768px) 60vw, 100vw"
@@ -149,7 +153,7 @@ export function GaleriaGrid({
         <div className="w-full h-[280px] relative">
           <button type="button" className="absolute inset-0 overflow-hidden group cursor-pointer" onClick={() => onFotoClick(main.index)}>
             <Image
-              src={main.url}
+              src={mainSrc}
               alt={`${nombreAlojamiento} — foto 1 de ${total}`}
               fill
               sizes="100vw"

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase-server";
-
-const ADMIN_EMAIL = "sergiotg.web@gmail.com";
+import { requireAdmin } from "@/lib/requireAdmin";
 
 export async function GET(req: Request) {
   try {
@@ -10,19 +9,11 @@ export async function GET(req: Request) {
       return NextResponse.json({ ok: false, reason: "missing_env" });
     }
 
-    const authHeader = req.headers.get("authorization") || "";
-    const token = authHeader.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : "";
-    if (!token) {
-      return NextResponse.json({ ok: false, reason: "missing_token" }, { status: 401 });
-    }
-
-    const { data: userData, error: userErr } = await supabaseService.auth.getUser(token);
-    if (userErr || !userData?.user) {
-      return NextResponse.json({ ok: false, reason: "invalid_token" }, { status: 401 });
-    }
-
-    if ((userData.user.email || "").toLowerCase() !== ADMIN_EMAIL.toLowerCase()) {
-      return NextResponse.json({ ok: false, reason: "forbidden" }, { status: 403 });
+    try {
+      await requireAdmin(req);
+    } catch (e: unknown) {
+      if (e instanceof Response) return e;
+      throw e;
     }
 
     const { data: pendientes, error: pendingErr } = await supabaseService

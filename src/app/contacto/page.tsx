@@ -8,6 +8,15 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Mail, Phone, MapPin, MessageCircle } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
+import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+
+const toImageKitUrl = (relativePath: string) => {
+  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+  const rel = relativePath.trim().replace(/^\/+/, "")
+  return `${base}/${rel}`
+}
+
+const heroContactoImage = toImageKitUrl("entorno/bg-paginas/hero-contacto.webp")
 
 export default function ContactoPage() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -28,9 +37,9 @@ export default function ContactoPage() {
           style={{ y, scale, opacity }}
           className="absolute inset-0 z-0"
         >
-          <div className="absolute inset-0 bg-black/50 z-10" />
+          <div className="absolute inset-0 bg-black/40 z-10" />
           <img 
-            src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?q=80&w=2070&auto=format&fit=crop"
+            src={heroContactoImage}
             alt="Contacto"
             className="w-full h-full object-cover"
           />
@@ -97,8 +106,8 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-lg">Email</h3>
                   <p className="text-gray-600 mb-1">Para consultas generales</p>
-                  <a href="mailto:hola@vivillastermas.com.ar" className="text-blue-600 font-medium hover:underline">
-                    hola@vivillastermas.com.ar
+                  <a href="mailto:hola@vivilastermas.com.ar" className="text-blue-600 font-medium hover:underline">
+                    hola@vivilastermas.com.ar
                   </a>
                 </div>
               </div>
