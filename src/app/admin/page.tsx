@@ -91,6 +91,7 @@ export default function AdminDashboard() {
   const [loading, setLoading] = React.useState(true)
   const [loadingAprobados, setLoadingAprobados] = React.useState(true)
   const [approving, setApproving] = React.useState<string | null>(null)
+  const [rejectingPendingId, setRejectingPendingId] = React.useState<string | null>(null)
   const [deletingApprovedId, setDeletingApprovedId] = React.useState<string | null>(null)
   const [cleaningDuplicates, setCleaningDuplicates] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
@@ -343,6 +344,53 @@ export default function AdminDashboard() {
       alert(message)
     } finally {
       setDeletingApprovedId(null)
+    }
+  }
+
+  const handleRejectPendiente = async (item: PendingRow) => {
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas rechazar este alojamiento? Esta acción no se puede deshacer.\n\n${String(item.nombre_complejo || "").trim()}`
+    )
+    if (!confirmed) return
+
+    setRejectingPendingId(item.id)
+    setError(null)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión en el panel de Admin.")
+      }
+
+      const res = await fetch("/api/admin/delete-pendings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ pendingIds: [item.id] }),
+      })
+
+      const text = await res.text()
+      const json = (() => {
+        try {
+          return text ? JSON.parse(text) : null
+        } catch {
+          return null
+        }
+      })() as { ok?: boolean; error?: string; reason?: string } | null
+
+      if (json?.reason === "missing_env") {
+        throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para rechazar con privilegios.")
+      }
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || `Error al rechazar (status ${res.status})`)
+      }
+
+      setPendientes((prev) => prev.filter((p) => p.id !== item.id))
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al rechazar el alojamiento pendiente"
+      setError(message)
+      alert(message)
+    } finally {
+      setRejectingPendingId(null)
     }
   }
 
@@ -1093,6 +1141,14 @@ export default function AdminDashboard() {
                                     Ver Multimedia
                                   </Button>
                                 </a>
+                                <Button
+                                  variant="outline"
+                                  className="w-full h-12 rounded-xl font-black text-sm border-red-200 text-red-600 hover:bg-red-50 gap-2"
+                                  onClick={() => handleRejectPendiente(item)}
+                                  disabled={rejectingPendingId === item.id || approving === item.id}
+                                >
+                                  {rejectingPendingId === item.id ? "Rechazando..." : "Rechazar"}
+                                </Button>
                               </div>
                             </div>
 

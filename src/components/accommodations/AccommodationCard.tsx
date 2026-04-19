@@ -55,7 +55,7 @@ export type AccommodationCardProps = {
 
 export function AccommodationCard({ variant, item, portadaFile, onShare }: AccommodationCardProps) {
   const slug = item.slug || slugify(item.nombre)
-  const ctaText = variant === "home" ? "Ver detalles" : "Ver disponibilidad"
+  const ctaText = variant === "home" ? "+ Info" : "Ver disponibilidad"
 
   const servicios = Array.isArray(item.servicios) ? item.servicios : []
   const normalized = servicios.map(normalizeService)

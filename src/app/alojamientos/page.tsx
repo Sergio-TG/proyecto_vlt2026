@@ -11,6 +11,9 @@ import React, { useState, useMemo, useEffect, useRef } from "react"
 import { AccommodationCard } from "@/components/accommodations/AccommodationCard"
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
 import dynamic from "next/dynamic"
+import { SocialProof } from "@/components/home/SocialProof"
+import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
+import { ContactMapSection } from "@/components/contact/ContactMapSection"
 import {
   Sheet,
   SheetContent,
@@ -472,6 +475,18 @@ export default function AlojamientosPage() {
           </div>
         </div>
       </div>
+
+      <SocialProof />
+
+      <section className="py-20 bg-slate-900">
+        <div className="container mx-auto px-4">
+          <div className="max-w-xl mx-auto">
+            <NewsletterSignup sourcePrefix="alojamientos" />
+          </div>
+        </div>
+      </section>
+
+      <ContactMapSection />
 
       <AnimatePresence>
         {showShareToast && (
