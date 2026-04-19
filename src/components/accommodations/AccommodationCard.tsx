@@ -53,9 +53,9 @@ export type AccommodationCardProps = {
   onShare: (e: React.MouseEvent<HTMLButtonElement>, slug: string, title: string) => void
 }
 
-export function AccommodationCard({ variant, item, portadaFile, onShare }: AccommodationCardProps) {
+export function AccommodationCard({ item, portadaFile, onShare }: AccommodationCardProps) {
   const slug = item.slug || slugify(item.nombre)
-  const ctaText = variant === "home" ? "+ Info" : "Ver disponibilidad"
+  const ctaText = "+ Info"
 
   const servicios = Array.isArray(item.servicios) ? item.servicios : []
   const normalized = servicios.map(normalizeService)

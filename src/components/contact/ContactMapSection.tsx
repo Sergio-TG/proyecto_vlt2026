@@ -1,17 +1,10 @@
 "use client"
 
 import * as React from "react"
-import dynamic from "next/dynamic"
-import { Mail, MapPin, MessageCircle } from "lucide-react"
+import { Mail, MapPin, MessageCircle, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-const MapStaticLocation = dynamic(() => import("@/components/maps/MapStaticLocation").then((m) => m.MapStaticLocation), {
-  ssr: false,
-})
-
 const LOCATION = {
-  lat: -32.1298,
-  lng: -64.7686,
   address: "Av. Marrero S/N, Villa Yacanto, X5197\nCórdoba, Argentina",
 }
 
@@ -28,34 +21,54 @@ export function ContactMapSection() {
               </p>
             </div>
 
-            <div className="space-y-4">
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-100 p-2.5 rounded-xl text-slate-700">
-                  <MessageCircle className="w-5 h-5" />
+            <div className="space-y-6">
+              <div className="flex items-start gap-4 group">
+                <div className="bg-green-100 p-3 rounded-full text-green-600 group-hover:scale-110 transition-transform">
+                  <MessageCircle className="w-6 h-6" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-black uppercase tracking-widest text-slate-400">WhatsApp</div>
-                  <div className="text-slate-800 font-bold">+54 9 3546 525404</div>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-100 p-2.5 rounded-xl text-slate-700">
-                  <Mail className="w-5 h-5" />
-                </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-black uppercase tracking-widest text-slate-400">Email</div>
-                  <div className="text-slate-800 font-bold">hola@vivillastermas.com.ar</div>
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-900">WhatsApp</h3>
+                  <p className="text-slate-500 mb-1">Consultas y reservas</p>
+                  <a href="https://wa.me/5493546525404" target="_blank" rel="noreferrer" className="text-green-600 font-medium hover:underline">
+                    +54 9 3546 525404
+                  </a>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="bg-slate-100 p-2.5 rounded-xl text-slate-700">
-                  <MapPin className="w-5 h-5" />
+              <div className="flex items-start gap-4 group">
+                <div className="bg-blue-100 p-3 rounded-full text-blue-600 group-hover:scale-110 transition-transform">
+                  <Mail className="w-6 h-6" />
                 </div>
-                <div className="min-w-0">
-                  <div className="text-xs font-black uppercase tracking-widest text-slate-400">Dirección</div>
-                  <div className="text-slate-800 font-bold whitespace-pre-line">{LOCATION.address}</div>
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-900">Email</h3>
+                  <p className="text-slate-500 mb-1">Para consultas generales</p>
+                  <a href="mailto:hola@vivillastermas.com.ar" className="text-blue-600 font-medium hover:underline">
+                    hola@vivillastermas.com.ar
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 group">
+                <div className="bg-indigo-100 p-3 rounded-full text-indigo-600 group-hover:scale-110 transition-transform">
+                  <Phone className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-900">Teléfono</h3>
+                  <p className="text-slate-500 mb-1">Llamadas</p>
+                  <a href="tel:+5493546525404" className="text-indigo-600 font-medium hover:underline">
+                    +54 9 3546 525404
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 group">
+                <div className="bg-red-100 p-3 rounded-full text-red-600 group-hover:scale-110 transition-transform">
+                  <MapPin className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg text-slate-900">Dirección</h3>
+                  <p className="text-slate-500 mb-1">Cómo llegar</p>
+                  <p className="text-slate-900 font-medium whitespace-pre-line">{LOCATION.address}</p>
                 </div>
               </div>
             </div>
@@ -73,11 +86,18 @@ export function ContactMapSection() {
           </div>
 
           <div className="flex-1 w-full">
-            <MapStaticLocation lat={LOCATION.lat} lng={LOCATION.lng} title="Viví Las Termas" address={LOCATION.address} />
+            <div className="h-[400px] rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm bg-white">
+              <iframe
+                title="Mapa - Viví Las Termas"
+                className="w-full h-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src="https://www.google.com/maps?q=Av.%20Marrero%20S%2FN%2C%20Villa%20Yacanto%2C%20X5197%2C%20C%C3%B3rdoba%2C%20Argentina&output=embed"
+              />
+            </div>
           </div>
         </div>
       </div>
     </section>
   )
 }
-

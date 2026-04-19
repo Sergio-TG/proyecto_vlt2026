@@ -389,22 +389,6 @@ export default function AlojamientosPage() {
           </div>
         </motion.div>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-10 space-y-3"
-        >
-          <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Mapa de alojamientos</h2>
-            <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
-              {filteredAccommodations.length} resultados
-            </p>
-          </div>
-          <MapAlojamiento accommodations={filteredAccommodations} portadaBySlug={portadaBySlug} />
-        </motion.div>
-
         {/* Layout Grid */}
         <div className="flex flex-col md:flex-row gap-12">
           {/* Desktop Sidebar */}
@@ -474,6 +458,24 @@ export default function AlojamientosPage() {
             )}
           </div>
         </div>
+      </div>
+
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="pb-24 space-y-3"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Mapa de alojamientos</h2>
+            <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+              {filteredAccommodations.length} resultados
+            </p>
+          </div>
+          <MapAlojamiento accommodations={filteredAccommodations} portadaBySlug={portadaBySlug} />
+        </motion.div>
       </div>
 
       <SocialProof />
