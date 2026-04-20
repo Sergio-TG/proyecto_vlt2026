@@ -84,6 +84,7 @@ export default function SociosPage() {
   const [authMode, setAuthMode] = React.useState<"login" | "register">("login")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
+  const [geoMessage, setGeoMessage] = React.useState<string | null>(null)
   const [stepValidation, setStepValidation] = React.useState<{ title: string; missing: string[] } | null>(null)
   const [userEmail, setUserEmail] = React.useState<string | null>(null)
   const [userId, setUserId] = React.useState<string | null>(null)
@@ -343,6 +344,7 @@ export default function SociosPage() {
 
   const validateCurrentStep = () => {
     const missing: string[] = []
+    const optionalErrors: string[] = []
 
     if (currentStep === 1) {
       if (isBlank(formData.nombreComplejo)) missing.push("Nombre del Complejo / Alojamiento")
@@ -365,6 +367,24 @@ export default function SociosPage() {
       if (isBlank(formData.googleMaps)) missing.push("Link para el botón 'Ver en Google Maps'")
       if (isBlank(formData.distanciaTermas)) missing.push("Distancia a las Termas del Sol")
       if (isBlank(formData.tipoAcceso)) missing.push("Tipo de Acceso")
+
+      const latRaw = String(formData.latitud ?? "").trim()
+      const lngRaw = String(formData.longitud ?? "").trim()
+      const hasLat = latRaw.length > 0
+      const hasLng = lngRaw.length > 0
+
+      if (hasLat !== hasLng) {
+        optionalErrors.push("Si completás coordenadas, ingresá Latitud y Longitud")
+      } else if (hasLat && hasLng) {
+        const lat = Number(latRaw)
+        const lng = Number(lngRaw)
+        if (!Number.isFinite(lat) || lat < -90 || lat > 90) {
+          optionalErrors.push("Latitud inválida (debe estar entre -90 y 90)")
+        }
+        if (!Number.isFinite(lng) || lng < -180 || lng > 180) {
+          optionalErrors.push("Longitud inválida (debe estar entre -180 y 180)")
+        }
+      }
     }
 
     if (currentStep === 4) {
@@ -378,10 +398,10 @@ export default function SociosPage() {
       if (isBlank(formData.descripcion)) missing.push("Descripción para el Turista")
     }
 
-    if (missing.length > 0) {
+    if (missing.length > 0 || optionalErrors.length > 0) {
       setStepValidation({
         title: "Completá los campos obligatorios para continuar:",
-        missing,
+        missing: [...missing, ...optionalErrors],
       })
       return false
     }
@@ -1320,8 +1340,7 @@ export default function SociosPage() {
                       <div className="space-y-2">
                         <Label className="text-white/80">Latitud</Label>
                         <Input
-                          type="number"
-                          step="any"
+                          type="text"
                           placeholder="-32.17..."
                           value={formData.latitud}
                           onChange={(e) => setFormData({ ...formData, latitud: e.target.value })}
@@ -1331,8 +1350,7 @@ export default function SociosPage() {
                       <div className="space-y-2">
                         <Label className="text-white/80">Longitud</Label>
                         <Input
-                          type="number"
-                          step="any"
+                          type="text"
                           placeholder="-64.76..."
                           value={formData.longitud}
                           onChange={(e) => setFormData({ ...formData, longitud: e.target.value })}
@@ -1367,8 +1385,9 @@ export default function SociosPage() {
                         type="button"
                         variant="outline"
                         onClick={() => {
+                          setGeoMessage(null)
                           if (!navigator.geolocation) {
-                            setError("Tu navegador no soporta geolocalización.")
+                            setGeoMessage("Tu navegador no soporta geolocalización.")
                             return
                           }
                           navigator.geolocation.getCurrentPosition(
@@ -1378,16 +1397,18 @@ export default function SociosPage() {
                                 latitud: String(pos.coords.latitude),
                                 longitud: String(pos.coords.longitude),
                               }))
+                              setGeoMessage("Ubicación actual cargada.")
                             },
                             () => {
-                              setError("No se pudo obtener tu ubicación. Verificá permisos de geolocalización.")
+                              setGeoMessage("No se pudo obtener la ubicación. Verificá permisos.")
                             }
                           )
                         }}
                         className="bg-white/5 border-white/20 text-white hover:bg-white/10 rounded-xl"
                       >
-                        Obtener coordenadas de mi ubicación
+                        Obtener ubicación actual
                       </Button>
+                      {geoMessage ? <p className="mt-2 text-xs text-white/70">{geoMessage}</p> : null}
                     </div>
                   </div>
                 )}

@@ -3,6 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import L from "leaflet"
+import { AnimatePresence, motion } from "framer-motion"
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
@@ -153,6 +154,8 @@ export default function MapAlojamiento({
   accommodations: AlojamientoAprobado[]
   portadaBySlug: Record<string, string | null>
 }) {
+  const [isFullscreen, setIsFullscreen] = React.useState(false)
+
   React.useEffect(() => {
     delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
     L.Icon.Default.mergeOptions({
@@ -161,6 +164,15 @@ export default function MapAlojamiento({
       shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
     })
   }, [])
+
+  React.useEffect(() => {
+    if (!isFullscreen) return
+    const previous = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = previous
+    }
+  }, [isFullscreen])
 
   const markers = React.useMemo<MarkerItem[]>(() => {
     return accommodations.reduce<MarkerItem[]>((acc, a) => {
@@ -229,18 +241,60 @@ export default function MapAlojamiento({
   }
 
   const center: [number, number] = [markers[0].latitud, markers[0].longitud]
+  const renderMap = (mapKey: string, className: string) => (
+    <MapContainer key={mapKey} center={center} zoom={12} scrollWheelZoom className={className}>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      {markers.map((m) => (
+        <HoverMarker key={`${mapKey}-${m.id}`} marker={m} />
+      ))}
+    </MapContainer>
+  )
 
   return (
-    <div className="h-[400px] rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm">
-      <MapContainer center={center} zoom={12} scrollWheelZoom className="h-full w-full z-0">
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {markers.map((m) => (
-          <HoverMarker key={m.id} marker={m} />
-        ))}
-      </MapContainer>
-    </div>
+    <>
+      <div className="relative h-[400px] rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm">
+        {renderMap("inline", "h-full w-full z-0")}
+        <button
+          type="button"
+          onClick={() => setIsFullscreen(true)}
+          className="absolute right-4 top-4 z-[500] rounded-xl bg-white/95 px-4 py-2 text-sm font-black text-slate-900 shadow-lg backdrop-blur hover:bg-white"
+        >
+          Ver mapa completo
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {isFullscreen ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.22 }}
+            className="fixed inset-0 z-50 bg-slate-950/80 p-3 md:p-5"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98, y: 8 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 8 }}
+              transition={{ duration: 0.24 }}
+              className="relative h-full w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+            >
+              {renderMap("fullscreen", "h-full w-full z-0")}
+              <button
+                type="button"
+                onClick={() => setIsFullscreen(false)}
+                aria-label="Cerrar mapa completo"
+                className="absolute right-4 top-4 z-[600] h-12 w-12 rounded-full bg-slate-900/90 text-2xl font-black leading-none text-white shadow-xl hover:bg-slate-900"
+              >
+                X
+              </button>
+            </motion.div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
+    </>
   )
 }
