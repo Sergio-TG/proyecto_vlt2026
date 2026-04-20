@@ -12,6 +12,20 @@ import { AlertTriangle, Lock, Key, ArrowLeft, CheckCircle2 } from "lucide-react"
 type AcceptResponse = { ok?: boolean; error?: string; reason?: string }
 
 export default function AdminAcceptInvitePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="min-h-screen bg-slate-50 pt-32 pb-20 flex items-center justify-center">
+          <div className="text-slate-500 font-medium">Cargando...</div>
+        </div>
+      }
+    >
+      <AdminAcceptInviteInner />
+    </React.Suspense>
+  )
+}
+
+function AdminAcceptInviteInner() {
   const searchParams = useSearchParams()
   const token = (searchParams.get("token") || "").trim()
   const email = (searchParams.get("email") || "").trim()
