@@ -127,7 +127,7 @@ export default function ContactoPage() {
             </div>
 
             {/* Google Maps Preview */}
-            <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-100 h-64 relative">
+            <div className="rounded-lg overflow-hidden shadow-sm border border-slate-100 h-64 relative">
                <iframe 
                   src="https://www.google.com/maps?q=Av.%20Marrero%20S%2FN%2C%20Villa%20Yacanto%2C%20X5197%2C%20C%C3%B3rdoba%2C%20Argentina&output=embed" 
                   width="100%" 

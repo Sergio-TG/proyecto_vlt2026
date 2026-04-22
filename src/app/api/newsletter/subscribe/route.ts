@@ -1,6 +1,7 @@
 // La estructura de la tabla está definida en /db/database.sql
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { Resend } from "resend"
 
 type SubscribeBody = {
   email?: unknown
@@ -19,6 +20,8 @@ function getRlsSupabase() {
     auth: { persistSession: false, autoRefreshToken: false },
   })
 }
+
+const resend = new Resend(process.env.RESEND_API_KEY)
 
 export async function POST(req: Request) {
   try {
@@ -42,6 +45,17 @@ export async function POST(req: Request) {
         return NextResponse.json({ ok: true, message: "¡Ya estás suscrito!" })
       }
       return NextResponse.json({ ok: false, error: "No se pudo suscribir" }, { status: 500 })
+    }
+
+    try {
+      await resend.emails.send({
+        from: "Viví Las Termas <newsletter@vivilastermas.com>",
+        to: email,
+        subject: "¡Bienvenido a la comunidad de Viví Las Termas!",
+        html: "<p>¡Gracias por suscribirte! Te mantendremos al tanto de todas nuestras novedades y ofertas exclusivas.</p>",
+      })
+    } catch {
+      // no bloquea la suscripción
     }
 
     try {

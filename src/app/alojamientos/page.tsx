@@ -7,10 +7,11 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { getAlojamientosFiltered, AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
-import React, { useState, useMemo, useEffect, useRef } from "react"
+import React, { Suspense, useState, useMemo, useEffect, useRef } from "react"
 import { AccommodationCard } from "@/components/accommodations/AccommodationCard"
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
 import dynamic from "next/dynamic"
+import { useSearchParams } from "next/navigation"
 import { SocialProof } from "@/components/home/SocialProof"
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
 import { ContactMapSection } from "@/components/contact/ContactMapSection"
@@ -33,6 +34,85 @@ function normalizeServiceForSearch(service: string) {
     .replace(/[^a-z0-9]/g, "")
 }
 
+function normalizeText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+}
+
+const SEARCH_MAPPING: Record<string, string[]> = {
+  "bienestar-y-relax": ["masaje", "terma", "relax", "spa", "paz", "energia", "desconexion"],
+  "aventura-y-exploracion": ["senderismo", "trekking", "aventura", "guia", "recorrido", "aire libre"],
+  "escenarios-naturales": [
+    "vista",
+    "panoramica",
+    "atardecer",
+    "aire puro",
+    "montana",
+    "cerro",
+    "sierra",
+    "sierras",
+    "naturaleza",
+    "paisaje",
+    "entorno",
+    "bosque",
+    "valle",
+  ],
+  desayuno: ["desayuno", "comida", "menu", "buffet"],
+  cochera: ["cochera", "estacionamiento", "parking", "garage", "auto"],
+  "parrilla-quincho": ["parrilla", "asador", "quincho", "barbacoa", "asado"],
+  "pet-friendly": ["mascota", "pet", "perro", "gato", "animal"],
+  "wi-fi": ["wifi", "wi-fi", "wifi gratis", "wi-fi gratis", "internet", "conexion", "fibra", "inalambrico"],
+  "ropa-de-cama-y-toallas": ["ropa", "cama", "toallas", "sabanas", "blanco"],
+  calefaccion: ["calefaccion", "estufa", "hogar", "lena", "calido", "climatizado"],
+  "aire-acondicionado": ["aire", "split", "frio", "climatizado"],
+  pileta: ["pileta", "piscina", "natacion", "solarium", "chapuzon"],
+  "vista-a-la-montana": ["vista", "montana", "cerro", "sierra", "panoramica", "valle", "paisaje"],
+  "cerca-de-rio-arroyo": ["rio", "arroyo", "orilla", "cauce", "agua"],
+  accesibilidad: ["accesible", "rampa", "silla", "ruedas", "movilidad", "discapacidad"],
+}
+
+const EXPERIENCE_ID_TO_KEY: Record<string, string> = {
+  relax: "bienestar-y-relax",
+  adventure: "aventura-y-exploracion",
+  nature: "escenarios-naturales",
+}
+
+const SERVICE_ALIAS_TO_KEY: Record<string, string> = {
+  [normalizeText("Desayuno")]: "desayuno",
+  [normalizeText("Cochera")]: "cochera",
+  [normalizeText("Parrilla / Quincho")]: "parrilla-quincho",
+  [normalizeText("Pet Friendly")]: "pet-friendly",
+  [normalizeText("Wi-Fi")]: "wi-fi",
+  [normalizeText("Ropa de Cama y Toallas")]: "ropa-de-cama-y-toallas",
+  [normalizeText("Estufa a leña")]: "calefaccion",
+  [normalizeText("Calefacción")]: "calefaccion",
+  [normalizeText("Aire Acondicionado")]: "aire-acondicionado",
+  [normalizeText("Pileta")]: "pileta",
+  [normalizeText("Vista a la Montaña")]: "vista-a-la-montana",
+  [normalizeText("Cerca de Río/Arroyo")]: "cerca-de-rio-arroyo",
+  [normalizeText("Accesibilidad")]: "accesibilidad",
+}
+
+function toConceptKey(raw: string) {
+  const trimmed = String(raw || "").trim()
+  if (!trimmed) return null
+  if (SEARCH_MAPPING[trimmed]) return trimmed
+  const normalized = normalizeText(trimmed)
+  const alias = SERVICE_ALIAS_TO_KEY[normalized]
+  if (alias) return alias
+  return null
+}
+
+function matchesConcept(corpus: string, conceptKey: string) {
+  const keywords = SEARCH_MAPPING[conceptKey]
+  if (!keywords || keywords.length === 0) return true
+  return keywords.some((kw) => corpus.includes(normalizeText(kw)))
+}
+
 const premiumEase: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
 const revealVariants = {
@@ -52,7 +132,8 @@ const MapAlojamiento = dynamic(() => import("@/components/maps/MapAlojamiento"),
   ssr: false,
 })
 
-export default function AlojamientosPage() {
+function AlojamientosPageInner() {
+  const searchParams = useSearchParams()
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -75,7 +156,44 @@ export default function AlojamientosPage() {
       .map((s) => s.trim())
       .filter(Boolean)
   })
+  const [selectedRequiredServicios, setSelectedRequiredServicios] = useState<string[]>(() => {
+    if (typeof window === "undefined") return []
+    const serviciosParam = new URLSearchParams(window.location.search).get("servicios")
+    if (!serviciosParam) return []
+    return serviciosParam
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  })
+  const [selectedExperience, setSelectedExperience] = useState<string>(() => {
+    if (typeof window === "undefined") return ""
+    return new URLSearchParams(window.location.search).get("experience") || ""
+  })
   const [showShareToast, setShowShareToast] = useState(false)
+
+  useEffect(() => {
+    const nextFeaturesParam = searchParams.get("features") || ""
+    const nextFeatures = nextFeaturesParam
+      ? nextFeaturesParam
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
+    const nextServiciosParam = searchParams.get("servicios") || ""
+    const nextServicios = nextServiciosParam
+      ? nextServiciosParam
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
+    const nextExperience = searchParams.get("experience") || ""
+
+    setSelectedFeatures((prev) => (prev.join("|") === nextFeatures.join("|") ? prev : nextFeatures))
+    setSelectedRequiredServicios((prev) => (prev.join("|") === nextServicios.join("|") ? prev : nextServicios))
+    setSelectedExperience((prev) => (prev === nextExperience ? prev : nextExperience))
+  }, [searchParams])
 
   const buildSupabaseFilters = React.useCallback(() => {
     const requiredServicios: string[] = []
@@ -86,9 +204,13 @@ export default function AlojamientosPage() {
       if (feat === "pool") requiredServicios.push("Pileta")
       if (feat === "breakfast") requiredServicios.push("Desayuno")
       if (feat === "bbq") requiredServicios.push("Parrilla / Quincho")
-      if (feat === "heating") requiredServicios.push("Estufa a leña")
+      if (feat === "heating") requiredServicios.push("Calefacción")
       if (feat === "parking") requiredServicios.push("Cochera")
       if (feat === "pet") requirePet = true
+    }
+
+    if (selectedRequiredServicios.some((s) => normalizeServiceForSearch(s).includes("petfriendly"))) {
+      requirePet = true
     }
 
     return {
@@ -96,7 +218,7 @@ export default function AlojamientosPage() {
       requirePet,
       localidades: selectedLocation,
     }
-  }, [selectedFeatures, selectedLocation])
+  }, [selectedFeatures, selectedLocation, selectedRequiredServicios])
 
   useEffect(() => {
     let ignore = false
@@ -179,24 +301,37 @@ export default function AlojamientosPage() {
         selectedLocation.length === 0 ||
         selectedLocation.some((loc) => acc.localidad.includes(loc))
 
-      const featuresMatch =
-        selectedFeatures.length === 0 ||
-        selectedFeatures.every((feat) => {
-          if (!acc.servicios) return false
-          const s = acc.servicios.map(normalizeServiceForSearch)
-          if (feat === "wifi") return s.some((serv) => serv.includes("wifi"))
-          if (feat === "pet") return (acc.mascotas === "Sí") || s.some((serv) => serv.includes("pet") || serv.includes("mascota"))
-          if (feat === "pool") return s.some((serv) => serv.includes("piscina") || serv.includes("pileta"))
-          if (feat === "parking") return s.some((serv) => serv.includes("cochera"))
-          if (feat === "bbq") return s.some((serv) => serv.includes("parrilla") || serv.includes("asador") || serv.includes("quincho"))
-          if (feat === "breakfast") return s.some((serv) => serv.includes("desayuno"))
-          if (feat === "heating") return s.some((serv) => serv.includes("estufa") || serv.includes("calefaccion"))
-          return true
-        })
+      const corpus = normalizeText(
+        `${String(acc.nombre || "")} ${String(acc.descripcion || "")} ${(Array.isArray(acc.servicios) ? acc.servicios : []).join(" ")}`
+      )
 
-      return locationMatch && featuresMatch
+      const requiredConceptKeys = Array.from(
+        new Set([
+          ...selectedRequiredServicios.map(toConceptKey).filter((v): v is string => Boolean(v)),
+          ...selectedFeatures
+            .map((feat): string | null => {
+              if (feat === "wifi") return "wi-fi"
+              if (feat === "pet") return "pet-friendly"
+              if (feat === "pool") return "pileta"
+              if (feat === "parking") return "cochera"
+              if (feat === "bbq") return "parrilla-quincho"
+              if (feat === "breakfast") return "desayuno"
+              if (feat === "heating") return "calefaccion"
+              return null
+            })
+            .filter((v): v is string => Boolean(v)),
+        ])
+      )
+
+      const serviciosWizardMatch =
+        requiredConceptKeys.length === 0 || requiredConceptKeys.every((key) => matchesConcept(corpus, key))
+
+      const experienceKey = EXPERIENCE_ID_TO_KEY[String(selectedExperience || "").trim()] ?? String(selectedExperience || "").trim()
+      const experienceMatch = !selectedExperience || matchesConcept(corpus, experienceKey)
+
+      return locationMatch && serviciosWizardMatch && experienceMatch
     })
-  }, [accommodations, selectedFeatures, selectedLocation])
+  }, [accommodations, selectedFeatures, selectedLocation, selectedRequiredServicios, selectedExperience])
 
   const toggleLocation = (loc: string) => {
     setSelectedLocation(prev => 
@@ -213,6 +348,8 @@ export default function AlojamientosPage() {
   const clearFilters = () => {
     setSelectedLocation([])
     setSelectedFeatures([])
+    setSelectedRequiredServicios([])
+    setSelectedExperience("")
   }
 
 
@@ -504,5 +641,13 @@ export default function AlojamientosPage() {
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+export default function AlojamientosPage() {
+  return (
+    <Suspense fallback={null}>
+      <AlojamientosPageInner />
+    </Suspense>
   )
 }

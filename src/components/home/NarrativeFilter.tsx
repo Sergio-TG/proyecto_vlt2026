@@ -59,7 +59,7 @@ const amenities = [
   { id: "parking_covered", label: "Cochera", serviceName: "Cochera", defaultIcon: Car },
   { id: "linens", label: "Ropa de Cama y Toallas", serviceName: "Ropa de Cama y Toallas", defaultIcon: Sun },
   { id: "bbq", label: "Parrilla / Quincho", serviceName: "Parrilla / Quincho", defaultIcon: Utensils },
-  { id: "heating", label: "Calefacción", serviceName: "Estufa a leña", defaultIcon: Flame },
+  { id: "heating", label: "Calefacción", serviceName: "Calefacción", defaultIcon: Flame },
   { id: "ac", label: "Aire Acondicionado", serviceName: "Aire Acondicionado", defaultIcon: Snowflake },
   { id: "pool", label: "Pileta", serviceName: "Pileta", defaultIcon: Waves },
   { id: "mountain_view", label: "Vista a la Montaña", serviceName: "Vista a la Montaña", defaultIcon: Mountain },
@@ -116,14 +116,76 @@ export function NarrativeFilter() {
 
   const progress = (step / 3) * 100
 
+  const isTravelerDisabled = React.useCallback(
+    (id: string, selected: string[]) => {
+      const hasFamily = selected.includes("family_kids")
+      const hasSolo = selected.includes("solo")
+      if (hasFamily) return id !== "family_kids"
+      if (hasSolo) return id !== "solo"
+
+      const hasCouple = selected.includes("couple")
+      const hasFriends = selected.includes("friends")
+
+      if (id === "family_kids" || id === "solo") {
+        return selected.length > 0
+      }
+
+      if (id === "couple") {
+        return hasFriends
+      }
+
+      if (id === "friends") {
+        return hasCouple
+      }
+
+      if (id === "corporate" || id === "seniors") {
+        return false
+      }
+
+      return false
+    },
+    []
+  )
+
   const handleTravelerToggle = (id: string) => {
     setSelections(prev => {
+      if (isTravelerDisabled(id, prev.travelers)) return prev
+
       const isSelected = prev.travelers.includes(id)
+
+      if (!isSelected && (id === "family_kids" || id === "solo")) {
+        return {
+          ...prev,
+          travelers: [id],
+        }
+      }
+
+      if (isSelected) {
+        return {
+          ...prev,
+          travelers: prev.travelers.filter(t => t !== id),
+        }
+      }
+
+      if (id === "couple") {
+        const cleaned = prev.travelers.filter((t) => t !== "family_kids" && t !== "friends" && t !== "solo")
+        return {
+          ...prev,
+          travelers: Array.from(new Set([...cleaned, "couple"])),
+        }
+      }
+
+      if (id === "friends") {
+        const cleaned = prev.travelers.filter((t) => t !== "family_kids" && t !== "couple" && t !== "solo")
+        return {
+          ...prev,
+          travelers: Array.from(new Set([...cleaned, "friends"])),
+        }
+      }
+
       return {
         ...prev,
-        travelers: isSelected 
-          ? prev.travelers.filter(t => t !== id)
-          : [...prev.travelers, id]
+        travelers: [...prev.travelers, id]
       }
     })
   }
@@ -145,7 +207,7 @@ export function NarrativeFilter() {
   }
 
   const nextStep = () => setStep(prev => Math.min(prev + 1, 3))
-  // const prevStep = () => setStep(prev => Math.max(prev - 1, 1)) // If needed
+  const prevStep = () => setStep(prev => Math.max(prev - 1, 1))
 
   const selectedFeatureIds = React.useMemo(() => {
     const featureIds: string[] = []
@@ -161,18 +223,53 @@ export function NarrativeFilter() {
     return Array.from(new Set(featureIds))
   }, [selections.amenities])
 
+  const selectedServiceKeys = React.useMemo(() => {
+    const map: Record<string, string> = {
+      breakfast: "desayuno",
+      parking_covered: "cochera",
+      bbq: "parrilla-quincho",
+      pet_friendly: "pet-friendly",
+      wifi_high: "wi-fi",
+      linens: "ropa-de-cama-y-toallas",
+      heating: "calefaccion",
+      ac: "aire-acondicionado",
+      pool: "pileta",
+      mountain_view: "vista-a-la-montana",
+      river: "cerca-de-rio-arroyo",
+      accessibility: "accesibilidad",
+    }
+    return Array.from(
+      new Set(selections.amenities.map((id) => map[id]).filter((v): v is string => Boolean(v)))
+    )
+  }, [selections.amenities])
+
+  const experienceKey = React.useMemo(() => {
+    const map: Record<string, string> = {
+      relax: "bienestar-y-relax",
+      adventure: "aventura-y-exploracion",
+      nature: "escenarios-naturales",
+    }
+    return selections.experience ? map[selections.experience] ?? selections.experience : ""
+  }, [selections.experience])
+
   const recommendationsHref = React.useMemo(() => {
     const params = new URLSearchParams()
     if (selectedFeatureIds.length > 0) {
       params.set("features", selectedFeatureIds.join(","))
     }
+    if (selectedServiceKeys.length > 0) {
+      params.set("servicios", selectedServiceKeys.join(","))
+    }
+    if (experienceKey) {
+      params.set("experience", experienceKey)
+    }
     const qs = params.toString()
     return qs ? `/alojamientos?${qs}` : "/alojamientos"
-  }, [selectedFeatureIds])
+  }, [selectedFeatureIds, selectedServiceKeys, experienceKey])
 
   return (
-    <div className="w-full max-w-5xl mx-auto -mt-20 [@media(max-height:1100px)]:-mt-8 [@media(max-height:950px)]:mt-0 relative z-30 px-4">
-      <Card className="shadow-xl border-none">
+    <div className="w-full flex items-center justify-center relative z-30 px-4 mt-16 md:mt-20 [@media(max-height:1100px)]:mt-12 [@media(max-height:950px)]:mt-8">
+      <Card className="w-full max-w-5xl shadow-xl border-none bg-white/90 backdrop-blur-sm rounded-3xl">
         <div className="p-6 md:p-8">
             <div className="space-y-4 mb-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -203,15 +300,20 @@ export function NarrativeFilter() {
                         className="space-y-6"
                     >
                         <h4 className="text-lg font-semibold">¿Quién viaja?</h4>
-                        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                             {travelerTypes.map((type) => {
                                 const isSelected = selections.travelers.includes(type.id)
+                                const isDisabled = isTravelerDisabled(type.id, selections.travelers)
                                 return (
                                     <div
                                         key={type.id}
-                                        onClick={() => handleTravelerToggle(type.id)}
+                                        onClick={() => {
+                                          if (isDisabled) return
+                                          handleTravelerToggle(type.id)
+                                        }}
                                         className={cn(
-                                            "cursor-pointer rounded-xl border-2 p-4 flex flex-col items-center justify-center text-center gap-3 transition-all duration-200 hover:shadow-md",
+                                            "rounded-xl border-2 p-4 flex flex-col items-center justify-center text-center gap-3 transition-all duration-200",
+                                            isDisabled ? "cursor-not-allowed opacity-45" : "cursor-pointer hover:shadow-md",
                                             isSelected 
                                                 ? "border-primary bg-primary/5 ring-2 ring-primary/20" 
                                                 : "border-transparent bg-secondary/50 hover:bg-secondary"
@@ -325,7 +427,14 @@ export function NarrativeFilter() {
                 )}
             </AnimatePresence>
 
-            <div className="mt-8 flex justify-end">
+            <div className="mt-8 flex items-center justify-between gap-4">
+                {step > 1 ? (
+                    <Button onClick={prevStep} variant="outline" size="lg" className="px-8">
+                        Atrás
+                    </Button>
+                ) : (
+                    <div />
+                )}
                 {step < 3 ? (
                     <Button 
                         onClick={nextStep} 

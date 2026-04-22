@@ -5,6 +5,7 @@ import { TermasTeaser } from "@/components/home/TermasTeaser";
 import { FeaturedAccommodations } from "@/components/home/FeaturedAccommodations";
 import { HomeVideoSection } from "@/components/home/HomeVideoSection";
 import { SocialProof } from "@/components/home/SocialProof";
+import { HOME_VIDEOS } from "@/lib/constants";
 
 export default function Home() {
   return (
@@ -14,9 +15,10 @@ export default function Home() {
         <NarrativeFilter />
       </div>
       <TrustBuilders />
+      <HomeVideoSection src={HOME_VIDEOS.DRON} />
       <TermasTeaser />
       <FeaturedAccommodations />
-      <HomeVideoSection />
+      <HomeVideoSection src={HOME_VIDEOS.PILETA} />
       <SocialProof />
     </div>
   );

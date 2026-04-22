@@ -71,19 +71,107 @@ function getBookingScore(ratingGoogle: number | null) {
   if (!ratingGoogle || !Number.isFinite(ratingGoogle)) return null
   const score = ratingGoogle * 2
   const label =
-    score >= 9.5 ? "Excepcional" : score >= 9 ? "Fantástico" : score >= 8.5 ? "Muy bueno" : score >= 8 ? "Bueno" : "Bien"
+    score >= 9.5 ? "Excepcional" : score >= 9 ? "Excelente" : score >= 8.5 ? "Muy bueno" : score >= 8 ? "Bueno" : "Bien"
   return { score, label }
 }
 
 function HoverMarker({ marker }: { marker: MarkerItem }) {
   const markerRef = React.useRef<L.Marker>(null)
+  const closeTimeoutRef = React.useRef<number | null>(null)
+  const isMarkerHoveredRef = React.useRef(false)
+  const isPopupHoveredRef = React.useRef(false)
+  const removePopupListenersRef = React.useRef<(() => void) | null>(null)
+
+  const clearCloseTimeout = React.useCallback(() => {
+    if (closeTimeoutRef.current) {
+      window.clearTimeout(closeTimeoutRef.current)
+      closeTimeoutRef.current = null
+    }
+  }, [])
+
+  const scheduleClose = React.useCallback(() => {
+    clearCloseTimeout()
+    closeTimeoutRef.current = window.setTimeout(() => {
+      if (!isMarkerHoveredRef.current && !isPopupHoveredRef.current) {
+        markerRef.current?.closePopup()
+      }
+    }, 200)
+  }, [clearCloseTimeout])
+
+  const attachPopupHoverListeners = React.useCallback(
+    (popup: L.Popup) => {
+      if (removePopupListenersRef.current) {
+        removePopupListenersRef.current()
+        removePopupListenersRef.current = null
+      }
+
+      const tryAttach = () => {
+        const el = popup.getElement()
+        if (!el) return false
+
+        const onEnter = () => {
+          isPopupHoveredRef.current = true
+          clearCloseTimeout()
+        }
+
+        const onLeave = () => {
+          isPopupHoveredRef.current = false
+          scheduleClose()
+        }
+
+        el.addEventListener("mouseenter", onEnter)
+        el.addEventListener("mouseleave", onLeave)
+
+        removePopupListenersRef.current = () => {
+          el.removeEventListener("mouseenter", onEnter)
+          el.removeEventListener("mouseleave", onLeave)
+        }
+
+        return true
+      }
+
+      if (!tryAttach()) {
+        window.requestAnimationFrame(() => {
+          tryAttach()
+        })
+      }
+    },
+    [clearCloseTimeout, scheduleClose]
+  )
+
+  React.useEffect(() => {
+    return () => {
+      clearCloseTimeout()
+      if (removePopupListenersRef.current) {
+        removePopupListenersRef.current()
+        removePopupListenersRef.current = null
+      }
+    }
+  }, [clearCloseTimeout])
 
   const eventHandlers = React.useMemo(
     () => ({
-      mouseover: () => markerRef.current?.openPopup(),
-      mouseout: () => markerRef.current?.closePopup(),
+      mouseover: () => {
+        isMarkerHoveredRef.current = true
+        clearCloseTimeout()
+        markerRef.current?.openPopup()
+      },
+      mouseout: () => {
+        isMarkerHoveredRef.current = false
+        scheduleClose()
+      },
+      popupopen: (e: L.PopupEvent) => {
+        attachPopupHoverListeners(e.popup)
+      },
+      popupclose: () => {
+        isPopupHoveredRef.current = false
+        if (removePopupListenersRef.current) {
+          removePopupListenersRef.current()
+          removePopupListenersRef.current = null
+        }
+      },
     }),
-    []
+    [attachPopupHoverListeners, clearCloseTimeout, scheduleClose]
   )
 
   const icon = React.useMemo(() => {
@@ -106,21 +194,21 @@ function HoverMarker({ marker }: { marker: MarkerItem }) {
   const booking = getBookingScore(marker.rating_google)
 
   return (
-    <Marker ref={markerRef} position={[marker.latitud, marker.longitud]} eventHandlers={eventHandlers} icon={icon}>
+    <Marker ref={markerRef} position={[marker.latitud, marker.longitud]} icon={icon} eventHandlers={eventHandlers}>
       <Popup className="map-popup">
-        <div className="block w-[240px]">
+        <Link href={`/alojamientos/${marker.slug}`} className="block w-[240px]">
           {marker.portadaUrl ? (
-            <img src={marker.portadaUrl} alt={marker.nombre} className="w-full h-32 object-cover rounded-xl mb-3" />
+            <img src={marker.portadaUrl} alt={marker.nombre} className="w-full h-32 object-cover rounded-lg mb-3" />
           ) : null}
 
           <div className="flex items-start justify-between gap-3">
-            <Link href={`/alojamientos/${marker.slug}`} className="min-w-0">
-              <p className="text-sm font-black text-slate-900 leading-tight truncate">{marker.nombre}</p>
-              <p className="text-xs text-slate-500 mt-1 truncate">{marker.localidad}</p>
-            </Link>
+            <div className="min-w-0">
+              <p className="text-sm font-black text-slate-900 leading-tight break-words">{marker.nombre}</p>
+              <p className="text-xs text-slate-600 mt-1 leading-snug break-words">{marker.localidad}</p>
+            </div>
 
             {booking ? (
-              <div className="flex-shrink-0 bg-primary text-white rounded-lg px-2 py-1 text-[10px] font-black">
+              <div className="flex-shrink-0 bg-slate-900 text-white rounded-lg px-2 py-1 text-[10px] font-black">
                 {booking.score.toFixed(1)} {booking.label}
               </div>
             ) : null}
@@ -128,20 +216,17 @@ function HoverMarker({ marker }: { marker: MarkerItem }) {
 
           <div className="mt-3 flex items-end justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase tracking-widest font-black text-slate-400">Precio</div>
-              <div className="text-base font-black text-primary leading-none">
+              <div className="text-[10px] uppercase tracking-widest font-black text-slate-500">Precio</div>
+              <div className="text-base font-black text-[#256b67] leading-none">
                 {marker.precio_base ? `$ ${marker.precio_base.toLocaleString("es-AR")}` : "Consultar"}
               </div>
             </div>
 
-            <Link
-              href={`/alojamientos/${marker.slug}`}
-              className="inline-flex items-center justify-center h-10 px-4 rounded-xl bg-primary text-white font-black text-sm hover:bg-primary/90 transition-colors"
-            >
+            <span className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#4aa39e] text-white font-black text-sm hover:bg-[#3f9792] transition-colors">
               + Info
-            </Link>
+            </span>
           </div>
-        </div>
+        </Link>
       </Popup>
     </Marker>
   )
@@ -234,7 +319,7 @@ export default function MapAlojamiento({
       console.warn("Mapa sin marcadores: revisar latitud/longitud o google_maps en alojamientos_aprobados.", sample)
     }
     return (
-      <div className="h-[400px] rounded-[2rem] border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 font-medium">
+      <div className="h-[400px] rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 font-medium">
         No hay coordenadas disponibles para mostrar en el mapa.
       </div>
     )
@@ -255,7 +340,7 @@ export default function MapAlojamiento({
 
   return (
     <>
-      <div className="relative h-[400px] rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm">
+      <div className="relative h-[400px] rounded-lg overflow-hidden border border-slate-200 shadow-sm">
         {renderMap("inline", "h-full w-full z-0")}
         <button
           type="button"
@@ -280,7 +365,7 @@ export default function MapAlojamiento({
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 8 }}
               transition={{ duration: 0.24 }}
-              className="relative h-full w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl"
+              className="relative h-full w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
             >
               {renderMap("fullscreen", "h-full w-full z-0")}
               <button

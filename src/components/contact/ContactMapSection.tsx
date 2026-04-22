@@ -86,7 +86,7 @@ export function ContactMapSection() {
           </div>
 
           <div className="flex-1 w-full">
-            <div className="h-[400px] rounded-[2rem] overflow-hidden border border-slate-200 shadow-sm bg-white">
+            <div className="h-[400px] rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white">
               <iframe
                 title="Mapa - Viví Las Termas"
                 className="w-full h-full"

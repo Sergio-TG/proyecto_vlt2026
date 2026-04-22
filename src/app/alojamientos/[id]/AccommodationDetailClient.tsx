@@ -9,7 +9,6 @@ import CustomImage from "@/components/common/CustomImage"
 import { IK_TRANSFORMS } from "@/lib/imagekit.config"
 import { slugify } from "@/lib/utils"
 import { getIconByKey } from "@/lib/icons"
-import dynamic from "next/dynamic"
 import {
   MapPin,
   Star,
@@ -44,8 +43,6 @@ type AccommodationWithExtras = AlojamientoAprobado & {
   cancelacion?: string | null
 }
 
-const MapAlojamientoSingle = dynamic(() => import("@/components/maps/MapAlojamientoSingle"), { ssr: false })
-
 function toNum(v: unknown): number | null {
   if (typeof v === "number" && Number.isFinite(v)) return v
   if (typeof v === "string") {
@@ -53,6 +50,77 @@ function toNum(v: unknown): number | null {
     return Number.isFinite(n) ? n : null
   }
   return null
+}
+
+function isValidLatLng(lat: number | null, lng: number | null) {
+  if (lat == null || lng == null) return false
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false
+  if (lat === 0 && lng === 0) return false
+  if (lat < -90 || lat > 90) return false
+  if (lng < -180 || lng > 180) return false
+  return true
+}
+
+function extractLatLngFromGoogleMapsUrl(raw: unknown): { lat: number; lng: number } | null {
+  const url = typeof raw === "string" ? raw.trim() : ""
+  if (!url) return null
+
+  const atMatch = url.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
+  if (atMatch) {
+    const lat = Number(atMatch[1])
+    const lng = Number(atMatch[2])
+    if (isValidLatLng(lat, lng)) return { lat, lng }
+  }
+
+  const qMatch = url.match(/[?&]q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
+  if (qMatch) {
+    const lat = Number(qMatch[1])
+    const lng = Number(qMatch[2])
+    if (isValidLatLng(lat, lng)) return { lat, lng }
+  }
+
+  const embedMatch = url.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
+  if (embedMatch) {
+    const lat = Number(embedMatch[1])
+    const lng = Number(embedMatch[2])
+    if (isValidLatLng(lat, lng)) return { lat, lng }
+  }
+
+  return null
+}
+
+function buildGoogleMapsEmbedSrc({
+  lat,
+  lng,
+  rawUrl,
+  address,
+  localidad,
+  nombre,
+}: {
+  lat: number | null
+  lng: number | null
+  rawUrl: string | null | undefined
+  address: string | null | undefined
+  localidad: string | null | undefined
+  nombre: string | null | undefined
+}) {
+  if (isValidLatLng(lat, lng)) {
+    return `https://www.google.com/maps?q=${lat},${lng}&output=embed`
+  }
+
+  const url = String(rawUrl || "").trim()
+  if (url.includes("google.com/maps/embed") || url.includes("output=embed")) {
+    return url
+  }
+
+  const parsed = extractLatLngFromGoogleMapsUrl(url)
+  if (parsed) {
+    return `https://www.google.com/maps?q=${parsed.lat},${parsed.lng}&output=embed`
+  }
+
+  const q = String(address || "").trim() || `${String(nombre || "").trim()} ${String(localidad || "").trim()}`.trim() || String(localidad || "").trim()
+  if (!q) return null
+  return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`
 }
 
 function normalizeServiceForSearch(service: string) {
@@ -237,6 +305,18 @@ export function AccommodationDetailClient({
 
   const lat = toNum((accommodation as { latitud?: unknown }).latitud)
   const lng = toNum((accommodation as { longitud?: unknown }).longitud)
+  const mapEmbedSrc = React.useMemo(
+    () =>
+      buildGoogleMapsEmbedSrc({
+        lat,
+        lng,
+        rawUrl: accommodation.google_maps ?? accommodation.ubicacion_google_maps,
+        address: accommodation.direccion,
+        localidad: accommodation.localidad,
+        nombre: accommodation.nombre,
+      }),
+    [lat, lng, accommodation.google_maps, accommodation.ubicacion_google_maps, accommodation.direccion, accommodation.localidad, accommodation.nombre]
+  )
 
   const folderSlug = (accommodation.slug || slugify(accommodation.nombre || "")).trim()
   const heroPath = portadaPath ? `${portadaPath.split("?")[0]}?${IK_TRANSFORMS.heroPage}` : null
@@ -358,7 +438,14 @@ export function AccommodationDetailClient({
       </AnimatePresence>
 
       <div className="container mx-auto px-4 mt-8 md:mt-12">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        {thumbUrls.length > 0 && fullUrls.length > 0 && (
+          <section className="mt-10 md:mt-12">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">Galería</h2>
+            <GaleriaAlojamiento thumbUrls={thumbUrls} fullUrls={fullUrls} nombreAlojamiento={accommodation.nombre} />
+          </section>
+        )}
+
+        <div className="mt-12 grid grid-cols-1 lg:grid-cols-3 gap-12">
           <div className="lg:col-span-2 space-y-12">
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -397,7 +484,26 @@ export function AccommodationDetailClient({
                     <p className="text-lg leading-relaxed font-light">{accommodation.descripcion}</p>
                   </div>
 
-                  <div className="space-y-4">
+                  <div className="mt-10">
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Servicios Incluidos</h3>
+                    {uniqueServices.length === 0 ? (
+                      <div className="text-slate-500 text-sm font-medium">No hay servicios para mostrar.</div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-3 gap-x-8">
+                        {uniqueServices.map((servicio) => {
+                          const IconComponent = getIconByKey(servicio.icono_key)
+                          return (
+                            <div key={servicio.key} className="flex items-center gap-2 text-slate-700 min-w-0">
+                              <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
+                              <span className="text-sm font-medium truncate">{servicio.nombre}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="mt-12 space-y-4">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">Información de estadía</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
@@ -455,51 +561,8 @@ export function AccommodationDetailClient({
                           </div>
                         </div>
                       )}
-
-                      {lat != null && lng != null && (
-                        <div className="sm:col-span-2">
-                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Ubicación</div>
-                          <MapAlojamientoSingle
-                            lat={lat}
-                            lng={lng}
-                            nombre={accommodation.nombre}
-                            localidad={accommodation.localidad}
-                            precioBase={accommodation.precio_base ?? null}
-                          />
-                        </div>
-                      )}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            </motion.div>
-
-            <hr className="border-slate-100 my-8 md:my-10" />
-
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.8 }}
-            >
-              <Card className="border-none shadow-[0_40px_100px_rgba(0,0,0,0.08)] rounded-[3rem] overflow-hidden bg-white">
-                <CardContent className="p-10 md:p-16">
-                  <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Servicios Incluidos</h3>
-                  {uniqueServices.length === 0 ? (
-                    <div className="text-slate-500 text-sm font-medium">No hay servicios para mostrar.</div>
-                  ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6">
-                      {uniqueServices.map((servicio) => {
-                        const IconComponent = getIconByKey(servicio.icono_key)
-                        return (
-                          <div key={servicio.key} className="flex items-center gap-2 text-slate-700">
-                            <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
-                            <span className="text-sm font-medium">{servicio.nombre}</span>
-                          </div>
-                        )
-                      })}
-                    </div>
-                  )}
                 </CardContent>
               </Card>
             </motion.div>
@@ -549,12 +612,18 @@ export function AccommodationDetailClient({
           </div>
         </div>
 
-        <hr className="border-slate-100 my-8 md:my-10" />
-
-        {thumbUrls.length > 0 && fullUrls.length > 0 && (
-          <section className="mt-16 md:mt-24">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Galería de fotos</h2>
-            <GaleriaAlojamiento thumbUrls={thumbUrls} fullUrls={fullUrls} nombreAlojamiento={accommodation.nombre} />
+        {mapEmbedSrc && (
+          <section className="mt-12 lg:mt-16">
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">Ubicación</h2>
+            <div className="h-[360px] rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white">
+              <iframe
+                title={`Mapa - ${accommodation.nombre}`}
+                className="w-full h-full"
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                src={mapEmbedSrc}
+              />
+            </div>
           </section>
         )}
       </div>

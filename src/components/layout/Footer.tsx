@@ -95,6 +95,17 @@ export function Footer() {
 
         <div className="mt-16 pt-8 border-t border-slate-800 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4">
           <p>© Copyright 2026 Viví las Termas. Todos los derechos reservados. </p>
+          <div className="flex items-center gap-4">
+            <Link href="/terminos" className="hover:text-primary transition-colors">
+              Términos
+            </Link>
+            <Link href="/privacidad" className="hover:text-primary transition-colors">
+              Privacidad
+            </Link>
+            <Link href="/cookies" className="hover:text-primary transition-colors">
+              Cookies
+            </Link>
+          </div>
           <p>Diseño y Desarrollo <a href="https://www.tgwebstudios.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors font-medium">TG Web Studios</a></p>
         </div>
       </div>
