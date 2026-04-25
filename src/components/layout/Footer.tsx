@@ -17,7 +17,7 @@ export function Footer() {
               Donde el descanso se vuelve experiencia
             </p>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y el bienestar de nuestras termas naturales.
+              Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y todo el bienestar de nuestro complejo termal.
             </p>
           </div>
 
@@ -41,9 +41,9 @@ export function Footer() {
 
             {/* Column 2: Termas */}
             <div>
-              <h4 className="text-white font-bold text-lg mb-6">Termas</h4>
+              <h4 className="text-white font-bold text-lg mb-6">Más Información</h4>
               <ul className="space-y-3 text-sm">
-                {["Pases de Día", "Masajes & Spa", "Clases de Yoga", "Sauna Finlandesa", "Eventos Privados"].map((item) => (
+                {["Blog", "Masajes & Spa", "Yoga", "Armonización Sonora", "Preguntas Frecuentes"].map((item) => (
                   <li key={item}>
                     <Link href="/termas" className="hover:text-primary transition-colors">
                       {item}
@@ -93,20 +93,37 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-slate-800 text-center md:text-left flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-4">
-          <p>© Copyright 2026 Viví las Termas. Todos los derechos reservados. </p>
-          <div className="flex items-center gap-4">
-            <Link href="/terminos" className="hover:text-primary transition-colors">
-              Términos
+        <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-6">
+
+          {/* Grupo Izquierdo: Copyright + Créditos */}
+          <div className="flex flex-col md:flex-row gap-2 text-center md:text-left">
+            <p>© 2026 Viví las Termas. Todos los derechos reservados.</p>
+            <p>
+              Diseño y Desarrollo{" "}
+              <a
+                href="https://www.tgwebstudios.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors font-medium text-slate-400"
+              >
+                TG Web Studios
+              </a>
+            </p>
+          </div>
+
+          {/* Grupo Derecho: Enlaces legales */}
+          <div className="flex items-center gap-6">
+            <Link href="/privacidad" className="hover:text-primary transition-colors whitespace-nowrap">
+              Política de Privacidad
             </Link>
-            <Link href="/privacidad" className="hover:text-primary transition-colors">
-              Privacidad
+            <Link href="/terminos" className="hover:text-primary transition-colors whitespace-nowrap">
+              Términos de Servicio
             </Link>
-            <Link href="/cookies" className="hover:text-primary transition-colors">
-              Cookies
+            <Link href="/cookies" className="hover:text-primary transition-colors whitespace-nowrap">
+              Configuración de Cookies
             </Link>
           </div>
-          <p>Diseño y Desarrollo <a href="https://www.tgwebstudios.com" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors font-medium">TG Web Studios</a></p>
+
         </div>
       </div>
     </footer>

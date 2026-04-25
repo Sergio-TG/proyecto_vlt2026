@@ -190,9 +190,17 @@ function AlojamientosPageInner() {
 
     const nextExperience = searchParams.get("experience") || ""
 
-    setSelectedFeatures((prev) => (prev.join("|") === nextFeatures.join("|") ? prev : nextFeatures))
-    setSelectedRequiredServicios((prev) => (prev.join("|") === nextServicios.join("|") ? prev : nextServicios))
-    setSelectedExperience((prev) => (prev === nextExperience ? prev : nextExperience))
+    const syncFromUrl = () => {
+      setSelectedFeatures((prev) => (prev.join("|") === nextFeatures.join("|") ? prev : nextFeatures))
+      setSelectedRequiredServicios((prev) => (prev.join("|") === nextServicios.join("|") ? prev : nextServicios))
+      setSelectedExperience((prev) => (prev === nextExperience ? prev : nextExperience))
+    }
+
+    if (typeof queueMicrotask === "function") {
+      queueMicrotask(syncFromUrl)
+    } else {
+      Promise.resolve().then(syncFromUrl)
+    }
   }, [searchParams])
 
   const buildSupabaseFilters = React.useCallback(() => {

@@ -15,32 +15,39 @@ const experiences = [
     delay: 0.1
   },
   {
-    title: "Clases de Yoga",
+    title: "Yoga",
     description: "Conectá cuerpo y mente en nuestras clases al aire libre, rodeado por el sonido del río y la brisa serrana.",
-    image: "https://images.unsplash.com/photo-1545205597-3d9d02c29597?q=80&w=2070&auto=format&fit=crop",
+    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/yoga-mar.webp?q=80&w=2070&auto=format&fit=crop",
     icon: <Heart className="w-6 h-6" />,
     delay: 0.2
   },
   {
-    title: "Playas del Río El Durazno",
-    description: "Aguas cristalinas y playas de arena. El lugar perfecto para refrescarse en verano y matear en invierno.",
-    image: "https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?q=80&w=2070&auto=format&fit=crop",
+    title: "Sound Healing",
+    description: "Sintoniza con la frecuencia de la naturaleza. Una sesión de armonización con cuencos de cuarzo y sonidos ancestrales, diseñada para equilibrar tu energía en el silencio absoluto de El Durazno.",
+    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/sound-healing002.JPG?q=80&w=2070&auto=format&fit=crop",
     icon: <Sun className="w-6 h-6" />,
     delay: 0.3
   },
   {
+    title: "Puntos de Interés",
+    description: "Aguas cristalinas, descubre el lugar perfecto para refrescarse en verano y matear en invierno.",
+    image: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAGf8kte3Jyd52eIBg0VuNPqCV2S43ce4qXdDkU3mH2CbRCHWrZ8kbuUp46jNAGE01H_gMelhaqKSQA0MNLja74zCxFZv0QiZM7L2N-JnmsfakAwP8XHiXH6flAwQnad-0Wxn_DP=s1360-w1360-h1020-rw?q=80&w=2070&auto=format&fit=crop",
+    icon: <Sun className="w-6 h-6" />,
+    delay: 0.4
+  },
+  {
     title: "Cabalgatas",
     description: "Recorré paisajes inaccesibles a pie en cabalgatas guiadas, ideales para disfrutar en pareja o en familia.",
-    image: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?q=80&w=2071&auto=format&fit=crop",
+    image: "https://plus.unsplash.com/premium_photo-1663036377788-a60733e5fb43?q=80&w=2070&auto=format&fit=crop",
     icon: <Compass className="w-6 h-6" />,
-    delay: 0.4
+    delay: 0.5
   },
   {
     title: "Astroturismo",
     description: "Viví la experiencia de observar uno de los cielos más limpios de Córdoba, con guiado nocturno, reconocimiento de constelaciones y fotografía básica del cielo.",
-    image: "https://images.unsplash.com/photo-1532767153582-b1a0e5145009?q=80&w=2070&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1731332066050-47efac6e884f?q=80&w=2070&auto=format&fit=crop",
     icon: <Stars className="w-6 h-6" />,
-    delay: 0.5
+    delay: 0.6
   }
 ]
 
@@ -85,7 +92,7 @@ export default function ExperienciasPage() {
             transition={{ delay: 0.3, duration: 1 }}
             className="text-xl md:text-3xl max-w-2xl font-light drop-shadow-md text-white/90"
           >
-            Mucho más que un alojamiento, un destino para vivir.
+            ¡Próximamente!, un destino para vivir.
           </motion.p>
         </div>
       </section>

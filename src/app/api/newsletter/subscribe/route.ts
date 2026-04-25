@@ -30,9 +30,21 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 })
     }
 
-    const body = (await req.json().catch(() => null)) as SubscribeBody | null
-    const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : ""
-    const source = typeof body?.source === "string" ? body.source.trim().slice(0, 80) : ""
+    const contentType = req.headers.get("content-type") || ""
+    let email = ""
+    let source = ""
+
+    if (contentType.includes("application/json")) {
+      const body = (await req.json().catch(() => null)) as SubscribeBody | null
+      email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : ""
+      source = typeof body?.source === "string" ? body.source.trim().slice(0, 80) : ""
+    } else {
+      const form = await req.formData().catch(() => null)
+      const rawEmail = form?.get("email")
+      const rawSource = form?.get("source")
+      email = typeof rawEmail === "string" ? rawEmail.trim().toLowerCase() : ""
+      source = typeof rawSource === "string" ? rawSource.trim().slice(0, 80) : ""
+    }
 
     if (!email || !isValidEmail(email)) {
       return NextResponse.json({ ok: false, error: "Email inválido" }, { status: 400 })

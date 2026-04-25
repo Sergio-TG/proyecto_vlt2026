@@ -5,6 +5,7 @@ import { TermasTeaser } from "@/components/home/TermasTeaser";
 import { FeaturedAccommodations } from "@/components/home/FeaturedAccommodations";
 import { HomeVideoSection } from "@/components/home/HomeVideoSection";
 import { SocialProof } from "@/components/home/SocialProof";
+import { NewsletterSignup as Newsletter } from "@/components/newsletter/NewsletterSignup";
 import { HOME_VIDEOS } from "@/lib/constants";
 
 export default function Home() {
@@ -20,6 +21,7 @@ export default function Home() {
       <FeaturedAccommodations />
       <HomeVideoSection src={HOME_VIDEOS.PILETA} />
       <SocialProof />
+      <Newsletter variant="home" />
     </div>
   );
 }

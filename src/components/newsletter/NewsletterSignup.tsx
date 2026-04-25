@@ -5,12 +5,18 @@ import { CheckCircle2, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { usePathname } from "next/navigation"
 
+type NewsletterVariant = "footer" | "home" | "alojamiento"
+
 export function NewsletterSignup({
+  variant = "footer",
   sourcePrefix = "footer",
+  source,
   title = "Newsletter",
   description = "Recibí ofertas exclusivas y novedades de temporada.",
 }: {
+  variant?: NewsletterVariant
   sourcePrefix?: string
+  source?: string
   title?: string
   description?: string
 }) {
@@ -18,8 +24,10 @@ export function NewsletterSignup({
   const [status, setStatus] = React.useState<"idle" | "loading" | "success" | "error">("idle")
   const [message, setMessage] = React.useState<string | null>(null)
   const pathname = usePathname()
+  const baseSource = (source || "").trim() || (variant === "footer" ? sourcePrefix : variant)
+  const sourceValue = `${baseSource}:${pathname || ""}`.slice(0, 80)
 
-  const handleSubscribe = async (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const value = email.trim().toLowerCase()
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return
@@ -30,8 +38,7 @@ export function NewsletterSignup({
     try {
       const res = await fetch("/api/newsletter/subscribe", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: value, source: `${sourcePrefix}:${pathname || ""}` }),
+        body: new FormData(e.currentTarget),
       })
       const json = (await res.json().catch(() => null)) as { ok?: boolean; message?: string; error?: string } | null
       if (!res.ok || !json?.ok) {
@@ -45,6 +52,57 @@ export function NewsletterSignup({
       setStatus("error")
       setMessage(err instanceof Error ? err.message : "Ocurrió un error. Intentá de nuevo.")
     }
+  }
+
+  if (variant === "home" || variant === "alojamiento") {
+    return (
+      <section className="w-full bg-teal-700 text-white py-16 md:py-20">
+        <div className="container mx-auto px-4">
+          <div className="mx-auto max-w-4xl text-center">
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight">{title}</h2>
+            <p className="mt-4 text-white/90 font-medium max-w-2xl mx-auto">{description}</p>
+
+            <div className="mt-10 max-w-2xl mx-auto">
+              {status === "success" ? (
+                <div className="flex items-center justify-center gap-3 bg-white/10 text-white p-5 rounded-2xl border border-white/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                  <p className="text-sm font-semibold">{message || "¡Gracias por suscribirte!"}</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubscribe} className="flex flex-col gap-4">
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <input
+                      type="email"
+                      name="email"
+                      placeholder="Enter your email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={status === "loading"}
+                      className="bg-white/95 border border-white/30 text-slate-900 px-4 py-3 rounded-xl w-full focus:ring-2 focus:ring-white/40 outline-none transition-all disabled:opacity-50 text-sm placeholder:text-slate-500"
+                    />
+                    <input type="hidden" name="source" value={sourceValue} />
+                    <Button
+                      type="submit"
+                      disabled={status === "loading" || !email}
+                      className="rounded-xl px-8 font-black h-[46px] text-sm bg-blue-600 hover:bg-blue-700 text-white"
+                    >
+                      {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Suscribirme"}
+                    </Button>
+                  </div>
+                  <div className="text-[11px] text-white/80 font-medium">
+                    Al suscribirte confirmás que aceptás nuestros Términos y Condiciones.
+                  </div>
+                  {status === "error" && (
+                    <p className="text-xs text-red-100 font-semibold">{message || "Ocurrió un error. Intentá de nuevo."}</p>
+                  )}
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    )
   }
 
   return (
@@ -62,6 +120,7 @@ export function NewsletterSignup({
           <div className="flex gap-2">
             <input
               type="email"
+              name="email"
               placeholder="Tu email"
               required
               value={email}
@@ -69,6 +128,7 @@ export function NewsletterSignup({
               disabled={status === "loading"}
               className="bg-slate-800 border border-slate-700 text-white px-4 py-2.5 rounded-xl w-full focus:ring-2 focus:ring-primary/50 outline-none transition-all disabled:opacity-50 text-sm"
             />
+            <input type="hidden" name="source" value={sourceValue} />
             <Button type="submit" disabled={status === "loading" || !email} className="rounded-xl px-6 font-bold h-[42px] text-sm">
               {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Suscribirse"}
             </Button>
@@ -79,4 +139,3 @@ export function NewsletterSignup({
     </div>
   )
 }
-

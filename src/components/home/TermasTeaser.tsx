@@ -90,7 +90,7 @@ export function TermasTeaser() {
           >
             <Link href="/termas">
                 <Button size="lg" className="w-full sm:w-auto text-xl h-16 px-12 bg-white text-black hover:bg-white/90 rounded-full font-bold shadow-2xl transition-transform hover:scale-105">
-                Ver Pases y Precios
+                Más info
                 </Button>
             </Link>
           </motion.div>

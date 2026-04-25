@@ -43,7 +43,7 @@ export function ContactMapSection() {
                   <h3 className="font-semibold text-lg text-slate-900">Email</h3>
                   <p className="text-slate-500 mb-1">Para consultas generales</p>
                   <a href="mailto:hola@vivillastermas.com.ar" className="text-blue-600 font-medium hover:underline">
-                    hola@vivillastermas.com.ar
+                    hola@vivilastermas.com.ar
                   </a>
                 </div>
               </div>

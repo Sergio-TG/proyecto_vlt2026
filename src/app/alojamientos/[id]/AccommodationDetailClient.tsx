@@ -89,6 +89,49 @@ function extractLatLngFromGoogleMapsUrl(raw: unknown): { lat: number; lng: numbe
   return null
 }
 
+function isShortGoogleMapsUrl(raw: string) {
+  const clean = String(raw || "").trim()
+  if (!clean) return false
+  try {
+    const u = new URL(clean)
+    const h = u.hostname
+    if ((h && /(^|\.)maps\.app\.goo\.gl$/i.test(h)) || /(^|\.)goo\.gl$/i.test(h)) return true
+  } catch {
+    return false
+  }
+  return false
+}
+
+function extractQueryFromGoogleMapsUrl(raw: string): string | null {
+  const clean = String(raw || "").trim()
+  if (!clean) return null
+  if (isShortGoogleMapsUrl(clean)) return null
+
+  let u: URL | null = null
+  try {
+    u = new URL(clean)
+  } catch {
+    u = null
+  }
+
+  if (u) {
+    const sp = u.searchParams
+    const candidates = ["q", "query", "destination", "daddr", "address", "search"]
+    for (const k of candidates) {
+      const v = sp.get(k)
+      if (v && v.trim()) return v.trim()
+    }
+  }
+
+  const placeMatch = clean.match(/\/maps\/place\/([^/?#]+)/i)
+  if (placeMatch?.[1]) return decodeURIComponent(placeMatch[1].replace(/\+/g, " "))
+
+  const searchMatch = clean.match(/\/maps\/search\/([^/?#]+)/i)
+  if (searchMatch?.[1]) return decodeURIComponent(searchMatch[1].replace(/\+/g, " "))
+
+  return null
+}
+
 function buildGoogleMapsEmbedSrc({
   lat,
   lng,
@@ -118,9 +161,39 @@ function buildGoogleMapsEmbedSrc({
     return `https://www.google.com/maps?q=${parsed.lat},${parsed.lng}&output=embed`
   }
 
-  const q = String(address || "").trim() || `${String(nombre || "").trim()} ${String(localidad || "").trim()}`.trim() || String(localidad || "").trim()
+  const qFromUrl = extractQueryFromGoogleMapsUrl(url)
+  if (url && !qFromUrl) return null
+
+  const q =
+    qFromUrl ||
+    String(address || "").trim() ||
+    `${String(nombre || "").trim()} ${String(localidad || "").trim()}`.trim() ||
+    String(localidad || "").trim()
   if (!q) return null
   return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`
+}
+
+function buildGoogleMapsHref({
+  lat,
+  lng,
+  rawUrl,
+  address,
+  localidad,
+  nombre,
+}: {
+  lat: number | null
+  lng: number | null
+  rawUrl: string | null | undefined
+  address: string | null | undefined
+  localidad: string | null | undefined
+  nombre: string | null | undefined
+}) {
+  const url = String(rawUrl || "").trim()
+  if (url) return url
+  if (isValidLatLng(lat, lng)) return `https://www.google.com/maps?q=${lat},${lng}`
+  const q = String(address || "").trim() || `${String(nombre || "").trim()} ${String(localidad || "").trim()}`.trim() || String(localidad || "").trim()
+  if (!q) return ""
+  return `https://www.google.com/maps?q=${encodeURIComponent(q)}`
 }
 
 function normalizeServiceForSearch(service: string) {
@@ -305,6 +378,7 @@ export function AccommodationDetailClient({
 
   const lat = toNum((accommodation as { latitud?: unknown }).latitud)
   const lng = toNum((accommodation as { longitud?: unknown }).longitud)
+  const rawMapsUrl = String(accommodation.google_maps ?? accommodation.ubicacion_google_maps ?? "").trim()
   const mapEmbedSrc = React.useMemo(
     () =>
       buildGoogleMapsEmbedSrc({
@@ -317,6 +391,31 @@ export function AccommodationDetailClient({
       }),
     [lat, lng, accommodation.google_maps, accommodation.ubicacion_google_maps, accommodation.direccion, accommodation.localidad, accommodation.nombre]
   )
+  const googleMapsHref = React.useMemo(
+    () =>
+      buildGoogleMapsHref({
+        lat,
+        lng,
+        rawUrl: accommodation.google_maps ?? accommodation.ubicacion_google_maps,
+        address: accommodation.direccion,
+        localidad: accommodation.localidad,
+        nombre: accommodation.nombre,
+      }),
+    [lat, lng, accommodation.google_maps, accommodation.ubicacion_google_maps, accommodation.direccion, accommodation.localidad, accommodation.nombre]
+  )
+
+  const [mapFailed, setMapFailed] = React.useState(false)
+  const mapLoadedRef = React.useRef(false)
+
+  React.useEffect(() => {
+    mapLoadedRef.current = false
+    setMapFailed(false)
+    if (!mapEmbedSrc) return
+    const timeoutId = window.setTimeout(() => {
+      if (!mapLoadedRef.current) setMapFailed(true)
+    }, 6000)
+    return () => window.clearTimeout(timeoutId)
+  }, [mapEmbedSrc])
 
   const folderSlug = (accommodation.slug || slugify(accommodation.nombre || "")).trim()
   const heroPath = portadaPath ? `${portadaPath.split("?")[0]}?${IK_TRANSFORMS.heroPage}` : null
@@ -612,20 +711,41 @@ export function AccommodationDetailClient({
           </div>
         </div>
 
-        {mapEmbedSrc && (
+        {mapEmbedSrc || googleMapsHref ? (
           <section className="mt-12 lg:mt-16">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Ubicación</h2>
-            <div className="h-[360px] rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white">
-              <iframe
-                title={`Mapa - ${accommodation.nombre}`}
-                className="w-full h-full"
-                loading="lazy"
-                referrerPolicy="no-referrer-when-downgrade"
-                src={mapEmbedSrc}
-              />
+            <div className="h-[360px] rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white relative">
+              {mapEmbedSrc && !mapFailed ? (
+                <iframe
+                  title={`Mapa - ${accommodation.nombre}`}
+                  className="w-full h-full"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  src={mapEmbedSrc}
+                  onLoad={() => {
+                    mapLoadedRef.current = true
+                    setMapFailed(false)
+                  }}
+                  onError={() => setMapFailed(true)}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full p-8 text-center">
+                  <MapPin className="w-12 h-12 text-primary mb-4" />
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">Ver ubicación en Google Maps</h3>
+                  <p className="text-slate-500 mb-6">El mapa no pudo cargarse, pero puedes acceder a la ubicación directamente.</p>
+                  <Button
+                    asChild
+                    className="w-full max-w-xs bg-primary hover:bg-primary/90 text-white shadow-xl text-lg h-12 rounded-full font-bold"
+                  >
+                    <a href={rawMapsUrl || googleMapsHref} target="_blank" rel="noopener noreferrer">
+                      Ver ubicación en Google Maps
+                    </a>
+                  </Button>
+                </div>
+              )}
             </div>
           </section>
-        )}
+        ) : null}
       </div>
     </div>
   )
