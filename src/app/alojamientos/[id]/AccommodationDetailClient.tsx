@@ -61,140 +61,115 @@ function isValidLatLng(lat: number | null, lng: number | null) {
   return true
 }
 
+// Extrae lat/lng de cualquier formato de URL de Google Maps:
+// - URL larga con /@lat,lng
+// - URL larga con !3d{lat}!4d{lng} (formato de datos internos)
+// - URL con ?q=lat,lng
+// - URLs cortas maps.app.goo.gl NO se pueden resolver sin fetch, se ignoran aquí
 function extractLatLngFromGoogleMapsUrl(raw: unknown): { lat: number; lng: number } | null {
   const url = typeof raw === "string" ? raw.trim() : ""
   if (!url) return null
 
-  const atMatch = url.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
+  // Formato 1: /@-32.1746722,-64.7685391 (el más común en URLs largas)
+  const atMatch = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/)
   if (atMatch) {
     const lat = Number(atMatch[1])
     const lng = Number(atMatch[2])
     if (isValidLatLng(lat, lng)) return { lat, lng }
   }
 
-  const qMatch = url.match(/[?&]q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
+  // Formato 2: !3d-32.1746722!4d-64.7685391 (URLs con datos de lugar)
+  const d3Match = url.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/)
+  if (d3Match) {
+    const lat = Number(d3Match[1])
+    const lng = Number(d3Match[2])
+    if (isValidLatLng(lat, lng)) return { lat, lng }
+  }
+
+  // Formato 3: ?q=lat,lng o &q=lat,lng
+  const qMatch = url.match(/[?&]q=(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/)
   if (qMatch) {
     const lat = Number(qMatch[1])
     const lng = Number(qMatch[2])
     if (isValidLatLng(lat, lng)) return { lat, lng }
   }
 
-  const embedMatch = url.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
-  if (embedMatch) {
-    const lat = Number(embedMatch[1])
-    const lng = Number(embedMatch[2])
-    if (isValidLatLng(lat, lng)) return { lat, lng }
-  }
-
   return null
 }
 
-function isShortGoogleMapsUrl(raw: string) {
-  const clean = String(raw || "").trim()
-  if (!clean) return false
-  try {
-    const u = new URL(clean)
-    const h = u.hostname
-    if ((h && /(^|\.)maps\.app\.goo\.gl$/i.test(h)) || /(^|\.)goo\.gl$/i.test(h)) return true
-  } catch {
-    return false
-  }
-  return false
+// Construye el src del iframe embed a partir de coords.
+// Usa maps.google.com/maps?q=...&output=embed que es interactivo sin API key.
+function buildEmbedFromCoords(lat: number, lng: number): string {
+  return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed`
 }
 
-function extractQueryFromGoogleMapsUrl(raw: string): string | null {
-  const clean = String(raw || "").trim()
-  if (!clean) return null
-  if (isShortGoogleMapsUrl(clean)) return null
-
-  let u: URL | null = null
-  try {
-    u = new URL(clean)
-  } catch {
-    u = null
-  }
-
-  if (u) {
-    const sp = u.searchParams
-    const candidates = ["q", "query", "destination", "daddr", "address", "search"]
-    for (const k of candidates) {
-      const v = sp.get(k)
-      if (v && v.trim()) return v.trim()
-    }
-  }
-
-  const placeMatch = clean.match(/\/maps\/place\/([^/?#]+)/i)
-  if (placeMatch?.[1]) return decodeURIComponent(placeMatch[1].replace(/\+/g, " "))
-
-  const searchMatch = clean.match(/\/maps\/search\/([^/?#]+)/i)
-  if (searchMatch?.[1]) return decodeURIComponent(searchMatch[1].replace(/\+/g, " "))
-
-  return null
-}
-
+// ─── ESTRATEGIA DE EMBED ────────────────────────────────────────────────────
+// Prioridad:
+//   1. lat/lng propios del registro (campos latitud/longitud en Supabase)
+//   2. Extraer coords de la URL larga de google_maps/ubicacion_google_maps
+//      (funciona con URLs tipo maps.google.com/maps/place/.../@lat,lng o con !3d!4d)
+//   3. Si la URL ya es un embed → usarla directo
+//   4. Si la URL es corta (maps.app.goo.gl) → no se puede resolver sin fetch → null
+//   5. Sin datos → null (no se renderiza el iframe)
 function buildGoogleMapsEmbedSrc({
   lat,
   lng,
   rawUrl,
-  address,
-  localidad,
-  nombre,
 }: {
   lat: number | null
   lng: number | null
   rawUrl: string | null | undefined
-  address: string | null | undefined
-  localidad: string | null | undefined
-  nombre: string | null | undefined
-}) {
+}): string | null {
+  const apiKey = (process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ?? "").trim()
+
+  // Caso 1: lat/lng directos del registro
   if (isValidLatLng(lat, lng)) {
-    return `https://www.google.com/maps?q=${lat},${lng}&output=embed`
+    if (apiKey) {
+      return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${lat},${lng}&zoom=15`
+    }
+    return buildEmbedFromCoords(lat!, lng!)
   }
 
   const url = String(rawUrl || "").trim()
-  if (url.includes("google.com/maps/embed") || url.includes("output=embed")) {
+  if (!url) return null
+
+  // Caso 2: ya es embed → usar directo
+  if (url.includes("/maps/embed") || url.includes("output=embed")) {
     return url
   }
 
+  // Caso 3: extraer coords de la URL larga
   const parsed = extractLatLngFromGoogleMapsUrl(url)
   if (parsed) {
-    return `https://www.google.com/maps?q=${parsed.lat},${parsed.lng}&output=embed`
+    if (apiKey) {
+      return `https://www.google.com/maps/embed/v1/place?key=${apiKey}&q=${parsed.lat},${parsed.lng}&zoom=15`
+    }
+    return buildEmbedFromCoords(parsed.lat, parsed.lng)
   }
 
-  const qFromUrl = extractQueryFromGoogleMapsUrl(url)
-  if (url && !qFromUrl) return null
-
-  const q =
-    qFromUrl ||
-    String(address || "").trim() ||
-    `${String(nombre || "").trim()} ${String(localidad || "").trim()}`.trim() ||
-    String(localidad || "").trim()
-  if (!q) return null
-  return `https://www.google.com/maps?q=${encodeURIComponent(q)}&output=embed`
+  // Caso 4: URL corta (maps.app.goo.gl) u otro formato no procesable → null
+  return null
 }
 
+// Para el link "Ver en Google Maps": prioriza URL original del socio,
+// fallback a coords si las hay.
 function buildGoogleMapsHref({
   lat,
   lng,
   rawUrl,
-  address,
-  localidad,
-  nombre,
 }: {
   lat: number | null
   lng: number | null
   rawUrl: string | null | undefined
-  address: string | null | undefined
-  localidad: string | null | undefined
-  nombre: string | null | undefined
-}) {
+}): string {
   const url = String(rawUrl || "").trim()
   if (url) return url
-  if (isValidLatLng(lat, lng)) return `https://www.google.com/maps?q=${lat},${lng}`
-  const q = String(address || "").trim() || `${String(nombre || "").trim()} ${String(localidad || "").trim()}`.trim() || String(localidad || "").trim()
-  if (!q) return ""
-  return `https://www.google.com/maps?q=${encodeURIComponent(q)}`
+  if (isValidLatLng(lat, lng)) {
+    return `https://www.google.com/maps?q=${lat},${lng}`
+  }
+  return ""
 }
+// ─────────────────────────────────────────────────────────────────────────────
 
 function normalizeServiceForSearch(service: string) {
   return service
@@ -379,29 +354,25 @@ export function AccommodationDetailClient({
   const lat = toNum((accommodation as { latitud?: unknown }).latitud)
   const lng = toNum((accommodation as { longitud?: unknown }).longitud)
   const rawMapsUrl = String(accommodation.google_maps ?? accommodation.ubicacion_google_maps ?? "").trim()
+
   const mapEmbedSrc = React.useMemo(
     () =>
       buildGoogleMapsEmbedSrc({
         lat,
         lng,
         rawUrl: accommodation.google_maps ?? accommodation.ubicacion_google_maps,
-        address: accommodation.direccion,
-        localidad: accommodation.localidad,
-        nombre: accommodation.nombre,
       }),
-    [lat, lng, accommodation.google_maps, accommodation.ubicacion_google_maps, accommodation.direccion, accommodation.localidad, accommodation.nombre]
+    [lat, lng, accommodation.google_maps, accommodation.ubicacion_google_maps]
   )
+
   const googleMapsHref = React.useMemo(
     () =>
       buildGoogleMapsHref({
         lat,
         lng,
         rawUrl: accommodation.google_maps ?? accommodation.ubicacion_google_maps,
-        address: accommodation.direccion,
-        localidad: accommodation.localidad,
-        nombre: accommodation.nombre,
       }),
-    [lat, lng, accommodation.google_maps, accommodation.ubicacion_google_maps, accommodation.direccion, accommodation.localidad, accommodation.nombre]
+    [lat, lng, accommodation.google_maps, accommodation.ubicacion_google_maps]
   )
 
   const [mapFailed, setMapFailed] = React.useState(false)
@@ -494,8 +465,7 @@ export function AccommodationDetailClient({
                   </motion.div>
                 </div>
 
-                {(String(accommodation.direccion || "").trim() ||
-                  String(accommodation.google_maps || accommodation.ubicacion_google_maps || "").trim()) && (
+                {(String(accommodation.direccion || "").trim() || googleMapsHref) && (
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-white/60 pointer-events-auto">
                     {String(accommodation.direccion || "").trim() && (
                       <div className="flex items-center gap-2">
@@ -503,9 +473,9 @@ export function AccommodationDetailClient({
                         <span className="font-medium">{String(accommodation.direccion || "").trim()}</span>
                       </div>
                     )}
-                    {String(accommodation.google_maps || accommodation.ubicacion_google_maps || "").trim() && (
+                    {googleMapsHref && (
                       <a
-                        href={String(accommodation.google_maps || accommodation.ubicacion_google_maps)}
+                        href={googleMapsHref}
                         target="_blank"
                         rel="noreferrer"
                         className="inline-flex items-center gap-2 font-bold hover:text-white transition-colors"
@@ -711,7 +681,8 @@ export function AccommodationDetailClient({
           </div>
         </div>
 
-        {mapEmbedSrc || googleMapsHref ? (
+        {/* Sección Ubicación — solo se renderiza si hay datos */}
+        {(mapEmbedSrc || googleMapsHref) && (
           <section className="mt-12 lg:mt-16">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">Ubicación</h2>
             <div className="h-[360px] rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white relative">
@@ -719,7 +690,9 @@ export function AccommodationDetailClient({
                 <iframe
                   title={`Mapa - ${accommodation.nombre}`}
                   className="w-full h-full"
+                  style={{ pointerEvents: "auto", border: 0 }}
                   loading="lazy"
+                  allow="fullscreen"
                   referrerPolicy="no-referrer-when-downgrade"
                   src={mapEmbedSrc}
                   onLoad={() => {
@@ -732,20 +705,24 @@ export function AccommodationDetailClient({
                 <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                   <MapPin className="w-12 h-12 text-primary mb-4" />
                   <h3 className="text-xl font-bold text-slate-900 mb-2">Ver ubicación en Google Maps</h3>
-                  <p className="text-slate-500 mb-6">El mapa no pudo cargarse, pero puedes acceder a la ubicación directamente.</p>
-                  <Button
-                    asChild
-                    className="w-full max-w-xs bg-primary hover:bg-primary/90 text-white shadow-xl text-lg h-12 rounded-full font-bold"
-                  >
-                    <a href={rawMapsUrl || googleMapsHref} target="_blank" rel="noopener noreferrer">
-                      Ver ubicación en Google Maps
-                    </a>
-                  </Button>
+                  <p className="text-slate-500 mb-6">
+                    El mapa no pudo cargarse, pero podés acceder a la ubicación directamente.
+                  </p>
+                  {googleMapsHref && (
+                    <Button
+                      asChild
+                      className="w-full max-w-xs bg-primary hover:bg-primary/90 text-white shadow-xl text-lg h-12 rounded-full font-bold"
+                    >
+                      <a href={googleMapsHref} target="_blank" rel="noopener noreferrer">
+                        Ver ubicación en Google Maps
+                      </a>
+                    </Button>
+                  )}
                 </div>
               )}
             </div>
           </section>
-        ) : null}
+        )}
       </div>
     </div>
   )
