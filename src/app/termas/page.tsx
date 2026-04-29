@@ -260,7 +260,7 @@ export default function TermasPage() {
 
                   <Button className="w-full gap-2 h-12 text-base font-bold" asChild>
                     <a 
-                      href="https://www.google.com/maps/dir/?api=1&destination=El+Durazno+Cordoba" 
+                      href="https://www.google.com/maps?q=TERMAS+DEL+SOL,+Paraje+El+Durazno,+Parcela+2543+3388,+X5197+Villa+Yacanto,+Córdoba&ftid=0x95d2c16058068703:0x73d488d0af9188f9&entry=gps&lucs=,94259551,94284478,94224825,94227247,94227248,94231188,94280568,47071704,47069508,94218641,94282134,94203019,47084304&g_ep=CAISEjI1LjMxLjAuNzg4MTIyNzc1MBgAINeCAyp1LDk0MjU5NTUxLDk0Mjg0NDc4LDk0MjI0ODI1LDk0MjI3MjQ3LDk0MjI3MjQ4LDk0MjMxMTg4LDk0MjgwNTY4LDQ3MDcxNzA0LDQ3MDY5NTA4LDk0MjE4NjQxLDk0MjgyMTM0LDk0MjAzMDE5LDQ3MDg0MzA0QgJBUg%3D%3D&skid=b9aacb98-cf21-41d7-80b7-2f3866b31e35&g_st=ipc" 
                       target="_blank" 
                       rel="noopener noreferrer"
                     >

@@ -67,7 +67,7 @@ export function Footer() {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">Ubicación:</span>
-                  <span>Av. Marrero S/N, Villa Yacanto, X5197<br />Córdoba, Argentina</span>
+                  <span>Av. Marrero S/N, Villa Yacanto,<br /> X5197, Córdoba, Argentina</span>
                 </li>
               </ul>
             </div>

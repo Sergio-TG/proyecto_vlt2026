@@ -53,57 +53,63 @@ export function NewsletterSignup({
       setMessage(err instanceof Error ? err.message : "Ocurrió un error. Intentá de nuevo.")
     }
   }
+if (variant === "home" || variant === "alojamiento") {
+  return (
+    <section className="w-full bg-teal-700 text-white py-16 md:py-20">
+      <div className="container mx-auto px-4">
+        {/* Contenedor principal con centrado */}
+        <div className="mx-auto max-w-3xl text-center">
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight">{title}</h2>
+          <p className="mt-4 text-white/90 font-medium max-w-xl mx-auto">{description}</p>
 
-  if (variant === "home" || variant === "alojamiento") {
-    return (
-      <section className="w-full bg-teal-700 text-white py-16 md:py-20">
-        <div className="container mx-auto px-4">
-          <div className="mx-auto max-w-4xl text-center">
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight">{title}</h2>
-            <p className="mt-4 text-white/90 font-medium max-w-2xl mx-auto">{description}</p>
-
-            <div className="mt-10 max-w-2xl mx-auto">
-              {status === "success" ? (
-                <div className="flex items-center justify-center gap-3 bg-white/10 text-white p-5 rounded-2xl border border-white/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                  <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
-                  <p className="text-sm font-semibold">{message || "¡Gracias por suscribirte!"}</p>
+          {/* Formulario con max-w-lg para mejor proporción visual */}
+          <div className="mt-10 max-w-lg mx-auto">
+            {status === "success" ? (
+              <div className="flex items-center justify-center gap-3 bg-white/10 text-white p-5 rounded-2xl border border-white/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
+                <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
+                <p className="text-sm font-semibold">{message || "¡Gracias por suscribirte!"}</p>
+              </div>
+            ) : (
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <input
+                    type="email"
+                    name="email"
+                    placeholder="Escribe tu email aquí"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={status === "loading"}
+                    className="bg-white/95 border border-white/30 text-slate-900 px-4 py-3 rounded-xl flex-1 focus:ring-2 focus:ring-white/40 outline-none transition-all disabled:opacity-50 text-sm placeholder:text-slate-500"
+                  />
+                  <input type="hidden" name="source" value={sourceValue} />
+                  <Button
+                    type="submit"
+                    disabled={status === "loading" || !email}
+                    className="rounded-xl px-8 font-black h-[46px] text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all"
+                  >
+                    {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Suscribirme"}
+                  </Button>
                 </div>
-              ) : (
-                <form onSubmit={handleSubscribe} className="flex flex-col gap-4">
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <input
-                      type="email"
-                      name="email"
-                      placeholder="Enter your email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      disabled={status === "loading"}
-                      className="bg-white/95 border border-white/30 text-slate-900 px-4 py-3 rounded-xl w-full focus:ring-2 focus:ring-white/40 outline-none transition-all disabled:opacity-50 text-sm placeholder:text-slate-500"
-                    />
-                    <input type="hidden" name="source" value={sourceValue} />
-                    <Button
-                      type="submit"
-                      disabled={status === "loading" || !email}
-                      className="rounded-xl px-8 font-black h-[46px] text-sm bg-blue-600 hover:bg-blue-700 text-white"
-                    >
-                      {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Suscribirme"}
-                    </Button>
-                  </div>
-                  <div className="text-[11px] text-white/80 font-medium">
-                    Al suscribirte confirmás que aceptás nuestros Términos y Condiciones.
-                  </div>
-                  {status === "error" && (
-                    <p className="text-xs text-red-100 font-semibold">{message || "Ocurrió un error. Intentá de nuevo."}</p>
-                  )}
-                </form>
-              )}
-            </div>
+                
+                {/* Disclaimer con espaciado superior y centrado */}
+                <div className="text-[11px] text-white/70 font-medium mt-2 text-center">
+                  Al suscribirte confirmás que aceptás nuestros Términos y Condiciones.
+                </div>
+
+                {status === "error" && (
+                  <p className="text-xs text-red-200 font-semibold mt-1">{message || "Ocurrió un error. Intentá de nuevo."}</p>
+                )}
+              </form>
+            )}
           </div>
         </div>
-      </section>
-    )
-  }
+      </div>
+    </section>
+  );
+}
+
+ 
 
   return (
     <div className="flex flex-col w-full">

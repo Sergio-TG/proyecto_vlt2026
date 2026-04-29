@@ -31,7 +31,7 @@ const experiences = [
   {
     title: "Puntos de Interés",
     description: "Aguas cristalinas, descubre el lugar perfecto para refrescarse en verano y matear en invierno.",
-    image: "https://lh3.googleusercontent.com/gps-cs-s/APNQkAGf8kte3Jyd52eIBg0VuNPqCV2S43ce4qXdDkU3mH2CbRCHWrZ8kbuUp46jNAGE01H_gMelhaqKSQA0MNLja74zCxFZv0QiZM7L2N-JnmsfakAwP8XHiXH6flAwQnad-0Wxn_DP=s1360-w1360-h1020-rw?q=80&w=2070&auto=format&fit=crop",
+    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/puntos-de-interes.webp?q=80&w=2070&auto=format&fit=crop",
     icon: <Sun className="w-6 h-6" />,
     delay: 0.4
   },
