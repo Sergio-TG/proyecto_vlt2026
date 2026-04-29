@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "leaflet/dist/leaflet.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -118,4 +119,17 @@
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
+}
+
+.map-popup .leaflet-popup-content-wrapper {
+  border-radius: 1rem;
+  box-shadow: 0 10px 30px rgba(2, 6, 23, 0.16);
+}
+
+.map-popup .leaflet-popup-content {
+  margin: 0.75rem;
+}
+
+.map-popup .leaflet-popup-tip {
+  box-shadow: none;
 }

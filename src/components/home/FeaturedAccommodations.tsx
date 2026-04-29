@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, ArrowRight, Gem, Leaf, Share2, CheckCircle2 } from "lucide-react"
+import { ArrowRight, CheckCircle2 } from "lucide-react"
 import {
   Carousel,
   CarouselContent,
@@ -12,14 +12,16 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { slugify } from "@/lib/utils"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState, useEffect } from "react"
-import CustomImage from "@/components/common/CustomImage"
+import { AccommodationCard } from "@/components/accommodations/AccommodationCard"
 
 export function FeaturedAccommodations() {
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
   const [showShareToast, setShowShareToast] = useState(false)
+  const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
   const sectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -31,6 +33,29 @@ export function FeaturedAccommodations() {
     }
     loadData()
   }, [])
+
+  useEffect(() => {
+    let ignore = false
+    async function loadPortadas() {
+      const slugs = accommodations
+        .map((a) => (a.slug ? String(a.slug).trim() : slugify(a.nombre)))
+        .filter(Boolean)
+      if (slugs.length === 0) return
+      const res = await fetch("/api/portadas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slugs }),
+      }).catch(() => null)
+      const json = (await res?.json().catch(() => null)) as unknown
+      const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
+      if (ignore) return
+      setPortadaBySlug(map)
+    }
+    loadPortadas()
+    return () => {
+      ignore = true
+    }
+  }, [accommodations])
 
   // Función para compartir alojamiento
   const handleShare = async (e: React.MouseEvent, slug: string, title: string) => {
@@ -122,7 +147,7 @@ export function FeaturedAccommodations() {
             
             <CarouselContent className="-ml-2 py-10 -my-10">
               {accommodations.map((item, index) => (
-                <CarouselItem key={item.id} className="pl-2 basis-[85%] sm:basis-1/2 md:basis-1/3 lg:basis-1/4 xl:basis-1/5 2xl:basis-1/6 flex">
+                <CarouselItem key={item.id} className="pl-2 basis-[92%] sm:basis-1/2 md:basis-1/2 lg:basis-1/3 xl:basis-1/4 2xl:basis-1/5 flex">
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
@@ -130,108 +155,13 @@ export function FeaturedAccommodations() {
                     transition={{ delay: index * 0.05, duration: 0.5 }}
                     className="flex w-full p-0.5"
                   >
-                    <div className="group w-full overflow-hidden shadow-sm hover:shadow-xl border border-slate-100 transition-all duration-500 flex flex-col rounded-[2rem] bg-white relative">
-                      {/* Link envolvente para toda la card */}
-                      <Link href={`/alojamientos/${item.slug}`} className="absolute inset-0 z-10">
-                        <span className="sr-only">Ver detalles de {item.nombre}</span>
-                      </Link>
-
-                      {/* Image Container */}
-                      <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 p-2 pb-0">
-                        <motion.div
-                          whileHover={{ scale: 1.05 }}
-                          transition={{ duration: 0.6 }}
-                          className="w-full h-full overflow-hidden rounded-[1.8rem]"
-                        >
-                          <CustomImage 
-                            path="portada.jpg"
-                            folder="ALOJAMIENTOS"
-                            subfolder={item.slug}
-                            alt={item.nombre}
-                            fill
-                            className="object-cover"
-                          />
-                        </motion.div>
-                        
-                        {/* Dynamic Badge like the image */}
-                        <div className="absolute top-4 left-4 z-20">
-                          <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2 py-0.5 rounded-full font-black text-[7px] uppercase tracking-wider flex items-center gap-1">
-                            {item.rating_google && item.rating_google >= 4.8 ? (
-                              <><Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> MÁS PEDIDO</>
-                            ) : item.precio_base && item.precio_base > 100000 ? (
-                              <><Gem className="w-2.5 h-2.5 text-blue-500" /> PREMIUM</>
-                            ) : (
-                              <><Leaf className="w-2.5 h-2.5 text-green-500" /> ECO-FRIENDLY</>
-                            )}
-                          </Badge>
-                        </div>
-
-                        {/* Botón Compartir */}
-                        <motion.button
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
-                          onClick={(e) => handleShare(e, item.slug, item.nombre)}
-                          className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-md p-1.5 rounded-full shadow-md border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
-                          title="Compartir alojamiento"
-                        >
-                          <Share2 className="w-3.5 h-3.5" />
-                        </motion.button>
-                      </div>
-
-                      {/* Content Area - New Design from Image */}
-                      <div className="flex flex-col flex-grow p-4 pt-3 space-y-2 relative z-20">
-                        <div className="flex justify-between items-start gap-2">
-                          <div className="space-y-0.5 flex-grow">
-                            <h3 className="font-black text-[13px] text-slate-900 leading-tight tracking-tight line-clamp-1 group-hover:text-primary transition-colors">
-                              {item.nombre}
-                            </h3>
-                            <div className="flex items-center text-[#7dd3fc] text-[9px] font-bold">
-                              <MapPin className="w-2.5 h-2.5 mr-1 fill-[#7dd3fc]/20 flex-shrink-0" />
-                              <span className="truncate uppercase tracking-tight">{item.localidad}</span>
-                            </div>
-                          </div>
-                          
-                          {/* Rating Badge next to Title */}
-                          <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-1.5 py-0.5 rounded-md font-black text-[9px] shadow-sm flex-shrink-0">
-                            <Star className="w-2.5 h-2.5 fill-[#2563eb]" />
-                            {item.rating_google || "—"}
-                          </div>
-                        </div>
-
-                        {/* Amenities List - Simple Icons */}
-                        {item.servicios && item.servicios.length > 0 && (
-                          <div className="flex items-center gap-3 pt-0.5">
-                            <div className="flex items-center gap-1 text-slate-400">
-                              <Users className="w-3 h-3" />
-                              <span className="text-[8px] font-bold">
-                                {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
-                              </span>
-                            </div>
-                            {item.servicios.some(s => s.toLowerCase().includes('wifi')) && (
-                              <Wifi className="w-3 h-3 text-slate-400" />
-                            )}
-                            {item.servicios.some(s => s.toLowerCase().includes('mascota')) && (
-                              <PawPrint className="w-3 h-3 text-slate-400" />
-                            )}
-                          </div>
-                        )}
-
-                        <div className="pt-3 flex items-center justify-between mt-auto border-t border-slate-50">
-                          <div className="flex flex-col">
-                            <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
-                            <div className="flex items-baseline gap-0.5">
-                              <span className="text-[16px] font-black text-slate-900 leading-none">
-                                {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
-                              </span>
-                              <span className="text-[8px] text-slate-400 font-bold ml-0.5">/noche</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 text-primary font-black text-[9px] uppercase tracking-wider">
-                            Detalles
-                            <ArrowRight className="w-2.5 h-2.5" />
-                          </div>
-                        </div>
-                      </div>
+                    <div className="w-full">
+                      <AccommodationCard
+                        variant="home"
+                        item={item}
+                        portadaFile={portadaBySlug[item.slug || slugify(item.nombre)]}
+                        onShare={handleShare}
+                      />
                     </div>
                   </motion.div>
                 </CarouselItem>
