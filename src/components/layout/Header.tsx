@@ -24,7 +24,15 @@ export function Header() {
   const pathname = usePathname()
 
   // Pages that have a dark hero section and support transparent header
-  const isTransparentPage = pathname === "/" || pathname === "/termas" || pathname === "/experiencias" || (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
+  const isTransparentPage =
+    pathname === "/" ||
+    pathname === "/termas" ||
+    pathname === "/experiencias" ||
+    pathname === "/alojamientos" ||
+    pathname === "/contacto" ||
+    pathname === "/admin" ||
+    pathname === "/socios" ||
+    (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
 
   useMotionValueEvent(scrollY, "change", (latest) => {
     // Logic moved to native scroll listener for better performance
@@ -74,18 +82,18 @@ export function Header() {
   return (
     <header
       className={cn(
-        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
-        isScrolled || !isTransparentPage ? "bg-white/90 backdrop-blur-md shadow-sm py-2" : "bg-transparent py-4"
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300 h-20",
+        isScrolled || !isTransparentPage ? "bg-white/90 backdrop-blur-md shadow-sm" : "bg-transparent"
       )}
     >
-      <div className="container mx-auto px-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 flex items-center justify-between h-full">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 z-50">
+        <Link href="/" className="flex items-center gap-2 z-50 h-full">
           <img 
             src="/logotipo.png" 
             alt="Logotipo de Viví las Termas" 
             className={cn(
-              "h-20 md:h-28 w-auto transition-all duration-300 object-contain",
+              "max-h-12 w-auto transition-all duration-300 object-contain block",
               isScrolled || !isTransparentPage ? "" : "brightness-0 invert"
             )}
           />

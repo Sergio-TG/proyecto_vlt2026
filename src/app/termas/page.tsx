@@ -7,16 +7,25 @@ import { AccommodationGallery } from "@/components/accommodations/AccommodationG
 import { Droplets, Sun, Coffee, Mountain, Sparkles, Clock, MapPin, Navigation } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
+import { IMAGE_FOLDERS, IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
 
-// Imágenes seleccionadas de alta calidad y orientación horizontal para mejor visualización
-const termasImages = [
-  "https://images.unsplash.com/photo-1576013551627-0cc20b96c2a7?q=80&w=1200&auto=format&fit=crop", // Piscina infinita
-  "https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=1200&auto=format&fit=crop", // Spa relax
-  "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?q=80&w=1200&auto=format&fit=crop", // Piscina con borde al paisaje
-  "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?q=80&w=1200&auto=format&fit=crop", // Personas en piscina
-  "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?q=80&w=1200&auto=format&fit=crop", // Resort view
-  "https://images.unsplash.com/photo-1519823551278-64ac92734fb1?q=80&w=1200&auto=format&fit=crop"  // Ambiente relax
+const toImageKitUrl = (relativePath: string) => {
+  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+  const rel = relativePath.trim().replace(/^\/+/, "")
+  return `${base}/${rel}`
+}
+
+const termasImageFiles = [
+  "pileta-interior001.webp",
+  "pileta-interior002.webp",
+  "termas-dron003.webp",
+  "termas-aerea001.webp",
+  "pileta-exterior001.webp",
 ]
+
+const termasImages = termasImageFiles.map((file) =>
+  toImageKitUrl(`${IMAGE_FOLDERS.GALERIA}/termas/${file}`)
+)
 
 export default function TermasPage() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -39,7 +48,7 @@ export default function TermasPage() {
         >
           <div className="absolute inset-0 bg-black/40 z-10" />
           <img 
-            src="https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=2070&auto=format&fit=crop"
+            src="https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron002.webp?updatedAt=1775687332929&q=80&w=2070&auto=format&fit=crop"
             alt="Termas del Sol - Paisaje"
             className="w-full h-full object-cover"
           />
@@ -213,7 +222,7 @@ export default function TermasPage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
             {/* Main Map Area */}
-            <div className="lg:col-span-2 h-[500px] md:h-[600px] bg-slate-100 rounded-2xl overflow-hidden shadow-2xl border border-slate-200 relative">
+            <div className="lg:col-span-2 h-[500px] md:h-[600px] bg-slate-100 rounded-lg overflow-hidden shadow-2xl border border-slate-200 relative">
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3391.248039396264!2d-64.76779492458428!3d-32.17294497394666!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95d2c1c000000001%3A0x123456789abcdef!2sEl%20Durazno%2C%20C%C3%B3rdoba!5e0!3m2!1ses!2sar!4v1700000000000!5m2!1ses!2sar" 
                 width="100%" 
@@ -251,7 +260,7 @@ export default function TermasPage() {
 
                   <Button className="w-full gap-2 h-12 text-base font-bold" asChild>
                     <a 
-                      href="https://www.google.com/maps/dir/?api=1&destination=El+Durazno+Cordoba" 
+                      href="https://www.google.com/maps?q=TERMAS+DEL+SOL,+Paraje+El+Durazno,+Parcela+2543+3388,+X5197+Villa+Yacanto,+Córdoba&ftid=0x95d2c16058068703:0x73d488d0af9188f9&entry=gps&lucs=,94259551,94284478,94224825,94227247,94227248,94231188,94280568,47071704,47069508,94218641,94282134,94203019,47084304&g_ep=CAISEjI1LjMxLjAuNzg4MTIyNzc1MBgAINeCAyp1LDk0MjU5NTUxLDk0Mjg0NDc4LDk0MjI0ODI1LDk0MjI3MjQ3LDk0MjI3MjQ4LDk0MjMxMTg4LDk0MjgwNTY4LDQ3MDcxNzA0LDQ3MDY5NTA4LDk0MjE4NjQxLDk0MjgyMTM0LDk0MjAzMDE5LDQ3MDg0MzA0QgJBUg%3D%3D&skid=b9aacb98-cf21-41d7-80b7-2f3866b31e35&g_st=ipc" 
                       target="_blank" 
                       rel="noopener noreferrer"
                     >

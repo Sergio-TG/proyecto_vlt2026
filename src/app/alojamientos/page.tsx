@@ -1,16 +1,20 @@
 "use client"
 
-import Link from "next/link"
-import { MapPin, Star, Users, Wifi, PawPrint, Filter, X, Waves, Share2, CheckCircle2, Tv, Coffee, Utensils, Flame, Snowflake, ArrowRight, Gem, Leaf } from "lucide-react"
+import { Wifi, PawPrint, Filter, X, Waves, CheckCircle2, Coffee, Utensils, Car } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Label } from "@/components/ui/label"
-import { getAlojamientos, AlojamientoAprobado } from "@/lib/supabase-queries"
-import { motion, AnimatePresence } from "framer-motion"
-import React, { useState, useMemo, useEffect } from "react"
-import CustomImage from "@/components/common/CustomImage"
+import { getAlojamientosFiltered, AlojamientoAprobado } from "@/lib/supabase-queries"
+import { slugify } from "@/lib/utils"
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
+import React, { Suspense, useState, useMemo, useEffect, useRef } from "react"
+import { AccommodationCard } from "@/components/accommodations/AccommodationCard"
+import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+import dynamic from "next/dynamic"
+import { useSearchParams } from "next/navigation"
+import { SocialProof } from "@/components/home/SocialProof"
+import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
+import { ContactMapSection } from "@/components/contact/ContactMapSection"
 import {
   Sheet,
   SheetContent,
@@ -22,22 +26,251 @@ import {
   SheetClose
 } from "@/components/ui/sheet"
 
-export default function AlojamientosPage() {
+function normalizeServiceForSearch(service: string) {
+  return service
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]/g, "")
+}
+
+function normalizeText(text: string) {
+  return text
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+}
+
+const SEARCH_MAPPING: Record<string, string[]> = {
+  "bienestar-y-relax": ["masaje", "terma", "relax", "spa", "paz", "energia", "desconexion"],
+  "aventura-y-exploracion": ["senderismo", "trekking", "aventura", "guia", "recorrido", "aire libre"],
+  "escenarios-naturales": [
+    "vista",
+    "panoramica",
+    "atardecer",
+    "aire puro",
+    "montana",
+    "cerro",
+    "sierra",
+    "sierras",
+    "naturaleza",
+    "paisaje",
+    "entorno",
+    "bosque",
+    "valle",
+  ],
+  desayuno: ["desayuno", "comida", "menu", "buffet"],
+  cochera: ["cochera", "estacionamiento", "parking", "garage", "auto"],
+  "parrilla-quincho": ["parrilla", "asador", "quincho", "barbacoa", "asado"],
+  "pet-friendly": ["mascota", "pet", "perro", "gato", "animal"],
+  "wi-fi": ["wifi", "wi-fi", "wifi gratis", "wi-fi gratis", "internet", "conexion", "fibra", "inalambrico"],
+  "ropa-de-cama-y-toallas": ["ropa", "cama", "toallas", "sabanas", "blanco"],
+  calefaccion: ["calefaccion", "estufa", "hogar", "lena", "calido", "climatizado"],
+  "aire-acondicionado": ["aire", "split", "frio", "climatizado"],
+  pileta: ["pileta", "piscina", "natacion", "solarium", "chapuzon"],
+  "vista-a-la-montana": ["vista", "montana", "cerro", "sierra", "panoramica", "valle", "paisaje"],
+  "cerca-de-rio-arroyo": ["rio", "arroyo", "orilla", "cauce", "agua"],
+  accesibilidad: ["accesible", "rampa", "silla", "ruedas", "movilidad", "discapacidad"],
+}
+
+const EXPERIENCE_ID_TO_KEY: Record<string, string> = {
+  relax: "bienestar-y-relax",
+  adventure: "aventura-y-exploracion",
+  nature: "escenarios-naturales",
+}
+
+const SERVICE_ALIAS_TO_KEY: Record<string, string> = {
+  [normalizeText("Desayuno")]: "desayuno",
+  [normalizeText("Cochera")]: "cochera",
+  [normalizeText("Parrilla / Quincho")]: "parrilla-quincho",
+  [normalizeText("Pet Friendly")]: "pet-friendly",
+  [normalizeText("Wi-Fi")]: "wi-fi",
+  [normalizeText("Ropa de Cama y Toallas")]: "ropa-de-cama-y-toallas",
+  [normalizeText("Estufa a leña")]: "calefaccion",
+  [normalizeText("Calefacción")]: "calefaccion",
+  [normalizeText("Aire Acondicionado")]: "aire-acondicionado",
+  [normalizeText("Pileta")]: "pileta",
+  [normalizeText("Vista a la Montaña")]: "vista-a-la-montana",
+  [normalizeText("Cerca de Río/Arroyo")]: "cerca-de-rio-arroyo",
+  [normalizeText("Accesibilidad")]: "accesibilidad",
+}
+
+function toConceptKey(raw: string) {
+  const trimmed = String(raw || "").trim()
+  if (!trimmed) return null
+  if (SEARCH_MAPPING[trimmed]) return trimmed
+  const normalized = normalizeText(trimmed)
+  const alias = SERVICE_ALIAS_TO_KEY[normalized]
+  if (alias) return alias
+  return null
+}
+
+function matchesConcept(corpus: string, conceptKey: string) {
+  const keywords = SEARCH_MAPPING[conceptKey]
+  if (!keywords || keywords.length === 0) return true
+  return keywords.some((kw) => corpus.includes(normalizeText(kw)))
+}
+
+const premiumEase: [number, number, number, number] = [0.22, 1, 0.36, 1]
+
+const revealVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.98 },
+  visible: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: 10, scale: 0.98 },
+}
+
+const toImageKitUrl = (relativePath: string) => {
+  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+  const rel = relativePath.trim().replace(/^\/+/, "")
+  return `${base}/${rel}`
+}
+
+const heroAlojamientosImage = toImageKitUrl("entorno/bg-paginas/hero-alojamientos.webp")
+const MapAlojamiento = dynamic(() => import("@/components/maps/MapAlojamiento"), {
+  ssr: false,
+})
+
+function AlojamientosPageInner() {
+  const searchParams = useSearchParams()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start start", "end start"],
+  })
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "30%"])
+  const heroScale = useTransform(scrollYProgress, [0, 1], [1, 1.1])
+  const heroOpacity = useTransform(scrollYProgress, [0, 0.5], [1, 0])
+
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
+  const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
-  const [selectedFeatures, setSelectedFeatures] = useState<string[]>([])
+  const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => {
+    if (typeof window === "undefined") return []
+    const featuresParam = new URLSearchParams(window.location.search).get("features")
+    if (!featuresParam) return []
+    return featuresParam
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  })
+  const [selectedRequiredServicios, setSelectedRequiredServicios] = useState<string[]>(() => {
+    if (typeof window === "undefined") return []
+    const serviciosParam = new URLSearchParams(window.location.search).get("servicios")
+    if (!serviciosParam) return []
+    return serviciosParam
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)
+  })
+  const [selectedExperience, setSelectedExperience] = useState<string>(() => {
+    if (typeof window === "undefined") return ""
+    return new URLSearchParams(window.location.search).get("experience") || ""
+  })
   const [showShareToast, setShowShareToast] = useState(false)
 
-  // Cargar datos de Supabase
   useEffect(() => {
+    const nextFeaturesParam = searchParams.get("features") || ""
+    const nextFeatures = nextFeaturesParam
+      ? nextFeaturesParam
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
+    const nextServiciosParam = searchParams.get("servicios") || ""
+    const nextServicios = nextServiciosParam
+      ? nextServiciosParam
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : []
+
+    const nextExperience = searchParams.get("experience") || ""
+
+    const syncFromUrl = () => {
+      setSelectedFeatures((prev) => (prev.join("|") === nextFeatures.join("|") ? prev : nextFeatures))
+      setSelectedRequiredServicios((prev) => (prev.join("|") === nextServicios.join("|") ? prev : nextServicios))
+      setSelectedExperience((prev) => (prev === nextExperience ? prev : nextExperience))
+    }
+
+    if (typeof queueMicrotask === "function") {
+      queueMicrotask(syncFromUrl)
+    } else {
+      Promise.resolve().then(syncFromUrl)
+    }
+  }, [searchParams])
+
+  const buildSupabaseFilters = React.useCallback(() => {
+    const requiredServicios: string[] = []
+    let requirePet = false
+
+    for (const feat of selectedFeatures) {
+      if (feat === "wifi") requiredServicios.push("Wi-Fi")
+      if (feat === "pool") requiredServicios.push("Pileta")
+      if (feat === "breakfast") requiredServicios.push("Desayuno")
+      if (feat === "bbq") requiredServicios.push("Parrilla / Quincho")
+      if (feat === "heating") requiredServicios.push("Calefacción")
+      if (feat === "parking") requiredServicios.push("Cochera")
+      if (feat === "pet") requirePet = true
+    }
+
+    if (selectedRequiredServicios.some((s) => normalizeServiceForSearch(s).includes("petfriendly"))) {
+      requirePet = true
+    }
+
+    return {
+      requiredServicios: Array.from(new Set(requiredServicios)),
+      requirePet,
+      localidades: selectedLocation,
+    }
+  }, [selectedFeatures, selectedLocation, selectedRequiredServicios])
+
+  useEffect(() => {
+    let ignore = false
     async function loadData() {
-      const data = await getAlojamientos()
+      setLoading(true)
+      const filters = buildSupabaseFilters()
+      const data = await getAlojamientosFiltered({
+        requiredServicios: filters.requiredServicios,
+        localidades: filters.localidades,
+        requirePet: filters.requirePet,
+        allowLegacyParking: true,
+      })
+      if (ignore) return
       setAccommodations(data)
       setLoading(false)
     }
     loadData()
-  }, [])
+    return () => {
+      ignore = true
+    }
+  }, [buildSupabaseFilters])
+
+  useEffect(() => {
+    let ignore = false
+    async function loadPortadas() {
+      const slugs = accommodations
+        .map((a) => (a.slug ? String(a.slug).trim() : slugify(a.nombre)))
+        .filter(Boolean)
+      if (slugs.length === 0) return
+      const res = await fetch("/api/portadas", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ slugs }),
+      }).catch(() => null)
+      const json = (await res?.json().catch(() => null)) as unknown
+      const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
+      if (ignore) return
+      setPortadaBySlug(map)
+    }
+    loadPortadas()
+    return () => {
+      ignore = true
+    }
+  }, [accommodations])
 
   // Función para compartir alojamiento
   const handleShare = async (e: React.MouseEvent, slug: string, title: string) => {
@@ -70,25 +303,43 @@ export default function AlojamientosPage() {
     return Array.from(new Set(locs))
   }, [accommodations])
 
-  // Filtrar alojamientos
   const filteredAccommodations = useMemo(() => {
-    return accommodations.filter(acc => {
-      const locationMatch = selectedLocation.length === 0 || 
-        selectedLocation.some(loc => acc.localidad.includes(loc))
-      
-      const featuresMatch = selectedFeatures.length === 0 ||
-        selectedFeatures.every(feat => {
-          if (!acc.servicios) return false;
-          const s = acc.servicios.map(serv => serv.toLowerCase());
-          if (feat === "wifi") return s.some(serv => serv.includes('wifi'));
-          if (feat === "pet") return s.some(serv => serv.includes('mascota') || serv.includes('pet'));
-          if (feat === "pool") return s.some(serv => serv.includes('piscina') || serv.includes('pileta'));
-          return true
-        })
+    return accommodations.filter((acc) => {
+      const locationMatch =
+        selectedLocation.length === 0 ||
+        selectedLocation.some((loc) => acc.localidad.includes(loc))
 
-      return locationMatch && featuresMatch
+      const corpus = normalizeText(
+        `${String(acc.nombre || "")} ${String(acc.descripcion || "")} ${(Array.isArray(acc.servicios) ? acc.servicios : []).join(" ")}`
+      )
+
+      const requiredConceptKeys = Array.from(
+        new Set([
+          ...selectedRequiredServicios.map(toConceptKey).filter((v): v is string => Boolean(v)),
+          ...selectedFeatures
+            .map((feat): string | null => {
+              if (feat === "wifi") return "wi-fi"
+              if (feat === "pet") return "pet-friendly"
+              if (feat === "pool") return "pileta"
+              if (feat === "parking") return "cochera"
+              if (feat === "bbq") return "parrilla-quincho"
+              if (feat === "breakfast") return "desayuno"
+              if (feat === "heating") return "calefaccion"
+              return null
+            })
+            .filter((v): v is string => Boolean(v)),
+        ])
+      )
+
+      const serviciosWizardMatch =
+        requiredConceptKeys.length === 0 || requiredConceptKeys.every((key) => matchesConcept(corpus, key))
+
+      const experienceKey = EXPERIENCE_ID_TO_KEY[String(selectedExperience || "").trim()] ?? String(selectedExperience || "").trim()
+      const experienceMatch = !selectedExperience || matchesConcept(corpus, experienceKey)
+
+      return locationMatch && serviciosWizardMatch && experienceMatch
     })
-  }, [accommodations, selectedLocation, selectedFeatures])
+  }, [accommodations, selectedFeatures, selectedLocation, selectedRequiredServicios, selectedExperience])
 
   const toggleLocation = (loc: string) => {
     setSelectedLocation(prev => 
@@ -105,36 +356,39 @@ export default function AlojamientosPage() {
   const clearFilters = () => {
     setSelectedLocation([])
     setSelectedFeatures([])
+    setSelectedRequiredServicios([])
+    setSelectedExperience("")
   }
 
-  const getServiceIcon = (service: string) => {
-    const s = service.toLowerCase();
-    if (s.includes("wifi")) return <Wifi className="w-3.5 h-3.5" />;
-    if (s.includes("piscina") || s.includes("pileta")) return <Waves className="w-3.5 h-3.5" />;
-    if (s.includes("tv") || s.includes("cable")) return <Tv className="w-3.5 h-3.5" />;
-    if (s.includes("desayuno")) return <Coffee className="w-3.5 h-3.5" />;
-    if (s.includes("cocina") || s.includes("vajilla")) return <Utensils className="w-3.5 h-3.5" />;
-    if (s.includes("aire") || s.includes("ac")) return <Snowflake className="w-3.5 h-3.5" />;
-    if (s.includes("parrilla") || s.includes("asador")) return <Flame className="w-3.5 h-3.5" />;
-    return <CheckCircle2 className="w-3.5 h-3.5" />;
-  };
 
-  const FilterContent = ({ isDesktop = false }: { isDesktop?: boolean }) => (
+  const renderFilterContent = (isDesktop = false) => (
     <div className={`space-y-8 ${isDesktop ? "" : "pb-20"}`}>
       {/* Localidad */}
       <div className="space-y-4">
         <h4 className="text-lg font-bold tracking-tight">Localidad</h4>
         <div className="grid grid-cols-1 gap-3">
-          {locations.map(loc => (
-            <div key={loc} className="flex items-center space-x-2 group cursor-pointer" onClick={() => toggleLocation(loc)}>
-              <Checkbox 
-                id={`${isDesktop ? 'desktop' : 'mobile'}-loc-${loc}`} 
-                checked={selectedLocation.includes(loc)}
-                className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-              />
-              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-loc-${loc}`} className="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors cursor-pointer">{loc}</Label>
-            </div>
-          ))}
+          {locations.map((loc) => {
+            const id = `${isDesktop ? "desktop" : "mobile"}-loc-${loc}`
+            return (
+              <label
+                key={loc}
+                htmlFor={id}
+                onClick={(e) => {
+                  e.preventDefault()
+                  toggleLocation(loc)
+                }}
+                className="flex items-center gap-2 group cursor-pointer rounded-lg px-2 py-2 -mx-2 hover:bg-slate-50"
+              >
+                <Checkbox
+                  id={id}
+                  checked={selectedLocation.includes(loc)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                />
+                <span className="text-sm font-medium text-slate-600 group-hover:text-primary transition-colors">{loc}</span>
+              </label>
+            )
+          })}
         </div>
       </div>
 
@@ -145,20 +399,35 @@ export default function AlojamientosPage() {
           {[
             { id: "wifi", label: "Wi-Fi Gratis", icon: Wifi },
             { id: "pet", label: "Pet Friendly", icon: PawPrint },
-            { id: "pool", label: "Piscina", icon: Waves },
-          ].map(feat => (
-            <div key={feat.id} className="flex items-center space-x-2 group cursor-pointer" onClick={() => toggleFeature(feat.id)}>
-              <Checkbox 
-                id={`${isDesktop ? 'desktop' : 'mobile'}-feat-${feat.id}`} 
-                checked={selectedFeatures.includes(feat.id)}
-                className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
-              />
-              <Label htmlFor={`${isDesktop ? 'desktop' : 'mobile'}-feat-${feat.id}`} className="text-sm font-medium text-slate-600 flex items-center gap-2 group-hover:text-primary transition-colors cursor-pointer">
-                <feat.icon className="w-4 h-4 opacity-60" />
-                {feat.label}
-              </Label>
-            </div>
-          ))}
+            { id: "pool", label: "Pileta", icon: Waves },
+            { id: "parking", label: "Cochera", icon: Car },
+            { id: "bbq", label: "Parrilla / Quincho", icon: Utensils },
+            { id: "breakfast", label: "Desayuno", icon: Coffee },
+          ].map((feat) => {
+            const id = `${isDesktop ? "desktop" : "mobile"}-feat-${feat.id}`
+            return (
+              <label
+                key={feat.id}
+                htmlFor={id}
+                onClick={(e) => {
+                  e.preventDefault()
+                  toggleFeature(feat.id)
+                }}
+                className="flex items-center gap-2 group cursor-pointer rounded-lg px-2 py-2 -mx-2 hover:bg-slate-50"
+              >
+                <Checkbox
+                  id={id}
+                  checked={selectedFeatures.includes(feat.id)}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-5 h-5 rounded-md border-2 border-slate-200 data-[state=checked]:bg-primary data-[state=checked]:border-primary transition-all"
+                />
+                <span className="text-sm font-medium text-slate-600 flex items-center gap-2 group-hover:text-primary transition-colors">
+                  <feat.icon className="w-4 h-4 opacity-60" />
+                  {feat.label}
+                </span>
+              </label>
+            )
+          })}
         </div>
       </div>
     </div>
@@ -166,7 +435,39 @@ export default function AlojamientosPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      <div className="container mx-auto px-4 py-32">
+      <section ref={containerRef} className="relative h-[70vh] w-full overflow-hidden flex items-center justify-center">
+        <motion.div
+          style={{ y: heroY, scale: heroScale, opacity: heroOpacity }}
+          className="absolute inset-0 z-0"
+        >
+          <div className="absolute inset-0 bg-black/50 z-10" />
+          <img
+            src={heroAlojamientosImage}
+            alt="Alojamientos en El Durazno"
+            className="w-full h-full object-cover"
+          />
+        </motion.div>
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white p-4">
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
+            className="text-5xl md:text-8xl font-bold mb-4 drop-shadow-2xl tracking-tighter"
+          >
+            Alojamientos
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 1 }}
+            className="text-xl md:text-3xl max-w-2xl font-light drop-shadow-md text-white/90"
+          >
+            Encontrá tu lugar ideal en las sierras
+          </motion.p>
+        </div>
+      </section>
+
+      <div className="container mx-auto px-4 py-24">
         {/* Header with Reveal */}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -217,7 +518,7 @@ export default function AlojamientosPage() {
                         Ajustá los resultados según tus preferencias.
                       </SheetDescription>
                     </SheetHeader>
-                    <FilterContent />
+                    {renderFilterContent(false)}
                   </div>
 
                   <SheetFooter className="p-10 pt-6 mt-auto border-t border-slate-100 bg-white/80 backdrop-blur-md z-20">
@@ -241,7 +542,7 @@ export default function AlojamientosPage() {
               <div>
                 <h3 className="text-2xl font-black tracking-tight mb-2">Filtros</h3>
                 <p className="text-slate-500 text-sm font-medium mb-8">Refiná tu búsqueda</p>
-                <FilterContent isDesktop />
+                {renderFilterContent(true)}
               </div>
             </div>
           </aside>
@@ -257,137 +558,30 @@ export default function AlojamientosPage() {
             </div>
 
             {/* Grid with Staggered Reveal */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-6 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
           <AnimatePresence mode="popLayout">
             {filteredAccommodations.map((item, index) => (
               <motion.div
                 key={item.id}
                 layout
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.9 }}
-                transition={{ 
-                  duration: 0.4,
+                variants={revealVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-80px" }}
+                exit="exit"
+                transition={{
+                  duration: 0.7,
                   delay: (index % 6) * 0.05,
-                  ease: [0.22, 1, 0.36, 1]
+                  ease: premiumEase,
                 }}
                 className="flex"
               >
-                <Card className="group w-full overflow-hidden border border-slate-100 shadow-sm hover:shadow-xl transition-all duration-500 flex flex-col rounded-[2rem] bg-white relative">
-                  {/* Link envolvente para toda la card (excepto botones de acción) */}
-                  <Link href={`/alojamientos/${item.slug}`} className="absolute inset-0 z-10">
-                    <span className="sr-only">Ver detalles de {item.nombre}</span>
-                  </Link>
-
-                  {/* Image Container */}
-                  <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 p-2 pb-0">
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      transition={{ duration: 0.6 }}
-                      className="w-full h-full overflow-hidden rounded-[1.8rem]"
-                    >
-                      <CustomImage 
-                        path="portada.jpg"
-                        folder="ALOJAMIENTOS"
-                        subfolder={item.slug}
-                        alt={item.nombre}
-                        fill
-                        className="object-cover"
-                      />
-                    </motion.div>
-                    
-                    {/* Dynamic Badge like the image */}
-                    <div className="absolute top-4 left-4 z-20">
-                      <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2.5 py-1 rounded-full font-black text-[8px] uppercase tracking-wider flex items-center gap-1">
-                        {item.rating_google && item.rating_google >= 4.8 ? (
-                          <><Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> MÁS PEDIDO</>
-                        ) : item.precio_base && item.precio_base > 100000 ? (
-                          <><Gem className="w-2.5 h-2.5 text-blue-500" /> PREMIUM</>
-                        ) : (
-                          <><Leaf className="w-2.5 h-2.5 text-green-500" /> ECO-FRIENDLY</>
-                        )}
-                      </Badge>
-                    </div>
-
-                    {/* Botón Compartir */}
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.9 }}
-                      onClick={(e) => handleShare(e, item.slug, item.nombre)}
-                      className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-md border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
-                      title="Compartir alojamiento"
-                    >
-                      <Share2 className="w-3.5 h-3.5" />
-                    </motion.button>
-                  </div>
-
-                  {/* Content Area - New Design from Image */}
-                  <div className="flex flex-col flex-grow p-4 pt-3 space-y-2 relative z-20">
-                    <div className="flex justify-between items-start gap-2">
-                      <div className="space-y-0.5 flex-grow">
-                        <h3 className="font-black text-[14px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors">
-                          {item.nombre}
-                        </h3>
-                        <div className="flex items-center text-[#7dd3fc] text-[9px] font-bold">
-                          <MapPin className="w-3 h-3 mr-1 fill-[#7dd3fc]/20 flex-shrink-0" />
-                          <span className="truncate uppercase tracking-tight">{item.localidad}</span>
-                        </div>
-                      </div>
-                      
-                      {/* Rating Badge next to Title */}
-                      <div className="flex items-center gap-1 bg-[#eff6ff] text-[#2563eb] px-2 py-1 rounded-lg font-black text-[10px] shadow-sm flex-shrink-0">
-                        <Star className="w-3 h-3 fill-[#2563eb]" />
-                        {item.rating_google || "—"}
-                      </div>
-                    </div>
-
-                    {/* Amenities List - Clean Horizontal Style */}
-                    {item.servicios && item.servicios.length > 0 && (
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 pt-1">
-                        {/* Capacidad / Personas */}
-                        <div className="flex items-center gap-1 text-slate-400">
-                          <Users className="w-3 h-3" />
-                          <span className="text-[9px] font-bold">
-                            {item.servicios.find(s => s.includes('Capacidad'))?.match(/\d+/)?.[0] || "4"} Pers.
-                          </span>
-                        </div>
-                        {/* WiFi */}
-                        {item.servicios.some(s => s.toLowerCase().includes('wifi')) && (
-                          <div className="flex items-center gap-1 text-slate-400">
-                            <Wifi className="w-3 h-3" />
-                            <span className="text-[9px] font-bold">Wi-Fi</span>
-                          </div>
-                        )}
-                        {/* Mascotas */}
-                        {item.servicios.some(s => s.toLowerCase().includes('mascota')) && (
-                          <div className="flex items-center gap-1 text-slate-400">
-                            <PawPrint className="w-3 h-3" />
-                            <span className="text-[9px] font-bold">Pet Friendly</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    <div className="pt-3 flex items-center justify-between mt-auto border-t border-slate-50">
-                      <div className="flex flex-col">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-400 leading-none mb-1">Desde</span>
-                        <div className="flex items-baseline gap-0.5">
-                          <span className="text-[18px] font-black text-slate-900 leading-none">
-                            {item.precio_base ? `$${item.precio_base.toLocaleString('es-AR')}` : "Consultar"}
-                          </span>
-                          <span className="text-[9px] text-slate-400 font-bold ml-0.5">/noche</span>
-                        </div>
-                      </div>
-                      <div className="relative z-30">
-                        <Link href={`/alojamientos/${item.slug}`}>
-                          <Button className="h-9 px-5 rounded-full font-black text-[10px] bg-[#1a1f2c] hover:bg-primary text-white shadow-lg shadow-slate-200 transition-all duration-300">
-                            Ver Detalles
-                          </Button>
-                        </Link>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+                <AccommodationCard
+                  variant="listing"
+                  item={item}
+                  portadaFile={portadaBySlug[item.slug || slugify(item.nombre)]}
+                  onShare={handleShare}
+                />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -411,6 +605,36 @@ export default function AlojamientosPage() {
         </div>
       </div>
 
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="pb-24 space-y-3"
+        >
+          <div className="flex items-center justify-between gap-4">
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Mapa de alojamientos</h2>
+            <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
+              {filteredAccommodations.length} resultados
+            </p>
+          </div>
+          <MapAlojamiento accommodations={filteredAccommodations} portadaBySlug={portadaBySlug} />
+        </motion.div>
+      </div>
+
+      <SocialProof />
+
+      <section className="py-20 bg-slate-900">
+        <div className="container mx-auto px-4">
+          <div className="max-w-xl mx-auto">
+            <NewsletterSignup sourcePrefix="alojamientos" />
+          </div>
+        </div>
+      </section>
+
+      <ContactMapSection />
+
       <AnimatePresence>
         {showShareToast && (
           <motion.div
@@ -428,3 +652,10 @@ export default function AlojamientosPage() {
   )
 }
 
+export default function AlojamientosPage() {
+  return (
+    <Suspense fallback={null}>
+      <AlojamientosPageInner />
+    </Suspense>
+  )
+}

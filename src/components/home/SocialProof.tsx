@@ -5,7 +5,7 @@ const testimonials = [
   {
     id: 1,
     name: "Sofia M.",
-    image: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?q=80&w=2070&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1475087542963-13ab5e611954?q=80&w=2070&auto=format&fit=crop",
     rating: 5,
     stay: "Cabaña Los Aromos",
     quote: "Increíble experiencia. La cabaña superó nuestras expectativas y las termas son un sueño.",
@@ -13,25 +13,25 @@ const testimonials = [
   {
     id: 2,
     name: "Lucas R.",
-    image: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?q=80&w=1974&auto=format&fit=crop",
+    image: "https://images.unsplash.com/photo-1636344325354-5a2d6d69284b?q=80&w=1974&auto=format&fit=crop",
     rating: 5,
     stay: "Refugio del Bosque",
     quote: "La atención personalizada marcó la diferencia. Nos ayudaron a organizar todo el viaje.",
   },
   {
     id: 3,
-    name: "Familia Gomez",
-    image: "https://images.unsplash.com/photo-1542596594-649edbc13630?q=80&w=1974&auto=format&fit=crop",
+    name: "Julieta S.",
+    image: "https://images.unsplash.com/photo-1674238924463-98712d8cd55d?q=80&w=1974&auto=format&fit=crop",
     rating: 5,
-    stay: "Eco-Domos",
-    quote: "Un lugar mágico para desconectar. Los chicos disfrutaron muchísimo de la naturaleza.",
+    stay: "Cabaña Rhyanon",
+    quote: "Un lugar mágico para desconectar. Con mi mascota disfrutamos muchísimo de la naturaleza.",
   },
   {
     id: 4,
-    name: "Martina L.",
-    image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=1964&auto=format&fit=crop",
+    name: "Mariana Z.",
+    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/plaza-yacanto.webp?q=80&w=1964&auto=format&fit=crop",
     rating: 5,
-    stay: "Casa de Piedra",
+    stay: "Departamentos Valle Escondido",
     quote: "Volveremos sin dudas. La paz que se respira en Villa Yacanto es única.",
   }
 ]
@@ -63,7 +63,7 @@ export function SocialProof() {
                 <div className="flex gap-1 mb-2 text-yellow-400">
                     {[...Array(item.rating)].map((_, i) => <Star key={i} className="w-4 h-4 fill-current" />)}
                 </div>
-                <p className="font-medium text-sm italic mb-2">"{item.quote}"</p>
+                <p className="font-medium text-sm italic mb-2">&quot;{item.quote}&quot;</p>
                 <div className="flex justify-between items-end">
                     <div>
                         <p className="font-bold">{item.name}</p>
@@ -77,11 +77,17 @@ export function SocialProof() {
         </div>
 
         <div className="mt-12 text-center">
-            <Button variant="outline" className="gap-2">
-                <Instagram className="w-4 h-4" />
-                Ver más reseñas en Instagram
-            </Button>
-        </div>
+  <Button asChild variant="outline" className="gap-2">
+    <a 
+      href="https://www.instagram.com/stories/highlights/17857640037151378/" 
+      target="_blank" 
+      rel="noopener noreferrer"
+    >
+      <Instagram className="w-4 h-4" />
+      Ver más reseñas en Instagram
+    </a>
+  </Button>
+</div>
       </div>
     </section>
   )

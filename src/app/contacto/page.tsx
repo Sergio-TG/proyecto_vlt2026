@@ -7,9 +7,25 @@ import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Mail, Phone, MapPin, MessageCircle } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
-import { useRef } from "react"
+import { useRef, useState, useTransition } from "react"
+import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+import { submitContact } from "@/actions/contact"
+
+const toImageKitUrl = (relativePath: string) => {
+  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+  const rel = relativePath.trim().replace(/^\/+/, "")
+  return `${base}/${rel}`
+}
+
+const heroContactoImage = toImageKitUrl("entorno/bg-paginas/hero-contacto.webp")
 
 export default function ContactoPage() {
+  const [isPending, startTransition] = useTransition()
+  const [result, setResult] = useState<{ type: "idle" | "success" | "error"; message: string }>({
+    type: "idle",
+    message: "",
+  })
+
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -28,9 +44,9 @@ export default function ContactoPage() {
           style={{ y, scale, opacity }}
           className="absolute inset-0 z-0"
         >
-          <div className="absolute inset-0 bg-black/50 z-10" />
+          <div className="absolute inset-0 bg-black/40 z-10" />
           <img 
-            src="https://images.unsplash.com/photo-1534536281715-e28d76689b4d?q=80&w=2070&auto=format&fit=crop"
+            src={heroContactoImage}
             alt="Contacto"
             className="w-full h-full object-cover"
           />
@@ -71,8 +87,21 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-lg">WhatsApp</h3>
                   <p className="text-gray-600 mb-1">Para respuestas rápidas</p>
-                  <a href="https://wa.me/549354615563187" target="_blank" rel="noopener noreferrer" className="text-green-600 font-medium hover:underline">
-                    +54 9 3546 155-63187
+                  <a href="https://wa.me/5493546525404" target="_blank" rel="noopener noreferrer" className="text-green-600 font-medium hover:underline">
+                    +54 9 3546 525404
+                  </a>
+                </div>
+              </div>
+
+              <div className="flex items-start gap-4 group">
+                <div className="bg-slate-100 p-3 rounded-full text-slate-700 group-hover:scale-110 transition-transform">
+                  <Phone className="w-6 h-6" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-lg">Teléfono</h3>
+                  <p className="text-gray-600 mb-1">Llamadas y consultas</p>
+                  <a href="tel:+5493546525404" className="text-slate-700 font-medium hover:underline">
+                    +54 9 3546 525404
                   </a>
                 </div>
               </div>
@@ -84,8 +113,8 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-lg">Email</h3>
                   <p className="text-gray-600 mb-1">Para consultas generales</p>
-                  <a href="mailto:info@vivilastermas.com.ar" className="text-blue-600 font-medium hover:underline">
-                    info@vivilastermas.com.ar
+                  <a href="mailto:hola@vivilastermas.com.ar" className="text-blue-600 font-medium hover:underline">
+                    hola@vivilastermas.com.ar
                   </a>
                 </div>
               </div>
@@ -97,7 +126,7 @@ export default function ContactoPage() {
                 <div>
                   <h3 className="font-semibold text-lg">Ubicación</h3>
                   <p className="text-gray-600">
-                    El Durazno, Valle de Calamuchita<br/>
+                    Av. Marrero S/N, Villa Yacanto, X5197<br/>
                     Córdoba, Argentina
                   </p>
                 </div>
@@ -105,9 +134,9 @@ export default function ContactoPage() {
             </div>
 
             {/* Google Maps Preview */}
-            <div className="rounded-2xl overflow-hidden shadow-sm border border-slate-100 h-64 relative">
+            <div className="rounded-lg overflow-hidden shadow-sm border border-slate-100 h-64 relative">
                <iframe 
-                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3391.248039396264!2d-64.76779492458428!3d-32.17294497394666!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x95d2c1c000000001%3A0x123456789abcdef!2sEl%20Durazno%2C%20C%C3%B3rdoba!5e0!3m2!1ses!2sar!4v1700000000000!5m2!1ses!2sar" 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3393.284798305716!2d-64.67389662446765!3d-32.13110992383821!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x942d59453965586d%3A0x6b7724128f260388!2sVilla%20Yacanto%2C%20C%C3%B3rdoba!5e0!3m2!1ses-419!2sar!4v1713800000000!5m2!1ses-419!2sar" 
                   width="100%" 
                   height="100%" 
                   style={{ border: 0 }} 
@@ -122,31 +151,43 @@ export default function ContactoPage() {
           {/* Contact Form */}
           <div className="bg-white p-8 md:p-10 rounded-2xl shadow-lg border border-slate-100 order-1 lg:order-2">
             <h2 className="text-2xl font-semibold mb-6">Envianos un mensaje</h2>
-            <form className="space-y-6">
+            <form
+              className="space-y-6"
+              onSubmit={(e) => {
+                e.preventDefault()
+                const form = e.currentTarget
+                setResult({ type: "idle", message: "" })
+                startTransition(async () => {
+                  const res = await submitContact(new FormData(form))
+                  setResult({ type: res.success ? "success" : "error", message: res.message })
+                  if (res.success) form.reset()
+                })
+              }}
+            >
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="name">Nombre</Label>
-                  <Input id="name" placeholder="Tu nombre" className="bg-slate-50 border-slate-200" />
+                  <Input id="name" name="name" placeholder="Tu nombre" className="bg-slate-50 border-slate-200" />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastname">Apellido</Label>
-                  <Input id="lastname" placeholder="Tu apellido" className="bg-slate-50 border-slate-200" />
+                  <Input id="lastname" name="lastname" placeholder="Tu apellido" className="bg-slate-50 border-slate-200" />
                 </div>
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" placeholder="tu@email.com" className="bg-slate-50 border-slate-200" />
+                <Input id="email" name="email" type="email" placeholder="tu@email.com" className="bg-slate-50 border-slate-200" />
               </div>
 
                <div className="space-y-2">
                 <Label htmlFor="phone">Teléfono (Opcional)</Label>
-                <Input id="phone" type="tel" placeholder="+54 9 ..." className="bg-slate-50 border-slate-200" />
+                <Input id="phone" name="phone" type="tel" placeholder="+54 9 ..." className="bg-slate-50 border-slate-200" />
               </div>
               
               <div className="space-y-2">
                 <Label htmlFor="message">Mensaje</Label>
-                <Textarea id="message" placeholder="Contanos qué estás buscando..." className="min-h-[150px] bg-slate-50 border-slate-200" />
+                <Textarea id="message" name="message" placeholder="Contanos qué estás buscando..." className="min-h-[150px] bg-slate-50 border-slate-200" />
               </div>
               
               <div className="flex items-center space-x-2">
@@ -156,9 +197,14 @@ export default function ContactoPage() {
                 </Label>
               </div>
               
-              <Button type="submit" className="w-full text-lg h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all">
-                Enviar Consulta
+              <Button type="submit" disabled={isPending} className="w-full text-lg h-12 bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all">
+                {isPending ? "Enviando..." : "Enviar Consulta"}
               </Button>
+              {result.type !== "idle" ? (
+                <p className={`text-sm font-medium ${result.type === "success" ? "text-green-600" : "text-red-600"}`}>
+                  {result.message}
+                </p>
+              ) : null}
             </form>
           </div>
 

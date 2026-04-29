@@ -57,11 +57,12 @@ export function TermasTeaser() {
           </motion.div>
 
           {/* Floating Stats Cards with Apple Hover Effect */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 w-full max-w-5xl py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl py-8 items-stretch">
             {[
-              { title: "38°C", subtitle: "Aguas Termales", delay: 0.2 },
-              { title: "100%", subtitle: "Natural Minerales", delay: 0.4 },
-              { title: "Sunset", subtitle: "Pass Exclusivo", delay: 0.6 },
+              { title: "38°C", subtitle: "AGUAS TERMALES", delay: 0.2 },
+              { title: "Termas Night", subtitle: "SOLO ADULTOS", delay: 0.4 },
+              { title: "360°", subtitle: "VISTAS NATURALES", delay: 0.6 },
+              
             ].map((stat, idx) => (
               <motion.div 
                 key={idx}
@@ -70,9 +71,11 @@ export function TermasTeaser() {
                 viewport={{ once: true }}
                 transition={{ delay: stat.delay, duration: 0.8 }}
                 whileHover={{ y: -10, scale: 1.02 }}
-                className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-10 flex flex-col items-center justify-center text-white hover:bg-white/10 transition-all duration-500 shadow-2xl"
+                className="group bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-6 md:p-8 h-full flex flex-col items-center justify-center text-white hover:bg-white/10 transition-all duration-500 shadow-2xl"
               >
-                <span className="text-5xl font-bold mb-3 tracking-tighter group-hover:text-primary transition-colors">{stat.title}</span>
+                <span className="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 tracking-tighter group-hover:text-primary transition-colors leading-snug text-center whitespace-nowrap">
+                  {stat.title}
+                </span>
                 <span className="text-xs font-bold opacity-60 uppercase tracking-[0.2em]">{stat.subtitle}</span>
               </motion.div>
             ))}
@@ -83,16 +86,11 @@ export function TermasTeaser() {
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             transition={{ delay: 0.8, duration: 0.6 }}
-            className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto pt-8"
+            className="flex justify-center w-full pt-8"
           >
             <Link href="/termas">
                 <Button size="lg" className="w-full sm:w-auto text-xl h-16 px-12 bg-white text-black hover:bg-white/90 rounded-full font-bold shadow-2xl transition-transform hover:scale-105">
-                Ver Pases y Precios
-                </Button>
-            </Link>
-            <Link href="/termas">
-                <Button size="lg" variant="outline" className="w-full sm:w-auto text-xl h-16 px-12 text-white border-white/20 bg-white/5 hover:bg-white/10 backdrop-blur-md rounded-full font-semibold transition-all hover:border-white/40">
-                Servicios Spa
+                Más info
                 </Button>
             </Link>
           </motion.div>
