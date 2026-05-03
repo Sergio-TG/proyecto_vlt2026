@@ -489,7 +489,7 @@ export default function SociosPage() {
           email, 
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=/socios`,
           }
         })
         console.log("Resultado signUp:", { data, error })
@@ -1243,6 +1243,7 @@ export default function SociosPage() {
                         >
                           <option value="" className="bg-slate-900">Seleccione una opción</option>
                           <option value="El Durazno" className="bg-slate-900">El Durazno</option>
+                          <option value="Santa Rosa de Calamuchita" className="bg-slate-900">Santa Rosa de Calamuchita</option>
                           <option value="Villa Yacanto" className="bg-slate-900">Villa Yacanto</option>
                           <option value="Termas" className="bg-slate-900">Termas (Zona Aledaña)</option>
                         </select>
@@ -1749,7 +1750,12 @@ export default function SociosPage() {
         <div className="mt-16 text-center space-y-6">
           <p className="text-sm text-white/40 font-medium">¿Necesitas ayuda con el formulario?</p>
           <div className="flex justify-center gap-10">
-            <a href="#" className="flex items-center gap-2 text-xs font-black text-white/60 hover:text-primary transition-all uppercase tracking-widest">
+            <a
+              href="https://wa.me/5493413642608"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs font-black text-white/60 hover:text-primary transition-all uppercase tracking-widest"
+            >
               <MessageCircle className="w-5 h-5" /> WhatsApp Soporte
             </a>
             <a href="#" className="flex items-center gap-2 text-xs font-black text-white/60 hover:text-primary transition-all uppercase tracking-widest">

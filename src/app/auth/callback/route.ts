@@ -6,8 +6,8 @@ import type { NextRequest } from 'next/server';
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
-  // Redirige al dashboard de socios tras confirmar
-  const next = searchParams.get('next') ?? '/socios/dashboard';
+  // Redirige al portal de socios tras confirmar
+  const next = searchParams.get('next') ?? '/socios';
 
   if (code) {
     const cookieStore = await cookies(); // <--- Crucial en Next 15
@@ -37,6 +37,6 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Si algo falla, lo mandamos al login con un mensaje de error
-  return NextResponse.redirect(`${origin}/socios/login?error=auth-callback-failed`);
+  // Si algo falla, redirigimos al portal (ruta existente) con mensaje de error
+  return NextResponse.redirect(`${origin}/socios?error=auth-callback-failed`);
 }
