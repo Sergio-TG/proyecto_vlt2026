@@ -8,11 +8,12 @@ export function middleware(request: NextRequest) {
   }
 
   const { pathname } = request.nextUrl;
-  const isAllowed = 
-    pathname.startsWith('/socios') || 
-    pathname.startsWith('/admin') || 
+  const isAllowed =
+    pathname.startsWith('/socios') ||
+    pathname.startsWith('/admin') ||
+    pathname.startsWith('/auth') ||
     pathname === '/en-construccion' ||
-    pathname.startsWith('/_next') || 
+    pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname === '/favicon.ico';
 
