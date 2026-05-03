@@ -16,7 +16,7 @@ const experiences = [
   },
   {
     title: "Yoga",
-    description: "Conectá cuerpo y mente en nuestras clases al aire libre, rodeado por el sonido del río y la brisa serrana.",
+    description: "Sentí la energía de la montaña. Encontrá tu equilibrio en un entorno cálido, con la serenidad de la brisa serrana a través de nuestros ventanales.",
     image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/yoga-mar.webp?q=80&w=2070&auto=format&fit=crop",
     icon: <Heart className="w-6 h-6" />,
     delay: 0.2

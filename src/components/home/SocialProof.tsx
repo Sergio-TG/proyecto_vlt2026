@@ -45,7 +45,7 @@ export function SocialProof() {
           <div className="flex justify-center gap-1 text-yellow-400 mb-2">
              {[...Array(5)].map((_, i) => <Star key={i} className="w-5 h-5 fill-current" />)}
           </div>
-          <p className="text-muted-foreground">Más de 1,200 viajeros felices en 2024</p>
+          <p className="text-muted-foreground">Más de 1.200 viajeros felices en 2026</p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
