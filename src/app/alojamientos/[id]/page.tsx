@@ -1,9 +1,10 @@
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { buildGaleriaUrls } from "@/lib/imagekit.config"
-import { getArchivosAlojamiento, getPortadaAlojamiento } from "@/lib/imagekit"
+import { getArchivosAlojamientoWithCandidates, getPortadaAlojamientoWithCandidates } from "@/lib/imagekit"
 import { AccommodationDetailClient } from "./AccommodationDetailClient"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
+import { slugify } from "@/lib/utils"
 
 type AccommodationWithExtras = AlojamientoAprobado & {
   google_maps?: string | null
@@ -21,10 +22,11 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
 
   const accommodation = data as unknown as AccommodationWithExtras
   const folderSlug = String(accommodation.slug || slug).trim()
+  const fallbackFolderByName = slugify(String(accommodation.nombre || ""))
 
   const [archivos, portadaPath] = await Promise.all([
-    getArchivosAlojamiento(folderSlug),
-    getPortadaAlojamiento(folderSlug),
+    getArchivosAlojamientoWithCandidates(folderSlug, [fallbackFolderByName]),
+    getPortadaAlojamientoWithCandidates(folderSlug, [fallbackFolderByName]),
   ])
 
   const list = Array.from(new Set(archivos.filter(Boolean).map((n) => String(n).trim()).filter(Boolean)))

@@ -9,6 +9,8 @@ const inter = Inter({
 
 // Bloqueo de indexación para buscadores
 export const metadata = {
+  title: 'Viví las Termas',
+  description: 'Portal de turismo y bienestar',
   robots: {
     index: false,
     follow: false,

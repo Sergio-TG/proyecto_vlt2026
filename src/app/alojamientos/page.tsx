@@ -252,14 +252,18 @@ function AlojamientosPageInner() {
   useEffect(() => {
     let ignore = false
     async function loadPortadas() {
-      const slugs = accommodations
-        .map((a) => (a.slug ? String(a.slug).trim() : slugify(a.nombre)))
-        .filter(Boolean)
-      if (slugs.length === 0) return
+      const items = accommodations
+        .map((a) => ({
+          key: a.slug ? String(a.slug).trim() : slugify(a.nombre),
+          slug: a.slug ? String(a.slug).trim() : slugify(a.nombre),
+          nombre: String(a.nombre || "").trim(),
+        }))
+        .filter((row) => row.key && row.slug)
+      if (items.length === 0) return
       const res = await fetch("/api/portadas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ slugs }),
+        body: JSON.stringify({ items }),
       }).catch(() => null)
       const json = (await res?.json().catch(() => null)) as unknown
       const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
