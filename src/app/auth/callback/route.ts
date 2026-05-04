@@ -3,8 +3,27 @@ import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+function getSafeOrigin(request: NextRequest) {
+  const forwardedProto = request.headers.get('x-forwarded-proto');
+  const forwardedHost = request.headers.get('x-forwarded-host');
+  const hostHeader = request.headers.get('host');
+  const protocol = forwardedProto || request.nextUrl.protocol.replace(':', '');
+
+  let host = forwardedHost || hostHeader || request.nextUrl.host;
+  const hostname = host.split(':')[0];
+
+  // En desarrollo puede llegar 0.0.0.0, que el navegador no acepta para redirigir.
+  if (hostname === '0.0.0.0' || hostname === '::' || hostname === '[::]') {
+    const port = host.includes(':') ? host.split(':')[1] : request.nextUrl.port;
+    host = port ? `localhost:${port}` : 'localhost';
+  }
+
+  return `${protocol}://${host}`;
+}
+
 export async function GET(request: NextRequest) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = getSafeOrigin(request);
   const code = searchParams.get('code');
   // Redirige al portal de socios tras confirmar
   const next = searchParams.get('next') ?? '/socios';

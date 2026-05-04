@@ -124,6 +124,22 @@ export default function SociosPage() {
 
   const [userAccommodations, setUserAccommodations] = React.useState<SocioAccommodation[]>([])
 
+  const getSafeOrigin = () => {
+    if (typeof window === "undefined") return ""
+
+    const { protocol, port } = window.location
+    let host = window.location.hostname
+
+    // Evita URLs inválidas en links de confirmación (0.0.0.0 / ::)
+    if (host === "0.0.0.0" || host === "::" || host === "[::]") {
+      host = "localhost"
+    }
+
+    const isDefaultPort = (protocol === "http:" && port === "80") || (protocol === "https:" && port === "443")
+    const portSuffix = port && !isDefaultPort ? `:${port}` : ""
+    return `${protocol}//${host}${portSuffix}`
+  }
+
   // ✅ FIX 1: Ordenar por created_at descendente para obtener siempre el más reciente
   const checkUserAccommodations = async (userId: string) => {
     const { data, error } = await supabase
@@ -489,7 +505,7 @@ export default function SociosPage() {
           email, 
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=/socios`,
+            emailRedirectTo: `${getSafeOrigin()}/auth/callback?next=/socios`,
           }
         })
         console.log("Resultado signUp:", { data, error })
@@ -627,7 +643,14 @@ export default function SociosPage() {
       })
       const saveJson = (await saveRes.json()) as { ok?: boolean; error?: string; reason?: string }
       if (!saveRes.ok || !saveJson?.ok) {
-        const msg = saveJson?.error || saveJson?.reason || "No se pudo guardar la actualización. Volvé a intentar."
+        let msg =
+          saveJson?.error ||
+          saveJson?.reason ||
+          "No se pudo guardar la actualización. Volvé a intentar."
+        if (saveJson?.reason === "missing_env") {
+          msg =
+            "Falta la configuración del servidor (Supabase). Si administrás el sitio, agregá NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el panel de hosting y volvé a desplegar."
+        }
         throw new Error(msg)
       }
       
