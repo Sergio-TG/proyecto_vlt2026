@@ -271,6 +271,12 @@ export default function SociosPage() {
   }
 
   React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    if (params.get("confirmed") === "1") {
+      alert("Tu cuenta fue confirmada correctamente. Ya podés continuar en el portal de socios.")
+      window.history.replaceState({}, "", "/socios")
+    }
+
     const checkSession = async () => {
       if (didCheckSessionRef.current) return
       didCheckSessionRef.current = true
