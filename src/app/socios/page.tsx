@@ -1407,6 +1407,8 @@ export default function SociosPage() {
                           <option value="Asfalto" className="bg-slate-900">Asfalto</option>
                           <option value="Ripio" className="bg-slate-900">Ripio consolidado</option>
                           <option value="Huella 4x4" className="bg-slate-900">Requiere 4x4 / Huella</option>
+                          <option value="Camino de tierra" className="bg-slate-900">Camino de tierra</option>
+                          <option value="Mixto" className="bg-slate-900">Mixto</option>
                         </select>
                       </div>
                     </div>

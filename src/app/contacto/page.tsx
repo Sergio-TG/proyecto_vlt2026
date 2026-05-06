@@ -10,6 +10,7 @@ import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef, useState, useTransition } from "react"
 import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
 import { submitContact } from "@/actions/contact"
+import FaqSection from "@/components/contact/FaqSection"
 
 const toImageKitUrl = (relativePath: string) => {
   const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
@@ -210,6 +211,8 @@ export default function ContactoPage() {
 
         </div>
       </div>
+
+      <FaqSection />
     </div>
   )
 }

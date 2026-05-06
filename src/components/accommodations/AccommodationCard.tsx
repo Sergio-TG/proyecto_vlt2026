@@ -78,8 +78,8 @@ export function AccommodationCard({ item, portadaFile, onShare }: AccommodationC
         transition={cardHoverTransition}
         className="w-full"
       >
-        <Card className="group w-full overflow-hidden border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
-          <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem]">
+        <Card className="group w-full overflow-hidden border-0 ring-0 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
+          <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem] -mt-4 z-0">
             <motion.div variants={imageHoverVariants} transition={imageHoverTransition} className="relative w-full h-full">
               {portadaFile ? (
                 <CustomImage
