@@ -8,6 +8,7 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { buildGaleriaUrls } from "@/lib/imagekit.config"
+import { getAccommodationMapPin, isValidLatLng } from "@/lib/google-maps-embed"
 
 type MarkerItem = {
   id: string
@@ -27,43 +28,6 @@ function toNum(v: unknown): number | null {
     const n = Number(v.trim())
     return Number.isFinite(n) ? n : null
   }
-  return null
-}
-
-function isValidLatLng(lat: number | null, lng: number | null) {
-  if (lat == null || lng == null) return false
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false
-  if (lat === 0 && lng === 0) return false
-  if (lat < -90 || lat > 90) return false
-  if (lng < -180 || lng > 180) return false
-  return true
-}
-
-function extractLatLngFromGoogleMapsUrl(raw: unknown): { lat: number; lng: number } | null {
-  const url = typeof raw === "string" ? raw.trim() : ""
-  if (!url) return null
-
-  const atMatch = url.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
-  if (atMatch) {
-    const lat = Number(atMatch[1])
-    const lng = Number(atMatch[2])
-    if (isValidLatLng(lat, lng)) return { lat, lng }
-  }
-
-  const qMatch = url.match(/[?&]q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
-  if (qMatch) {
-    const lat = Number(qMatch[1])
-    const lng = Number(qMatch[2])
-    if (isValidLatLng(lat, lng)) return { lat, lng }
-  }
-
-  const embedMatch = url.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
-  if (embedMatch) {
-    const lat = Number(embedMatch[1])
-    const lng = Number(embedMatch[2])
-    if (isValidLatLng(lat, lng)) return { lat, lng }
-  }
-
   return null
 }
 
@@ -261,32 +225,23 @@ export default function MapAlojamiento({
 
   const markers = React.useMemo<MarkerItem[]>(() => {
     return accommodations.reduce<MarkerItem[]>((acc, a) => {
-      // Prioridad 1: columnas numéricas en DB (latitud/longitud).
-      let lat = toNum((a as { latitud?: unknown }).latitud)
-      let lng = toNum((a as { longitud?: unknown }).longitud)
+      const dbLat = toNum((a as { latitud?: unknown }).latitud)
+      const dbLng = toNum((a as { longitud?: unknown }).longitud)
+      const mapsUrl =
+        (a as { google_maps?: string | null; ubicacion_google_maps?: string | null }).google_maps ??
+        (a as { ubicacion_google_maps?: string | null }).ubicacion_google_maps
 
-      // Fallback: parsear URL de Maps solo si DB viene vacía.
-      if (lat == null || lng == null) {
-        const fallback = extractLatLngFromGoogleMapsUrl(
-          (a as { google_maps?: unknown; ubicacion_google_maps?: unknown }).google_maps ??
-            (a as { ubicacion_google_maps?: unknown }).ubicacion_google_maps
-        )
-        if (fallback) {
-          lat = fallback.lat
-          lng = fallback.lng
-        }
-      }
+      const pin = getAccommodationMapPin(dbLat, dbLng, mapsUrl ?? null, "listing")
 
-      // Defensive coding: si no hay coordenadas útiles, omitir sin romper.
-      if (!isValidLatLng(lat, lng)) {
+      if (!pin || !isValidLatLng(pin.lat, pin.lng)) {
         console.warn(
-          `Aviso: El alojamiento ${String(a.nombre || "").trim()} no tiene coordenadas en DB ni en URL, omitiendo en mapa`
+          `Aviso: El alojamiento ${String(a.nombre || "").trim()} no tiene coordenadas útiles en URL ni en DB, omitiendo en mapa`
         )
         return acc
       }
 
-      const safeLat = lat as number
-      const safeLng = lng as number
+      const safeLat = pin.lat
+      const safeLng = pin.lng
 
       const slug = a.slug || slugify(a.nombre)
       const portadaFile = portadaBySlug[slug]

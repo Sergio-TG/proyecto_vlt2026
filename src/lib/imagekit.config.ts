@@ -128,7 +128,7 @@ export function getHeroPagina(pagina: string, fallback: string = "hero-home"): s
     .replace(/\/+$/, "");
 
   const heroBase = clean ? `hero-${clean}` : fallback;
-  const rel = `${IMAGE_FOLDERS.ENTORNO}/bh-paginas/${heroBase}.webp`;
+  const rel = `${IMAGE_FOLDERS.ENTORNO}/bg-paginas/${heroBase}.webp`;
 
   return base ? `${base}/${rel}?${IK_TRANSFORMS.heroPage}` : `/${rel}?${IK_TRANSFORMS.heroPage}`;
 }

@@ -153,7 +153,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
     <>
       <div className="space-y-4">
         <div className="flex items-end justify-between gap-4">
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight">Fotos</h3>
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight">Galería</h3>
           <button
             type="button"
             className="text-sm font-black text-primary hover:underline"

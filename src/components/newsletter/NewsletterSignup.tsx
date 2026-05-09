@@ -62,16 +62,16 @@ if (variant === "home" || variant === "alojamiento") {
           <h2 className="text-3xl md:text-5xl font-black tracking-tight">{title}</h2>
           <p className="mt-4 text-white/90 font-medium max-w-xl mx-auto">{description}</p>
 
-          {/* Formulario con max-w-lg para mejor proporción visual */}
-          <div className="mt-10 max-w-lg mx-auto">
+          {/* Formulario: ancho y paddings pensados para leer bien el placeholder */}
+          <div className="mt-10 max-w-xl mx-auto">
             {status === "success" ? (
               <div className="flex items-center justify-center gap-3 bg-white/10 text-white p-5 rounded-2xl border border-white/20 animate-in fade-in slide-in-from-bottom-2 duration-500">
                 <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
                 <p className="text-sm font-semibold">{message || "¡Gracias por suscribirte!"}</p>
               </div>
             ) : (
-              <form onSubmit={handleSubscribe} className="flex flex-col gap-3">
-                <div className="flex flex-col sm:flex-row gap-3">
+              <form onSubmit={handleSubscribe} className="flex flex-col gap-4">
+                <div className="flex flex-col sm:flex-row sm:items-stretch gap-3 sm:gap-3">
                   <input
                     type="email"
                     name="email"
@@ -80,13 +80,13 @@ if (variant === "home" || variant === "alojamiento") {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     disabled={status === "loading"}
-                    className="bg-white/95 border border-white/30 text-slate-900 px-4 py-3 rounded-xl flex-1 focus:ring-2 focus:ring-white/40 outline-none transition-all disabled:opacity-50 text-sm placeholder:text-slate-500"
+                    className="bg-white/95 border border-white/30 text-slate-900 min-w-0 flex-1 rounded-xl py-3.5 pl-5 pr-5 sm:pl-6 sm:pr-5 focus:ring-2 focus:ring-white/40 outline-none transition-all disabled:opacity-50 text-sm placeholder:text-slate-500"
                   />
                   <input type="hidden" name="source" value={sourceValue} />
                   <Button
                     type="submit"
                     disabled={status === "loading" || !email}
-                    className="rounded-xl px-8 font-black h-[46px] text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all"
+                    className="rounded-xl px-6 sm:px-8 min-w-[148px] shrink-0 justify-center font-black h-[46px] sm:h-auto text-sm bg-blue-600 hover:bg-blue-700 text-white shadow-lg transition-all"
                   >
                     {status === "loading" ? <Loader2 className="w-4 h-4 animate-spin" /> : "Suscribirme"}
                   </Button>

@@ -8,6 +8,8 @@ import { Droplets, Sun, Coffee, Mountain, Sparkles, Clock, MapPin, Navigation } 
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
 import { IMAGE_FOLDERS, IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+import { HOME_VIDEOS } from "@/lib/constants"
+import { HomeVideoSection } from "@/components/home/HomeVideoSection"
 
 const toImageKitUrl = (relativePath: string) => {
   const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
@@ -101,6 +103,10 @@ export default function TermasPage() {
           </motion.div>
         </motion.div>
 
+<HomeVideoSection 
+        src={HOME_VIDEOS.TERMAS_DRON} 
+        className="w-full h-auto object-cover aspect-video"/>
+
         {/* Features Grid with Apple-style Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-32">
           {[
@@ -166,7 +172,7 @@ export default function TermasPage() {
           whileInView={{ opacity: 1, scale: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 1 }}
-          className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-slate-950 text-white rounded-[3rem] overflow-hidden shadow-2xl"
+          className="grid grid-cols-1 md:grid-cols-2 gap-0 bg-slate-950 text-white rounded-[1rem] overflow-hidden shadow-2xl"
         >
           <div className="p-12 md:p-20 space-y-10 flex flex-col justify-center">
             <h3 className="text-4xl md:text-5xl font-bold tracking-tight">Información Útil</h3>
@@ -188,12 +194,7 @@ export default function TermasPage() {
                 </div>
               ))}
             </div>
-
-            <Link href="/mapa" className="pt-6">
-              <Button className="bg-white text-slate-950 hover:bg-slate-100 font-black px-10 py-8 h-auto text-xl rounded-full shadow-2xl transition-transform hover:scale-105">
-                Ver Mapa de Ubicación
-              </Button>
-            </Link>
+      
           </div>
           
           <div className="relative h-full min-h-[400px] overflow-hidden group">

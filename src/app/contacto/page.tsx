@@ -8,17 +8,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Mail, Phone, MapPin, MessageCircle } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef, useState, useTransition } from "react"
-import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
 import { submitContact } from "@/actions/contact"
 import FaqSection from "@/components/contact/FaqSection"
-
-const toImageKitUrl = (relativePath: string) => {
-  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
-  const rel = relativePath.trim().replace(/^\/+/, "")
-  return `${base}/${rel}`
-}
-
-const heroContactoImage = toImageKitUrl("entorno/bg-paginas/hero-contacto.webp")
+import CustomImage from "@/components/common/CustomImage"
 
 export default function ContactoPage() {
   const [isPending, startTransition] = useTransition()
@@ -46,10 +38,14 @@ export default function ContactoPage() {
           className="absolute inset-0 z-0"
         >
           <div className="absolute inset-0 bg-black/40 z-10" />
-          <img 
-            src={heroContactoImage}
-            alt="Contacto"
-            className="w-full h-full object-cover"
+          <CustomImage
+            path="/bg-paginas/hero-contacto.webp"
+            folder="ENTORNO"
+            alt="Paisaje - contacto"
+            fill
+            priority
+            className="object-cover"
+            sizes="100vw"
           />
         </motion.div>
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white p-4">
