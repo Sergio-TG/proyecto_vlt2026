@@ -9,6 +9,10 @@ import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { buildGaleriaUrls } from "@/lib/imagekit.config"
 import { getAccommodationMapPin, isValidLatLng } from "@/lib/google-maps-embed"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
+
+type MapListing = ReturnType<typeof getSiteCopy>["pages"]["mapListing"]
 
 type MarkerItem = {
   id: string
@@ -31,15 +35,26 @@ function toNum(v: unknown): number | null {
   return null
 }
 
-function getBookingScore(ratingGoogle: number | null) {
+function getBookingScore(
+  ratingGoogle: number | null,
+  m: { ratingExceptional: string; ratingExcellent: string; ratingVeryGood: string; ratingGood: string; ratingOk: string }
+) {
   if (!ratingGoogle || !Number.isFinite(ratingGoogle)) return null
   const score = ratingGoogle * 2
   const label =
-    score >= 9.5 ? "Excepcional" : score >= 9 ? "Excelente" : score >= 8.5 ? "Muy bueno" : score >= 8 ? "Bueno" : "Bien"
+    score >= 9.5
+      ? m.ratingExceptional
+      : score >= 9
+        ? m.ratingExcellent
+        : score >= 8.5
+          ? m.ratingVeryGood
+          : score >= 8
+            ? m.ratingGood
+            : m.ratingOk
   return { score, label }
 }
 
-function HoverMarker({ marker }: { marker: MarkerItem }) {
+function HoverMarker({ marker, m, numberLocale }: { marker: MarkerItem; m: MapListing; numberLocale: string }) {
   const markerRef = React.useRef<L.Marker>(null)
   const closeTimeoutRef = React.useRef<number | null>(null)
   const isMarkerHoveredRef = React.useRef(false)
@@ -155,7 +170,7 @@ function HoverMarker({ marker }: { marker: MarkerItem }) {
     })
   }, [])
 
-  const booking = getBookingScore(marker.rating_google)
+  const booking = getBookingScore(marker.rating_google, m)
 
   return (
     <Marker ref={markerRef} position={[marker.latitud, marker.longitud]} icon={icon} eventHandlers={eventHandlers}>
@@ -180,14 +195,14 @@ function HoverMarker({ marker }: { marker: MarkerItem }) {
 
           <div className="mt-3 flex items-end justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase tracking-widest font-black text-slate-500">Precio</div>
+              <div className="text-[10px] uppercase tracking-widest font-black text-slate-500">{m.priceLabel}</div>
               <div className="text-base font-black text-[#256b67] leading-none">
-                {marker.precio_base ? `$ ${marker.precio_base.toLocaleString("es-AR")}` : "Consultar"}
+                {marker.precio_base ? `$ ${marker.precio_base.toLocaleString(numberLocale)}` : m.inquire}
               </div>
             </div>
 
             <span className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#4aa39e] text-white font-black text-sm hover:bg-[#3f9792] transition-colors">
-              + Info
+              {m.ctaInfo}
             </span>
           </div>
         </Link>
@@ -203,6 +218,8 @@ export default function MapAlojamiento({
   accommodations: AlojamientoAprobado[]
   portadaBySlug: Record<string, string | null>
 }) {
+  const { locale } = useLanguage()
+  const m = getSiteCopy(locale).pages.mapListing
   const [isFullscreen, setIsFullscreen] = React.useState(false)
 
   React.useEffect(() => {
@@ -262,6 +279,13 @@ export default function MapAlojamiento({
     }, [])
   }, [accommodations, portadaBySlug])
 
+  const mapCenter = React.useMemo<[number, number]>(() => {
+    if (markers.length === 0) return [-27.496, -64.859]
+    const lat = markers.reduce((s, mk) => s + mk.latitud, 0) / markers.length
+    const lng = markers.reduce((s, mk) => s + mk.longitud, 0) / markers.length
+    return [lat, lng]
+  }, [markers])
+
   if (markers.length === 0) {
     if (process.env.NODE_ENV !== "production" && accommodations.length > 0) {
       const sample = accommodations.slice(0, 3).map((a) => ({
@@ -275,20 +299,20 @@ export default function MapAlojamiento({
     }
     return (
       <div className="h-[400px] rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 font-medium">
-        No hay coordenadas disponibles para mostrar en el mapa.
+        {m.noCoords}
       </div>
     )
   }
 
-  const center: [number, number] = [markers[0].latitud, markers[0].longitud]
+  const numberLocale = locale === "en" ? "en-US" : "es-AR"
   const renderMap = (mapKey: string, className: string) => (
-    <MapContainer key={mapKey} center={center} zoom={12} scrollWheelZoom className={className}>
+    <MapContainer key={mapKey} center={mapCenter} zoom={12} scrollWheelZoom className={className}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {markers.map((m) => (
-        <HoverMarker key={`${mapKey}-${m.id}`} marker={m} />
+      {markers.map((mk) => (
+        <HoverMarker key={`${mapKey}-${mk.id}`} marker={mk} m={m} numberLocale={numberLocale} />
       ))}
     </MapContainer>
   )
@@ -302,7 +326,7 @@ export default function MapAlojamiento({
           onClick={() => setIsFullscreen(true)}
           className="absolute right-4 top-4 z-[500] rounded-xl bg-white/95 px-4 py-2 text-sm font-black text-slate-900 shadow-lg backdrop-blur hover:bg-white"
         >
-          Ver mapa completo
+          {m.expandMap}
         </button>
       </div>
 
@@ -326,7 +350,7 @@ export default function MapAlojamiento({
               <button
                 type="button"
                 onClick={() => setIsFullscreen(false)}
-                aria-label="Cerrar mapa completo"
+                aria-label={m.closeMapAria}
                 className="absolute right-4 top-4 z-[600] h-12 w-12 rounded-full bg-slate-900/90 text-2xl font-black leading-none text-white shadow-xl hover:bg-slate-900"
               >
                 X

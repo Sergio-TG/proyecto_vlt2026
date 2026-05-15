@@ -3,47 +3,47 @@
 import Link from "next/link"
 import { Facebook, Instagram, MessageCircle } from "lucide-react"
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 export function Footer() {
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
+
   return (
     <footer className="bg-slate-900 text-slate-200 py-16">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start gap-12 mb-16 pb-16 border-b border-slate-800">
           <div className="max-w-xs">
             <Link href="/" className="inline-block mb-2">
-              <img src="/logotipo.png" alt="Logotipo de Viví las Termas" className="h-16 w-auto brightness-0 invert object-contain" />
+              <img src="/logotipo.png" alt={copy.header.logoAlt} className="h-16 w-auto brightness-0 invert object-contain" />
             </Link>
             <p className="text-slate-400 text-xs italic mb-6 tracking-widest uppercase">
-              Donde el descanso se vuelve experiencia
+              {copy.footer.tagline}
             </p>
             <p className="text-slate-400 text-sm leading-relaxed">
-              Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y todo el bienestar de nuestro complejo termal.
+              {copy.footer.blurb}
             </p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12 flex-grow">
-            {/* Column 1: Navigation */}
             <div>
-              <h4 className="text-white font-bold text-lg mb-6">Navegación</h4>
+              <h4 className="text-white font-bold text-lg mb-6">{copy.footer.navTitle}</h4>
               <ul className="space-y-3 text-sm">
-                {["Inicio", "Termas", "Alojamientos", "Experiencias", "Contacto"].map((item) => (
-                  <li key={item}>
-                    <Link
-                      href={item === "Inicio" ? "/" : `/${item.toLowerCase().replace(" ", "-")}`}
-                      className="hover:text-primary transition-colors"
-                    >
-                      {item}
+                {copy.nav.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="hover:text-primary transition-colors">
+                      {item.name}
                     </Link>
                   </li>
                 ))}
               </ul>
             </div>
 
-            {/* Column 2: Termas */}
             <div>
-              <h4 className="text-white font-bold text-lg mb-6">Más Información</h4>
+              <h4 className="text-white font-bold text-lg mb-6">{copy.footer.moreTitle}</h4>
               <ul className="space-y-3 text-sm">
-                {["Blog", "Masajes & Spa", "Yoga", "Armonización Sonora", "Preguntas Frecuentes"].map((item) => (
+                {copy.footer.moreLinks.map((item) => (
                   <li key={item}>
                     <Link href="/termas" className="hover:text-primary transition-colors">
                       {item}
@@ -53,21 +53,20 @@ export function Footer() {
               </ul>
             </div>
 
-            {/* Column 3: Contact */}
             <div>
-              <h4 className="text-white font-bold text-lg mb-6">Contacto</h4>
+              <h4 className="text-white font-bold text-lg mb-6">{copy.footer.contactTitle}</h4>
               <ul className="space-y-4 text-sm">
                 <li className="flex items-start gap-3">
-                  <span className="text-primary font-semibold">Tel:</span>
+                  <span className="text-primary font-semibold">{copy.footer.tel}</span>
                   <span>+54 9 3546 525404</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-primary font-semibold">Email:</span>
+                  <span className="text-primary font-semibold">{copy.footer.email}</span>
                   <span>hola@vivilastermas.com.ar</span>
                 </li>
                 <li className="flex items-start gap-3">
-                  <span className="text-primary font-semibold">Ubicación:</span>
-                  <span>Av. Marrero S/N, Villa Yacanto,<br /> X5197, Córdoba, Argentina</span>
+                  <span className="text-primary font-semibold">{copy.footer.location}</span>
+                  <span>{copy.footer.address}</span>
                 </li>
               </ul>
             </div>
@@ -87,19 +86,16 @@ export function Footer() {
             </a>
           </div>
 
-          {/* Column 4: Newsletter */}
           <div className="flex flex-col max-w-md md:ml-auto w-full">
             <NewsletterSignup sourcePrefix="footer" />
           </div>
         </div>
 
         <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-6">
-
-          {/* Grupo Izquierdo: Copyright + Créditos */}
           <div className="flex flex-col md:flex-row gap-2 text-center md:text-left">
-            <p>© 2026 Viví las Termas. Todos los derechos reservados.</p>
+            <p>{copy.footer.copyright}</p>
             <p>
-              Diseño y Desarrollo{" "}
+              {copy.footer.creditsPrefix}{" "}
               <a
                 href="https://www.tgwebstudios.com"
                 target="_blank"
@@ -111,19 +107,17 @@ export function Footer() {
             </p>
           </div>
 
-          {/* Grupo Derecho: Enlaces legales */}
           <div className="flex items-center gap-6">
             <Link href="/privacidad" className="hover:text-primary transition-colors whitespace-nowrap">
-              Política de Privacidad
+              {copy.footer.privacy}
             </Link>
             <Link href="/terminos" className="hover:text-primary transition-colors whitespace-nowrap">
-              Términos de Servicio
+              {copy.footer.terms}
             </Link>
             <Link href="/cookies" className="hover:text-primary transition-colors whitespace-nowrap">
-              Configuración de Cookies
+              {copy.footer.cookieSettings}
             </Link>
           </div>
-
         </div>
       </div>
     </footer>

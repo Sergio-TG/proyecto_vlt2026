@@ -4,6 +4,8 @@ import * as React from "react"
 import L from "leaflet"
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import { ExternalLink } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 type Props = {
   position: [number, number]
@@ -14,6 +16,8 @@ type Props = {
 }
 
 export function AlojamientoDetailLocationMap({ position, googleMapsHref, titulo, className }: Props) {
+  const { locale } = useLanguage()
+  const dm = getSiteCopy(locale).pages.detailLocationMap
   React.useEffect(() => {
     delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
     L.Icon.Default.mergeOptions({
@@ -43,9 +47,7 @@ export function AlojamientoDetailLocationMap({ position, googleMapsHref, titulo,
           <Popup>
             <div className="min-w-[200px] space-y-2">
               <p className="text-sm font-bold text-slate-900">{titulo}</p>
-              <p className="text-xs text-slate-600">
-                Vista aproximada (OpenStreetMap). Para la ficha de Google usá el enlace del alojamiento.
-              </p>
+              <p className="text-xs text-slate-600">{dm.popupNote}</p>
               {googleMapsHref ? (
                 <a
                   href={googleMapsHref}
@@ -53,7 +55,7 @@ export function AlojamientoDetailLocationMap({ position, googleMapsHref, titulo,
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 text-sm font-bold text-primary hover:underline"
                 >
-                  Abrir en Google Maps
+                  {dm.openGoogle}
                   <ExternalLink className="h-3.5 w-3.5" />
                 </a>
               ) : null}

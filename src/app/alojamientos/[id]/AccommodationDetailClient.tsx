@@ -37,6 +37,8 @@ import {
   needsGoogleMapsRedirectResolve,
 } from "@/lib/google-maps-embed"
 import { AlojamientoDetailLocationMap } from "@/components/maps/AlojamientoDetailLocationMap"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 type AccommodationWithExtras = AlojamientoAprobado & {
   google_maps?: string | null
@@ -77,6 +79,11 @@ export function AccommodationDetailClient({
   fullUrls: string[]
   portadaPath: string | null
 }) {
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
+  const d = copy.pages.accommodationDetail
+  const numberLocale = locale === "en" ? "en-US" : "es-AR"
+
   const containerRef = React.useRef<HTMLDivElement>(null)
   const [showShareToast, setShowShareToast] = React.useState(false)
   const [taxonomia, setTaxonomia] = React.useState<TaxonomiaServicio[]>([])
@@ -106,8 +113,8 @@ export function AccommodationDetailClient({
   const handleShare = async () => {
     const url = window.location.href
     const shareData = {
-      title: `Viví las Termas - ${accommodation.nombre}`,
-      text: `Mirá este alojamiento increíble en las sierras: ${accommodation.nombre}`,
+      title: `${copy.featuredAccommodations.shareTitle} - ${accommodation.nombre}`,
+      text: copy.featuredAccommodations.shareText(accommodation.nombre),
       url: url,
     }
 
@@ -147,19 +154,19 @@ export function AccommodationDetailClient({
   const getFeatureLabel = (key: string, value: unknown) => {
     switch (key) {
       case "guests":
-        return `${value} Personas`
+        return d.featGuests(value as number)
       case "bedrooms":
-        return `${value} Dormitorios`
+        return d.featBedrooms(value as number)
       case "bathrooms":
-        return `${value} Baños`
+        return d.featBathrooms(value as number)
       case "wifi":
-        return value ? "Wi-Fi Gratis" : "Sin Wi-Fi"
+        return value ? d.featWifiOn : d.featWifiOff
       case "ac":
-        return value ? "Aire Acondicionado" : null
+        return value ? d.featAcOn : null
       case "pool":
-        return value ? "Pileta" : null
+        return value ? d.featPoolOn : null
       case "pet":
-        return value ? "Pet Friendly" : "No Mascotas"
+        return value ? d.featPetOn : d.featPetOff
       default:
         return null
     }
@@ -338,7 +345,7 @@ export function AccommodationDetailClient({
                 className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-all hover:-translate-x-1 pointer-events-auto"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
-                <span className="font-medium tracking-tight">Volver al catálogo</span>
+                <span className="font-medium tracking-tight">{d.backCatalog}</span>
               </Link>
               <div className="flex flex-wrap gap-3 mb-6">
                 <Badge className="bg-white/95 text-black hover:bg-white border-none text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-xl">
@@ -373,7 +380,7 @@ export function AccommodationDetailClient({
                       className="bg-transparent border-white/20 hover:bg-primary hover:border-primary text-white rounded-full h-10 px-4 flex items-center gap-2 transition-all"
                     >
                       <Share2 className="w-4 h-4" />
-                      <span className="font-bold">Compartir</span>
+                      <span className="font-bold">{d.share}</span>
                     </Button>
                   </motion.div>
                 </div>
@@ -393,7 +400,7 @@ export function AccommodationDetailClient({
                         rel="noreferrer"
                         className="inline-flex items-center gap-2 font-bold hover:text-white transition-colors"
                       >
-                        Ver en Google Maps
+                        {d.viewGoogleMaps}
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     )}
@@ -414,7 +421,7 @@ export function AccommodationDetailClient({
             className="fixed bottom-10 left-1/2 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3"
           >
             <CheckCircle2 className="w-5 h-5 text-green-400" />
-            <span className="font-bold">¡Enlace copiado al portapapeles!</span>
+            <span className="font-bold">{d.toastCopied}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -422,7 +429,7 @@ export function AccommodationDetailClient({
       <div className="container mx-auto px-4 mt-8 md:mt-12">
         {thumbUrls.length > 0 && fullUrls.length > 0 && (
           <section className="mt-10 md:mt-12">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Galería</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">{d.gallery}</h2>
             <GaleriaAlojamiento thumbUrls={thumbUrls} fullUrls={fullUrls} nombreAlojamiento={accommodation.nombre} />
           </section>
         )}
@@ -462,14 +469,14 @@ export function AccommodationDetailClient({
                   </div>
 
                   <div className="space-y-6 text-slate-600 mb-12">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Sobre este alojamiento</h3>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">{d.aboutTitle}</h3>
                     <p className="text-lg leading-relaxed font-light">{accommodation.descripcion}</p>
                   </div>
 
                   <div className="mt-10">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">Servicios Incluidos</h3>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight mb-8">{d.servicesTitle}</h3>
                     {uniqueServices.length === 0 ? (
-                      <div className="text-slate-500 text-sm font-medium">No hay servicios para mostrar.</div>
+                      <div className="text-slate-500 text-sm font-medium">{d.noServices}</div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-y-3 gap-x-8">
                         {uniqueServices.map((servicio) => {
@@ -486,12 +493,12 @@ export function AccommodationDetailClient({
                   </div>
 
                   <div className="mt-12 space-y-4">
-                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">Información de estadía</h3>
+                    <h3 className="text-2xl font-black text-slate-900 tracking-tight">{d.stayTitle}</h3>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
                         <Users className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                         <div className="min-w-0">
-                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Personas</div>
+                          <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{d.labelGuests}</div>
                           <div className="text-sm font-bold text-slate-800">
                             {derivedFeatures.guests || accommodation.capacidad_total || "—"}
                           </div>
@@ -503,7 +510,7 @@ export function AccommodationDetailClient({
                           <BedDouble className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
                             <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
-                              Distribución de camas
+                              {d.labelBeds}
                             </div>
                             <div className="text-sm font-bold text-slate-800 break-words">
                               {String(accommodation.distribucion_camas)}
@@ -516,7 +523,7 @@ export function AccommodationDetailClient({
                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
                           <Clock className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
-                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Check-in</div>
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{d.labelCheckIn}</div>
                             <div className="text-sm font-bold text-slate-800">{String(accommodation.check_in)}</div>
                           </div>
                         </div>
@@ -526,7 +533,7 @@ export function AccommodationDetailClient({
                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
                           <LogOut className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
-                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Check-out</div>
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{d.labelCheckOut}</div>
                             <div className="text-sm font-bold text-slate-800">{String(accommodation.check_out)}</div>
                           </div>
                         </div>
@@ -536,7 +543,7 @@ export function AccommodationDetailClient({
                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100 sm:col-span-2">
                           <CalendarX2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
-                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">Cancelación</div>
+                            <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{d.labelCancel}</div>
                             <div className="text-sm font-bold text-slate-800 break-words">
                               {String(accommodation.cancelacion)}
                             </div>
@@ -561,12 +568,12 @@ export function AccommodationDetailClient({
                 <CardHeader className="bg-slate-50 p-10 border-b border-slate-100">
                   <CardTitle className="flex justify-between items-end">
                     <span className="text-4xl font-black text-slate-900 tracking-tighter">
-                      {accommodation.precio_base ? `$${accommodation.precio_base.toLocaleString("es-AR")}` : "Consultar"}
+                      {accommodation.precio_base ? `$${accommodation.precio_base.toLocaleString(numberLocale)}` : d.askPrice}
                     </span>
-                    <span className="text-base text-slate-400 font-medium mb-1">/ noche</span>
+                    <span className="text-base text-slate-400 font-medium mb-1">{d.perNight}</span>
                   </CardTitle>
                   <CardDescription className="text-base font-medium text-slate-500 pt-2">
-                    Estadía mínima de {accommodation.noches_minimas || 1} noches
+                    {d.minStay(Number(accommodation.noches_minimas) || 1)}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-10 space-y-8">
@@ -576,18 +583,16 @@ export function AccommodationDetailClient({
                       className="w-full bg-[#1a1f2c] hover:bg-primary text-white shadow-2xl text-lg h-20 rounded-full font-bold"
                     >
                       <a
-                        href={`https://wa.me/5493546525404?text=Hola, me interesa consultar disponibilidad para *${accommodation.nombre}*.`}
+                        href={`https://wa.me/5493546525404?text=${encodeURIComponent(d.waTemplate(accommodation.nombre))}`}
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         <MessageCircle className="w-6 h-6 mr-3" />
-                        Consultar Disponibilidad
+                        {d.ctaWhatsapp}
                       </a>
                     </Button>
                   </motion.div>
-                  <p className="text-sm text-center text-slate-400 font-medium leading-relaxed">
-                    Serás redirigido a WhatsApp para hablar directamente con nosotros y recibir asesoría personalizada.
-                  </p>
+                  <p className="text-sm text-center text-slate-400 font-medium leading-relaxed">{d.whatsappHint}</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -596,12 +601,12 @@ export function AccommodationDetailClient({
 
         {showUbicacionSection ? (
           <section className="mt-12 lg:mt-16">
-            <h2 className="text-2xl font-bold text-slate-900 mb-6">Ubicación</h2>
+            <h2 className="text-2xl font-bold text-slate-900 mb-6">{d.locationTitle}</h2>
             <div className="h-[360px] rounded-lg overflow-hidden border border-slate-200 shadow-sm bg-white relative">
               {mapsUrlStillResolving ? (
                 <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                   <MapPin className="w-12 h-12 text-primary mb-4 animate-pulse" />
-                  <p className="text-slate-600 font-medium">Cargando ubicación…</p>
+                  <p className="text-slate-600 font-medium">{d.loadingMap}</p>
                 </div>
               ) : mapPin && googleMapsHref ? (
                 <AlojamientoDetailLocationMap
@@ -613,18 +618,15 @@ export function AccommodationDetailClient({
               ) : (
                 <div className="flex flex-col items-center justify-center h-full p-8 text-center">
                   <MapPin className="w-12 h-12 text-primary mb-4" />
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">Ver ubicación en Google Maps</h3>
-                  <p className="text-slate-500 mb-6 max-w-md">
-                    El mapa interactivo usa coordenadas extraídas del enlace del alojamiento. Si no hay coordenadas en
-                    ese enlace, abrí Google Maps con el botón de abajo para ver la ubicación exacta.
-                  </p>
+                  <h3 className="text-xl font-bold text-slate-900 mb-2">{d.mapHelpTitle}</h3>
+                  <p className="text-slate-500 mb-6 max-w-md">{d.mapHelpBody}</p>
                   {googleMapsHref ? (
                     <Button
                       asChild
                       className="w-full max-w-xs bg-primary hover:bg-primary/90 text-white shadow-xl text-lg h-12 rounded-full font-bold"
                     >
                       <a href={googleMapsHref} target="_blank" rel="noopener noreferrer">
-                        Ver ubicación en Google Maps
+                        {d.mapOpenBtn}
                       </a>
                     </Button>
                   ) : null}

@@ -3,11 +3,15 @@
 import * as React from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 type CookiesConsent = "granted" | "denied"
 
 export function CookieBanner({ onConsentChange }: { onConsentChange?: (value: CookiesConsent) => void }) {
   const [isVisible, setIsVisible] = React.useState(false)
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
 
   React.useEffect(() => {
     const stored = window.localStorage.getItem("cookies_consent")
@@ -31,12 +35,12 @@ export function CookieBanner({ onConsentChange }: { onConsentChange?: (value: Co
       <div className="rounded-lg border border-slate-200 bg-white shadow-2xl px-4 py-4 md:px-6">
         <div className="flex flex-col md:flex-row md:items-center gap-4 md:gap-6">
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-slate-900">Preferencias de cookies</p>
+            <p className="text-sm font-semibold text-slate-900">{copy.cookies.title}</p>
             <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-              Usamos cookies para mejorar la experiencia y, si aceptás, medir el tráfico con analítica.
+              {copy.cookies.body}
               <span className="ml-1">
                 <Link href="/cookies" className="font-semibold text-[#4aa39e] hover:underline">
-                  Ver política de cookies
+                  {copy.cookies.policyLink}
                 </Link>
                 .
               </span>
@@ -50,10 +54,10 @@ export function CookieBanner({ onConsentChange }: { onConsentChange?: (value: Co
               variant="secondary"
               className="h-10 rounded-lg"
             >
-              Rechazar
+              {copy.cookies.reject}
             </Button>
             <Button type="button" onClick={() => setConsent("granted")} className="h-10 rounded-lg bg-[#4aa39e] hover:bg-[#3f9792]">
-              Aceptar
+              {copy.cookies.accept}
             </Button>
           </div>
         </div>

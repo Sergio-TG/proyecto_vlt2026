@@ -7,6 +7,7 @@ import { Footer } from "@/components/layout/Footer";
 import ImageKitProviderWrapper from "@/components/common/ImageKitProviderWrapper";
 import WhatsAppFloatingButton from "@/components/common/WhatsAppFloatingButton";
 import { CookieBanner } from "@/components/ui/CookieBanner";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -28,15 +29,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ImageKitProviderWrapper>
-      {!hideLayout && <Header />}
-      
-      <main className="flex-1 w-full max-w-full overflow-x-hidden relative">
-        {children}
-      </main>
-      
-      {!hideLayout && <Footer />}
-      {!hideLayout && <WhatsAppFloatingButton />}
-      {!hideLayout && <CookieBanner onConsentChange={setCookiesConsent} />}
+      <LanguageProvider>
+        {!hideLayout && <Header />}
+
+        <main className="flex-1 w-full max-w-full overflow-x-hidden relative">
+          {children}
+        </main>
+
+        {!hideLayout && <Footer />}
+        {!hideLayout && <WhatsAppFloatingButton />}
+        {!hideLayout && <CookieBanner onConsentChange={setCookiesConsent} />}
+      </LanguageProvider>
     </ImageKitProviderWrapper>
   );
 }

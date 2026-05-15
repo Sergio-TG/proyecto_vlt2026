@@ -2,6 +2,8 @@
 
 import * as React from "react"
 import Image from "next/image"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 type Overlay = { label: string; count: number }
 
@@ -69,6 +71,9 @@ export function GaleriaGrid({
   onImageError,
   failedIndexes,
 }: GaleriaGridProps) {
+  const { locale } = useLanguage()
+  const g = getSiteCopy(locale).pages.gallery
+
   const valid = React.useMemo(() => {
     return thumbUrls.map((u, i) => ({ url: u, index: i })).filter((x) => !failedIndexes.has(x.index))
   }, [failedIndexes, thumbUrls])
@@ -91,14 +96,14 @@ export function GaleriaGrid({
           : "grid-cols-2 grid-rows-2"
 
   return (
-    <section aria-label={`Galería de fotos de ${nombreAlojamiento}`} className="w-full relative z-50">
+    <section aria-label={g.ariaGallery(nombreAlojamiento)} className="w-full relative z-50">
       <div className="hidden md:block">
         <div className="w-full h-[500px] rounded-xl overflow-hidden bg-white">
           <div className="w-full h-full flex gap-[2px]">
             <div className="relative h-full" style={{ width: "60%" }}>
               <Tile
                 src={mainSrc}
-                alt={`${nombreAlojamiento} — foto 1 de ${total}`}
+                alt={g.photoAltIndexed(nombreAlojamiento, 1, total)}
                 priority
                 sizes="(min-width: 768px) 60vw, 100vw"
                 className="h-full rounded-tl-xl overflow-hidden"
@@ -116,7 +121,7 @@ export function GaleriaGrid({
                     const shouldOverlay = i === 3 || (thumbs.length < 4 && isLast)
                     const overlay: Overlay | undefined =
                       shouldOverlay && total > 0
-                        ? { label: `Ver todas las fotos (${total})`, count: total }
+                        ? { label: g.verTodasOverlay(total), count: total }
                         : undefined
 
                     const rounding =
@@ -132,7 +137,7 @@ export function GaleriaGrid({
                       <div key={t.index} className={`relative ${span}`}>
                         <Tile
                           src={t.url}
-                          alt={`${nombreAlojamiento} — foto ${clampIndex(t.index + 1, total)} de ${total}`}
+                          alt={g.photoAltIndexed(nombreAlojamiento, clampIndex(t.index + 1, total), total)}
                           sizes="(min-width: 768px) 40vw, 100vw"
                           className={`h-full ${rounding}`}
                           onClick={click}
@@ -154,7 +159,7 @@ export function GaleriaGrid({
           <button type="button" className="absolute inset-0 overflow-hidden group cursor-pointer" onClick={() => onFotoClick(main.index)}>
             <Image
               src={mainSrc}
-              alt={`${nombreAlojamiento} — foto 1 de ${total}`}
+              alt={g.photoAltIndexed(nombreAlojamiento, 1, total)}
               fill
               sizes="100vw"
               priority
@@ -178,7 +183,7 @@ export function GaleriaGrid({
                   >
                     <Image
                       src={t.url}
-                      alt={`${nombreAlojamiento} — foto ${clampIndex(t.index + 1, total)} de ${total}`}
+                      alt={g.photoAltIndexed(nombreAlojamiento, clampIndex(t.index + 1, total), total)}
                       fill
                       sizes="112px"
                       loading="lazy"
@@ -187,7 +192,7 @@ export function GaleriaGrid({
                     />
                     {isLast && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">Ver todas ({total})</span>
+                        <span className="text-white font-bold text-xs">{g.verTodasTiles(total)}</span>
                       </div>
                     )}
                   </button>
@@ -198,7 +203,7 @@ export function GaleriaGrid({
                 className="h-20 px-4 flex-none bg-slate-950 text-white font-bold text-sm"
                 onClick={onVerTodas}
               >
-                Ver todas
+                {g.verTodasBtn}
               </button>
             </div>
           </div>

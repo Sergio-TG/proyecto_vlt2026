@@ -13,6 +13,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 interface AccommodationGalleryProps {
   images?: string[]
@@ -23,6 +25,9 @@ interface AccommodationGalleryProps {
 }
 
 export function AccommodationGallery({ images, folder, subfolder, paths, title }: AccommodationGalleryProps) {
+  const { locale } = useLanguage()
+  const g = getSiteCopy(locale).pages.gallery
+
   const [isOpen, setIsOpen] = React.useState(false)
   const [initialSlide, setInitialSlide] = React.useState(0)
   const [orientationByIndex, setOrientationByIndex] = React.useState<Record<number, "portrait" | "landscape">>({})
@@ -69,7 +74,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
           {isUrl ? (
             <img
               src={(images as string[])[index]}
-              alt={`${title} - Foto ${index + 1}`}
+              alt={g.photoAlt(title, index)}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
             />
           ) : (
@@ -77,7 +82,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
               path={(paths as string[])[index]}
               folder={folder as ImageFolder}
               subfolder={subfolder}
-              alt={`${title} - Foto ${index + 1}`}
+              alt={g.photoAlt(title, index)}
               fill
               className="absolute inset-0"
               sizes="(max-width: 1024px) 100vw, 1200px"
@@ -96,7 +101,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
         </button>
       )
     },
-    [folder, images, paths, subfolder, title]
+    [folder, images, paths, subfolder, title, g]
   )
 
   const sources = React.useMemo(() => {
@@ -223,7 +228,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
                 <CarouselItem key={index} className="flex items-center justify-center h-[80vh]">
                   <img
                     src={img}
-                    alt={`${title} - Foto ${index + 1}`}
+                    alt={g.photoAlt(title, index)}
                     className="max-h-full max-w-full object-contain"
                   />
                 </CarouselItem>

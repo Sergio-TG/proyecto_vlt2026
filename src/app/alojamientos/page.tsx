@@ -15,6 +15,8 @@ import { useSearchParams } from "next/navigation"
 import { SocialProof } from "@/components/home/SocialProof"
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
 import { ContactMapSection } from "@/components/contact/ContactMapSection"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 import {
   Sheet,
   SheetContent,
@@ -171,6 +173,10 @@ function AlojamientosPageInner() {
   })
   const [showShareToast, setShowShareToast] = useState(false)
 
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
+  const p = copy.pages.alojamientos
+
   useEffect(() => {
     const nextFeaturesParam = searchParams.get("features") || ""
     const nextFeatures = nextFeaturesParam
@@ -283,8 +289,8 @@ function AlojamientosPageInner() {
     
     const url = `${window.location.origin}/alojamientos/${slug}`
     const shareData = {
-      title: `Viví las Termas - ${title}`,
-      text: `Mirá este alojamiento increíble en las sierras: ${title}`,
+      title: `${copy.featuredAccommodations.shareTitle} - ${title}`,
+      text: copy.featuredAccommodations.shareText(title),
       url: url,
     }
 
@@ -367,9 +373,8 @@ function AlojamientosPageInner() {
 
   const renderFilterContent = (isDesktop = false) => (
     <div className={`space-y-8 ${isDesktop ? "" : "pb-20"}`}>
-      {/* Localidad */}
       <div className="space-y-4">
-        <h4 className="text-lg font-bold tracking-tight">Localidad</h4>
+        <h4 className="text-lg font-bold tracking-tight">{p.filterLocalidad}</h4>
         <div className="grid grid-cols-1 gap-3">
           {locations.map((loc) => {
             const id = `${isDesktop ? "desktop" : "mobile"}-loc-${loc}`
@@ -396,17 +401,16 @@ function AlojamientosPageInner() {
         </div>
       </div>
 
-      {/* Servicios */}
       <div className="space-y-4">
-        <h4 className="text-lg font-bold tracking-tight">Servicios</h4>
+        <h4 className="text-lg font-bold tracking-tight">{p.filterServicios}</h4>
         <div className="grid grid-cols-1 gap-3">
           {[
-            { id: "wifi", label: "Wi-Fi Gratis", icon: Wifi },
-            { id: "pet", label: "Pet Friendly", icon: PawPrint },
-            { id: "pool", label: "Pileta", icon: Waves },
-            { id: "parking", label: "Cochera", icon: Car },
-            { id: "bbq", label: "Parrilla / Quincho", icon: Utensils },
-            { id: "breakfast", label: "Desayuno", icon: Coffee },
+            { id: "wifi", label: p.featureWifi, icon: Wifi },
+            { id: "pet", label: p.featurePet, icon: PawPrint },
+            { id: "pool", label: p.featurePool, icon: Waves },
+            { id: "parking", label: p.featureParking, icon: Car },
+            { id: "bbq", label: p.featureBbq, icon: Utensils },
+            { id: "breakfast", label: p.featureBreakfast, icon: Coffee },
           ].map((feat) => {
             const id = `${isDesktop ? "desktop" : "mobile"}-feat-${feat.id}`
             return (
@@ -447,7 +451,7 @@ function AlojamientosPageInner() {
           <div className="absolute inset-0 bg-black/50 z-10" />
           <img
             src={heroAlojamientosImage}
-            alt="Alojamientos en El Durazno"
+            alt={p.heroAlt}
             className="w-full h-full object-cover"
           />
         </motion.div>
@@ -458,7 +462,7 @@ function AlojamientosPageInner() {
             transition={{ duration: 1, ease: [0.22, 1, 0.36, 1] }}
             className="text-5xl md:text-8xl font-bold mb-4 drop-shadow-2xl tracking-tighter"
           >
-            Alojamientos
+            {p.heroTitle}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -466,7 +470,7 @@ function AlojamientosPageInner() {
             transition={{ delay: 0.3, duration: 1 }}
             className="text-xl md:text-3xl max-w-2xl font-light drop-shadow-md text-white/90"
           >
-            Encontrá tu lugar ideal en las sierras
+            {p.heroSubtitle}
           </motion.p>
         </div>
       </section>
@@ -481,10 +485,11 @@ function AlojamientosPageInner() {
         >
           <div className="space-y-3">
             <h1 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight">
-              Alojamientos <br/><span className="text-primary">Verificados</span>
+              {p.sectionLine1} <br />
+              <span className="text-primary">{p.sectionAccent}</span>
             </h1>
             <p className="text-base md:text-lg text-slate-500 max-w-2xl font-light leading-relaxed text-balance">
-              Encontrá tu lugar ideal en las sierras. Todos inspeccionados personalmente para garantizar tu bienestar.
+              {p.sectionSubtitle}
             </p>
           </div>
 
@@ -495,7 +500,7 @@ function AlojamientosPageInner() {
                 onClick={clearFilters}
                 className="text-slate-400 hover:text-red-500 font-bold"
               >
-                Limpiar Filtros
+                {p.clearFilters}
               </Button>
             )}
             
@@ -505,7 +510,7 @@ function AlojamientosPageInner() {
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                     <Button variant="outline" className="gap-3 h-16 px-10 rounded-full border-2 font-black text-xl hover:bg-slate-50 transition-all shadow-2xl shadow-slate-200/50">
                         <Filter className="w-6 h-6 text-primary" />
-                        Filtrar
+                        {p.filterBtn}
                         {(selectedLocation.length + selectedFeatures.length) > 0 && (
                           <Badge className="ml-2 bg-primary text-white rounded-full w-6 h-6 flex items-center justify-center p-0">
                             {selectedLocation.length + selectedFeatures.length}
@@ -517,9 +522,9 @@ function AlojamientosPageInner() {
                 <SheetContent side="left" className="w-full sm:max-w-md rounded-r-[3rem] border-none shadow-2xl p-0 flex flex-col h-full overflow-hidden">
                   <div className="flex-1 overflow-y-auto p-10 pb-0 custom-scrollbar">
                     <SheetHeader className="mb-10">
-                      <SheetTitle className="text-3xl font-black tracking-tight">Filtros de Búsqueda</SheetTitle>
+                      <SheetTitle className="text-3xl font-black tracking-tight">{p.sheetTitle}</SheetTitle>
                       <SheetDescription className="text-lg">
-                        Ajustá los resultados según tus preferencias.
+                        {p.sheetDesc}
                       </SheetDescription>
                     </SheetHeader>
                     {renderFilterContent(false)}
@@ -528,7 +533,7 @@ function AlojamientosPageInner() {
                   <SheetFooter className="p-10 pt-6 mt-auto border-t border-slate-100 bg-white/80 backdrop-blur-md z-20">
                     <SheetClose asChild>
                       <Button className="w-full h-16 rounded-full font-black text-xl shadow-2xl">
-                        Ver {filteredAccommodations.length} Resultados
+                        {p.seeResults(filteredAccommodations.length)}
                       </Button>
                     </SheetClose>
                   </SheetFooter>
@@ -544,8 +549,8 @@ function AlojamientosPageInner() {
           <aside className="hidden md:block w-80 flex-shrink-0">
             <div className="sticky top-32 space-y-10 bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100">
               <div>
-                <h3 className="text-2xl font-black tracking-tight mb-2">Filtros</h3>
-                <p className="text-slate-500 text-sm font-medium mb-8">Refiná tu búsqueda</p>
+                <h3 className="text-2xl font-black tracking-tight mb-2">{p.sidebarTitle}</h3>
+                <p className="text-slate-500 text-sm font-medium mb-8">{p.sidebarSubtitle}</p>
                 {renderFilterContent(true)}
               </div>
             </div>
@@ -556,7 +561,7 @@ function AlojamientosPageInner() {
             {/* Results Info */}
             <div className="mb-10 flex items-center gap-4">
               <p className="text-slate-400 font-bold uppercase tracking-widest text-xs">
-                Mostrando {filteredAccommodations.length} de {accommodations.length} alojamientos
+                {p.showing(filteredAccommodations.length, accommodations.length)}
               </p>
               <div className="h-px flex-grow bg-slate-100" />
             </div>
@@ -600,9 +605,9 @@ function AlojamientosPageInner() {
                 <div className="bg-slate-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto">
                   <X className="w-10 h-10 text-slate-300" />
                 </div>
-                <h3 className="text-3xl font-bold text-slate-900">No hay resultados</h3>
-                <p className="text-xl text-slate-500 font-light">Probá ajustando los filtros para encontrar lo que buscás.</p>
-                <Button onClick={clearFilters} className="rounded-full px-8 h-14 font-bold">Ver todos los alojamientos</Button>
+                <h3 className="text-3xl font-bold text-slate-900">{p.emptyTitle}</h3>
+                <p className="text-xl text-slate-500 font-light">{p.emptyHint}</p>
+                <Button onClick={clearFilters} className="rounded-full px-8 h-14 font-bold">{p.emptyCta}</Button>
               </motion.div>
             )}
           </div>
@@ -618,9 +623,9 @@ function AlojamientosPageInner() {
           className="pb-24 space-y-3"
         >
           <div className="flex items-center justify-between gap-4">
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">Mapa de alojamientos</h2>
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 tracking-tight">{p.mapTitle}</h2>
             <p className="text-xs uppercase tracking-widest text-slate-400 font-bold">
-              {filteredAccommodations.length} resultados
+              {p.mapResults(filteredAccommodations.length)}
             </p>
           </div>
           <MapAlojamiento accommodations={filteredAccommodations} portadaBySlug={portadaBySlug} />
@@ -648,7 +653,7 @@ function AlojamientosPageInner() {
             className="fixed bottom-10 left-1/2 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3"
           >
             <CheckCircle2 className="w-5 h-5 text-green-400" />
-            <span className="font-bold">¡Enlace copiado al portapapeles!</span>
+            <span className="font-bold">{copy.featuredAccommodations.toastCopied}</span>
           </motion.div>
         )}
       </AnimatePresence>
