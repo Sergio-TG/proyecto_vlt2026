@@ -4,7 +4,7 @@
 import * as React from "react"
 import { X } from "lucide-react"
 import CustomImage from "@/components/common/CustomImage"
-import { IMAGE_FOLDERS, type ImageFolder, IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+import { IMAGE_FOLDERS, type ImageFolder, getResolvedImageKitBase } from "@/lib/imagekit.config"
 import {
   Carousel,
   CarouselContent,
@@ -54,7 +54,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
   }, [isOpen])
 
   const toImageKitUrl = React.useCallback((relativePath: string) => {
-    const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+    const base = getResolvedImageKitBase().replace(/\/+$/, "")
     const rel = relativePath.trim().replace(/^\/+/, "")
     return `${base}/${rel}`
   }, [])

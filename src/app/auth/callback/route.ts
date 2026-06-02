@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
   const origin = getSafeOrigin(request);
   const code = searchParams.get('code');
   // Redirige al portal de socios tras confirmar
-  const next = searchParams.get('next') ?? '/socios';
+  const next = searchParams.get('next') ?? '/socios/portal';
 
   if (code) {
     const cookieStore = await cookies(); // <--- Crucial en Next 15
@@ -57,5 +57,5 @@ export async function GET(request: NextRequest) {
   }
 
   // Si algo falla, redirigimos al portal (ruta existente) con mensaje de error
-  return NextResponse.redirect(`${origin}/socios?error=auth-callback-failed`);
+  return NextResponse.redirect(`${origin}/socios/portal?error=auth-callback-failed`);
 }

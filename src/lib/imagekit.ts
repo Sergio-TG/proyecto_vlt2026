@@ -110,6 +110,36 @@ export async function getArchivosAlojamientoWithCandidates(slug: string, extraCa
   return []
 }
 
+export async function getArchivosGaleriaTermas(): Promise<string[]> {
+  const privateKey = getImageKitPrivateKey()
+  if (!privateKey) return []
+
+  const url = new URL("https://api.imagekit.io/v1/files")
+  url.searchParams.set("path", "/galeria/termas")
+  url.searchParams.set("fileType", "image")
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: buildAuthHeader(privateKey) },
+    next: { revalidate: 3600, tags: ["imagekit", "imagekit:galeria:termas"] },
+  })
+
+  if (!res.ok) return []
+
+  const data = (await res.json()) as unknown
+  if (!Array.isArray(data)) return []
+
+  const names = (data as ImageKitFileItem[])
+    .map((it) => (it?.name ? String(it.name) : ""))
+    .map((n) => n.trim())
+    .filter(Boolean)
+    .filter(isImageName)
+
+  const unique = Array.from(new Set(names))
+  if (unique.length === 0) return []
+
+  return sortGaleriaFiles(unique)
+}
+
 export async function getPortadaAlojamiento(slug: string): Promise<string | null> {
   const archivos = await getArchivosAlojamiento(slug)
   if (archivos.length === 0) return null

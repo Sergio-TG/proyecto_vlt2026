@@ -48,7 +48,7 @@ export default function EnConstruccionPage() {
             ¿Eres prestador?
           </p>
           <Link 
-            href="/socios" 
+            href="/socios/portal" 
             className="block w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-4 px-6 rounded-xl transition-colors shadow-lg shadow-teal-200"
           >
             Acceder al Portal de Socios

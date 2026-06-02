@@ -28,11 +28,11 @@ export function Footer() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-12 flex-grow">
             <div>
-              <h4 className="text-white font-bold text-lg mb-6">{copy.footer.navTitle}</h4>
+              <h4 className="text-white font-bold text-lg mb-6">{copy.footer.exploreTitle}</h4>
               <ul className="space-y-3 text-sm">
-                {copy.nav.map((item) => (
+                {copy.footer.exploreLinks.map((item) => (
                   <li key={item.href}>
-                    <Link href={item.href} className="hover:text-primary transition-colors">
+                    <Link href={item.href} className="text-slate-400 hover:text-primary transition-colors">
                       {item.name}
                     </Link>
                   </li>
@@ -41,15 +41,20 @@ export function Footer() {
             </div>
 
             <div>
-              <h4 className="text-white font-bold text-lg mb-6">{copy.footer.moreTitle}</h4>
+              <h4 className="text-white font-bold text-lg mb-6">{copy.footer.resourcesTitle}</h4>
               <ul className="space-y-3 text-sm">
-                {copy.footer.moreLinks.map((item) => (
-                  <li key={item}>
-                    <Link href="/termas" className="hover:text-primary transition-colors">
-                      {item}
+                {copy.footer.resourcesLinks.map((item) => (
+                  <li key={item.href}>
+                    <Link href={item.href} className="text-slate-400 hover:text-primary transition-colors">
+                      {item.name}
                     </Link>
                   </li>
                 ))}
+                <li className="pt-2">
+                  <Link href="/socios" className="text-primary font-semibold hover:text-primary/80 transition-colors">
+                    {copy.footer.sociosCta}
+                  </Link>
+                </li>
               </ul>
             </div>
 
@@ -91,32 +96,40 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center text-xs text-slate-500 gap-6">
-          <div className="flex flex-col md:flex-row gap-2 text-center md:text-left">
-            <p>{copy.footer.copyright}</p>
-            <p>
-              {copy.footer.creditsPrefix}{" "}
-              <a
-                href="https://www.tgwebstudios.com"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:text-primary transition-colors font-medium text-slate-400"
-              >
-                TG Web Studios
-              </a>
-            </p>
-          </div>
+        <div className="relative z-0 mt-16 border-t border-slate-800 pt-8 pb-20 md:pb-16 lg:pb-20">
+          <div className="relative z-10 flex w-full flex-col gap-6 text-xs text-slate-500 md:flex-row md:items-center md:justify-between">
+            <div className="flex flex-col gap-2 text-left">
+              <p>{copy.footer.copyright}</p>
+              <p>
+                {copy.footer.creditsPrefix}{" "}
+                <a
+                  href="https://www.tgwebstudios.com"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium text-slate-400 transition-colors hover:text-primary"
+                >
+                  TG Web Studios
+                </a>
+              </p>
+            </div>
 
-          <div className="flex items-center gap-6">
-            <Link href="/privacidad" className="hover:text-primary transition-colors whitespace-nowrap">
-              {copy.footer.privacy}
-            </Link>
-            <Link href="/terminos" className="hover:text-primary transition-colors whitespace-nowrap">
-              {copy.footer.terms}
-            </Link>
-            <Link href="/cookies" className="hover:text-primary transition-colors whitespace-nowrap">
-              {copy.footer.cookieSettings}
-            </Link>
+            <nav
+              aria-label={locale === "es" ? "Enlaces legales" : "Legal links"}
+              className="relative z-10 flex flex-wrap gap-x-6 gap-y-2 md:justify-end"
+            >
+              <Link
+                href="/privacidad"
+                className="whitespace-nowrap transition-colors hover:text-primary"
+              >
+                {copy.footer.privacy}
+              </Link>
+              <Link href="/terminos" className="whitespace-nowrap transition-colors hover:text-primary">
+                {copy.footer.terms}
+              </Link>
+              <Link href="/cookies" className="whitespace-nowrap transition-colors hover:text-primary">
+                {copy.footer.cookieSettings}
+              </Link>
+            </nav>
           </div>
         </div>
       </div>

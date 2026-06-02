@@ -25,8 +25,11 @@ export function Header() {
     pathname === "/experiencias" ||
     pathname === "/alojamientos" ||
     pathname === "/contacto" ||
+    pathname === "/blog" ||
+    pathname.startsWith("/blog/") ||
     pathname === "/admin" ||
     pathname === "/socios" ||
+    pathname.startsWith("/socios/portal") ||
     (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
 
   useMotionValueEvent(scrollY, "change", () => {
@@ -88,7 +91,7 @@ export function Header() {
         </nav>
 
         {/* Actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
@@ -101,6 +104,20 @@ export function Header() {
             <Globe className="h-4 w-4" />
             <span>{locale.toUpperCase()}</span>
           </Button>
+          <Link href="/socios/portal">
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "rounded-full border-2 font-semibold px-4 transition-all duration-300",
+                isScrolled || !isTransparentPage
+                  ? "border-primary text-primary hover:bg-primary/5"
+                  : "border-white/80 bg-white/10 text-white hover:bg-white/20"
+              )}
+            >
+              {copy.header.accessSocios}
+            </Button>
+          </Link>
           <Link href="/#planificar-viaje">
             <Button 
               className={cn(
@@ -141,11 +158,14 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4 w-full max-w-xs">
                <Button variant="outline" className="w-full justify-center gap-2" onClick={toggleLocale}>
                  <Globe className="h-4 w-4" /> {locale === "es" ? copy.header.mobileLangHint : copy.header.mobileLangHintEn}
                </Button>
-               <Link href="/#planificar-viaje">
+               <Link href="/socios/portal" className="w-full">
+                 <Button variant="outline" className="w-full font-semibold">{copy.header.accessSocios}</Button>
+               </Link>
+               <Link href="/#planificar-viaje" className="w-full">
                  <Button className="w-full">{copy.header.planTrip}</Button>
                </Link>
             </div>

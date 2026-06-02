@@ -3,6 +3,7 @@
 import * as React from "react"
 import Image from "next/image"
 import { createPortal } from "react-dom"
+import { AnimatePresence, motion } from "framer-motion"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 
@@ -207,19 +208,28 @@ export function GaleriaLightbox({
         </button>
 
         <div className="relative w-full h-full min-h-0">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-full h-full min-h-0 rounded-2xl overflow-hidden">
-              <Image
-                src={activeItem.full}
-                alt={g.photoAltIndexed(nombreAlojamiento, active + 1, total)}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                priority
-                onError={() => onImageError(activeItem.index)}
-              />
-            </div>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeItem.index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <div className="relative h-full w-full min-h-0 max-h-[78vh] rounded-2xl overflow-hidden">
+                <Image
+                  src={activeItem.full}
+                  alt={g.photoAltIndexed(nombreAlojamiento, active + 1, total)}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                  priority
+                  onError={() => onImageError(activeItem.index)}
+                />
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <button

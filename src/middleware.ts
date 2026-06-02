@@ -9,6 +9,8 @@ export function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isAllowed =
+    pathname === '/blog' ||
+    pathname.startsWith('/blog/') ||
     pathname.startsWith('/socios') ||
     pathname.startsWith('/admin') ||
     pathname.startsWith('/auth') ||

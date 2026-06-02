@@ -14,11 +14,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [cookiesConsent, setCookiesConsent] = React.useState<"granted" | "denied" | null>(null);
 
   // Definimos qué rutas NO deben mostrar Header/Footer (paneles y página de mantenimiento)
-  const isSociosPage = pathname.startsWith('/socios');
+  const isSociosPortal = pathname.startsWith('/socios/portal');
   const isAdminPage = pathname.startsWith('/admin');
   const isMaintenancePage = pathname === '/en-construccion';
   
-  const hideLayout = isSociosPage || isAdminPage || isMaintenancePage;
+  const hideLayout = isSociosPortal || isAdminPage || isMaintenancePage;
 
   React.useEffect(() => {
     const stored = window.localStorage.getItem("cookies_consent");

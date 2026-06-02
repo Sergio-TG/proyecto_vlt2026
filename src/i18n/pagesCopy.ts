@@ -25,10 +25,10 @@ export const pagesEs = {
     galleryTitle: "Termas del Sol",
     infoTitle: "Información Útil",
     infoRows: [
-      { title: "Horarios", desc: "Abierto todos los días de 9:00 a 18:00 hs." },
+      { title: "Horarios", desc: "Abierto todos los días de 10:00 a 18:00 hs." },
       {
         title: "Qué incluye el pase",
-        desc: "Acceso a todas las piletas, bata, locker, clase de yoga y armonización sonora.",
+        desc: "Acceso a todas las piletas, bata, locker, almuerzo y la actividad del día.",
       },
       {
         title: "Ubicación",
@@ -305,6 +305,106 @@ export const pagesEs = {
         a: "Sí, podés sumar experiencias de bienestar, naturaleza y actividades complementarias.",
       },
     ],
+  },
+  blog: {
+    heroBackground:
+      "https://ik.imagekit.io/vivilastermas/entorno/experiencias/plaza-yacanto.webp?q=85&w=2400&auto=format&fit=crop",
+    heroCardImage:
+      "https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron003.webp?q=85&w=1200&auto=format&fit=crop",
+    heroAlt: "Villa Yacanto y El Durazno — naturaleza y bienestar",
+    heroTitle: "Bienvenidos a nuestra experiencia",
+    heroSubtitle:
+      "Historias, guías y novedades para planificar tu escapada a las Sierras: termas verificadas, alojamientos seleccionados y el encanto de Villa Yacanto y El Durazno.",
+    latestTitle: "Últimos Artículos del Blog",
+    viewAll: "Ver todo",
+    latestSubtitle: "Explorá nuestras publicaciones sobre viajes y naturaleza.",
+    readMore: "Leer más",
+    backToBlog: "Volver al blog",
+    articleCta: "Consultar mi viaje",
+    notFound: "Artículo no encontrado.",
+    newsletterTitle: "Mantente informado sobre nuestras ofertas",
+    newsletterSubtitle:
+      "Suscribite a nuestro boletín y descubrí lo mejor de Villa Yacanto y El Durazno.",
+    posts: [
+      {
+        slug: "guia-escapada-sierras-calculo",
+        title: "Cómo planificar tu escapada a las Sierras de Córdoba",
+        excerpt:
+          "Temporadas, rutas recomendadas y consejos prácticos para combinar naturaleza, descanso y una visita a las termas sin estrés.",
+        date: "May 2026",
+        category: "Guías",
+        image:
+          "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-exterior001.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "Elegir temporada y día de llegada marca la diferencia entre un viaje relajado y uno apretado. En primavera y otoño disfrutás colores cambiantes y temperaturas agradables; en verano hay más opciones para el agua.",
+          "Combiná noches tranquilas en alojamiento verificado con al menos una visita a las termas y un paseo ligero por El Durazno o Villa Yacanto. Reservá con anticipación en fechas largas y consultá rutas antes de partir.",
+        ],
+      },
+      {
+        slug: "alojamiento-verificado-vs-reserva-directa",
+        title: "Por qué importa elegir un alojamiento verificado",
+        excerpt:
+          "Transparencia, fotos reales y asesoramiento local para que sepas exactamente qué esperar antes de reservar.",
+        date: "Feb 2026",
+        category: "Turismo responsable",
+        image:
+          "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-alojamientos.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "Un alojamiento verificado implica inspección, fotos coherentes con la propuesta y soporte ante dudas. Así elegís mejor y evitás sorpresas al llegar.",
+          "Somos punto de encuentro entre viajeros y prestadores locales: cuando veás el sello Viví las Termas, esperá comunicación transparente y alineada con lo que conocimos en campo.",
+        ],
+      },
+      {
+        slug: "termas-del-sol-que-esperar",
+        title: "Termas Del Sol: qué incluye el pase y cómo llegar",
+        excerpt:
+          "Horarios útiles, qué llevar en la mochila y cómo encajar las termas con tu día en El Durazno.",
+        date: "Nov 2025",
+        category: "Termas",
+        image:
+          "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-interior001.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "El circuito suele estar pensado para quedarse entre dos y cuatro horas: traé protector solar, gorro y calzado antideslizante para las zonas mojadas.",
+          "Combiná tu visita con almuerzo o merienda en la zona para no apurar tiempos. Si venís desde Córdoba capital, controlá el clima y partí con margen en fin de semana largo.",
+        ],
+      },
+      {
+        slug: "experiencias-en-el-durazno-top-5",
+        title: "5 experiencias naturales imperdibles cerca del complejo",
+        excerpt:
+          "Desde trekking suave hasta sound healing al atardecer — ideas para quien quiere vivir algo más que el descanso en cabaña.",
+        date: "Oct 2025",
+        category: "Experiencias",
+        image:
+          "https://ik.imagekit.io/vivilastermas/galeria/termas/sound-healing-t-night.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "El valle ofrece senderos suaves, miradores y actividades de bienestar que combinan con el ritmo de las termas.",
+          "Reservá con tiempo actividades guiadas o masajes; en temporada alta los cupos vuelan. Escribinos y armamos un itinerario acorde a tu grupo y fechas.",
+        ],
+      },
+    ],
+  },
+  socios: {
+    heroAlt: "Alojamiento en las sierras de Córdoba",
+    heroTitle: "Tu alojamiento, en la vidriera más importante de la zona",
+    heroSubtitle: "Unite a la red de prestadores verificados y recibí consultas directas de turistas",
+    benefitsTitle: "¿Por qué sumarte?",
+    benefits: [
+      {
+        title: "Visibilidad",
+        desc: "Aparecé en búsquedas, galerías y secciones destacadas de nuestro sitio.",
+      },
+      {
+        title: "Conexión Directa",
+        desc: "Recibí consultas a tu WhatsApp. Facilitamos el contacto para que cierres la venta de forma ágil.",
+      },
+      {
+        title: "Sello de Confianza",
+        desc: "Ser un 'Socio Verificado' le da seguridad al turista y jerarquiza tu propuesta.",
+      },
+    ],
+    ctaJoin: "Quiero unirme",
+    ctaPortal: "Acceder al Portal de Socios",
   },
 }
 
@@ -613,5 +713,105 @@ export const pagesEn: typeof pagesEs = {
         a: "Yes — you can add wellbeing, nature and complementary activities.",
       },
     ],
+  },
+  blog: {
+    heroBackground:
+      "https://ik.imagekit.io/vivilastermas/entorno/experiencias/plaza-yacanto.webp?q=85&w=2400&auto=format&fit=crop",
+    heroCardImage:
+      "https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron003.webp?q=85&w=1200&auto=format&fit=crop",
+    heroAlt: "Villa Yacanto & El Durazno — nature and wellbeing",
+    heroTitle: "Welcome to our story",
+    heroSubtitle:
+      "Guides and updates to plan your getaway in the Sierras — vetted Thermal Spa stays, curated accommodation and the best of Villa Yacanto & El Durazno.",
+    latestTitle: "Latest Blog Articles",
+    viewAll: "View all",
+    latestSubtitle: "Explore our stories about travel and nature.",
+    readMore: "Read more",
+    backToBlog: "Back to blog",
+    articleCta: "Plan my trip",
+    notFound: "Article not found.",
+    newsletterTitle: "Stay in the loop with our updates",
+    newsletterSubtitle:
+      "Subscribe to our newsletter and discover the best of Villa Yacanto & El Durazno.",
+    posts: [
+      {
+        slug: "guia-escapada-sierras-calculo",
+        title: "Planning your Sierras de Córdoba getaway",
+        excerpt:
+          "Seasons, recommended routes and practical tips for combining nature, rest and Thermal Spa visits without fuss.",
+        date: "Jan 2026",
+        category: "Guides",
+        image:
+          "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-exterior001.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "Choosing your season and arrival day often defines whether a trip feels paced or rushed. Spring and autumn bring mild weather and changing colours; summer adds more water-centric plans.",
+          "Pair verified accommodation with at least one Thermal Spa visit and an easy walk around El Durazno or Villa Yacanto. Book early on long weekends and check road conditions before departing.",
+        ],
+      },
+      {
+        slug: "alojamiento-verificado-vs-reserva-directa",
+        title: "Why choosing a verified stay matters",
+        excerpt:
+          "Transparency, real photos and local guidance so you know exactly what to expect before you book.",
+        date: "Dec 2025",
+        category: "Responsible travel",
+        image:
+          "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/galeria-hero003.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "A verified stay involves on-site checks, photos that match reality and support when you still have questions — it helps you decide with confidence.",
+          "We bridge travellers and hosts: when you see the Viví las Termas badge, expect clear communication grounded in what we have seen in person.",
+        ],
+      },
+      {
+        slug: "termas-del-sol-que-esperar",
+        title: "Termas del Sol: passes, tips and directions",
+        excerpt:
+          "Opening hours essentials, packing tips and fitting the Thermal Spa into your El Durazno day.",
+        date: "Nov 2025",
+        category: "Thermal Spa",
+        image:
+          "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-interior001.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "Most circuits are designed for stays of two to four hours — pack biodegradable sunscreen, a cap and sandals with grip for wet walkways.",
+          "Pair your visit with a relaxed meal nearby so you are not rushing. Leaving from Córdoba capital, factor in peak traffic during holiday weekends.",
+        ],
+      },
+      {
+        slug: "experiencias-en-el-durazno-top-5",
+        title: "Five nature experiences not to miss nearby",
+        excerpt:
+          "From gentle hikes to sunset sound healing — ideas for guests who want more than a quiet cabin stay.",
+        date: "Oct 2025",
+        category: "Experiences",
+        image:
+          "https://ik.imagekit.io/vivilastermas/entorno/experiencias/yoga-mar.webp?q=80&w=900&auto=format&fit=crop",
+        paragraphs: [
+          "The valley offers gentle trails, lookouts and wellness activities that harmonise beautifully with Thermal Spa outings.",
+          "Book guided outings or massages in advance — seasonal weekends fill quickly. Reach out and we can sketch an itinerary tailored to your group.",
+        ],
+      },
+    ],
+  },
+  socios: {
+    heroAlt: "Accommodation in the Córdoba highlands",
+    heroTitle: "Your property, in the region's most visible showcase",
+    heroSubtitle: "Join our network of verified providers and receive direct inquiries from travelers",
+    benefitsTitle: "Why join?",
+    benefits: [
+      {
+        title: "Visibility",
+        desc: "Appear in searches, galleries and featured sections across our site.",
+      },
+      {
+        title: "Direct connection",
+        desc: "Receive inquiries on your WhatsApp. We make contact easy so you can close bookings quickly.",
+      },
+      {
+        title: "Trust badge",
+        desc: "Being a 'Verified Partner' gives travelers confidence and elevates your offer.",
+      },
+    ],
+    ctaJoin: "I want to join",
+    ctaPortal: "Access the Partners Portal",
   },
 }

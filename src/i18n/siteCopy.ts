@@ -7,9 +7,11 @@ const messagesEs = {
     { name: "Termas", href: "/termas" },
     { name: "Alojamientos", href: "/alojamientos" },
     { name: "Experiencias", href: "/experiencias" },
+    { name: "Blog", href: "/blog" },
     { name: "Contacto", href: "/contacto" },
   ],
   header: {
+    accessSocios: "Acceso Socios",
     planTrip: "Planifica tu Viaje",
     logoAlt: "Logotipo de Viví las Termas",
     mobileLangHint: "ES / EN",
@@ -108,7 +110,7 @@ const messagesEs = {
     ctaInstagram: "Ver más reseñas en Instagram",
     testimonials: [
       {
-        quote: "Increíble experiencia. La cabaña superó nuestras expectativas y las termas son un sueño.",
+        quote: "Increíble experiencia. Enamoradas de este lugar, las termas son un sueño.",
       },
       {
         quote: "La atención personalizada marcó la diferencia. Nos ayudaron a organizar todo el viaje.",
@@ -151,9 +153,20 @@ const messagesEs = {
     tagline: "Donde el descanso se vuelve experiencia",
     blurb:
       "Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y todo el bienestar de nuestro complejo termal.",
-    navTitle: "Navegación",
-    moreTitle: "Más Información",
-    moreLinks: ["Blog", "Masajes & Spa", "Yoga", "Armonización Sonora", "Preguntas Frecuentes"],
+    exploreTitle: "Explorar",
+    resourcesTitle: "Recursos",
+    exploreLinks: [
+      { name: "Inicio", href: "/" },
+      { name: "Termas", href: "/termas" },
+      { name: "Alojamientos", href: "/alojamientos" },
+      { name: "Experiencias", href: "/experiencias" },
+    ],
+    resourcesLinks: [
+      { name: "Contacto", href: "/contacto" },
+      { name: "Preguntas Frecuentes", href: "/contacto#faq" },
+      { name: "Blog", href: "/blog" },
+    ],
+    sociosCta: "Socios: Sumar mi servicio",
     contactTitle: "Contacto",
     tel: "Tel:",
     email: "Email:",
@@ -184,9 +197,11 @@ const messagesEn: typeof messagesEs = {
     { name: "Thermal Spa", href: "/termas" },
     { name: "Stays", href: "/alojamientos" },
     { name: "Experiences", href: "/experiencias" },
+    { name: "Blog", href: "/blog" },
     { name: "Contact", href: "/contacto" },
   ],
   header: {
+    accessSocios: "Partner access",
     planTrip: "Plan your trip",
     logoAlt: "Viví las Termas logo",
     mobileLangHint: "ES / EN",
@@ -328,9 +343,20 @@ const messagesEn: typeof messagesEs = {
     tagline: "Where rest becomes an experience",
     blurb:
       "Discover the essence of the Sierras de Córdoba. Vetted stays, unique experiences and the full wellness of our Thermal Spa.",
-    navTitle: "Navigation",
-    moreTitle: "More information",
-    moreLinks: ["Blog", "Massage & Spa", "Yoga", "Sound healing", "FAQ"],
+    exploreTitle: "Explore",
+    resourcesTitle: "Resources",
+    exploreLinks: [
+      { name: "Home", href: "/" },
+      { name: "Thermal Spa", href: "/termas" },
+      { name: "Stays", href: "/alojamientos" },
+      { name: "Experiences", href: "/experiencias" },
+    ],
+    resourcesLinks: [
+      { name: "Contact", href: "/contacto" },
+      { name: "FAQ", href: "/contacto#faq" },
+      { name: "Blog", href: "/blog" },
+    ],
+    sociosCta: "Partners: List my service",
     contactTitle: "Contact",
     tel: "Phone:",
     email: "Email:",

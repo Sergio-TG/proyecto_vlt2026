@@ -36,7 +36,7 @@ export default function FaqSection({ title, subtitle, items }: FaqSectionProps) 
   const rightColumn = resolvedItems.filter((_, idx) => idx % 2 !== 0)
 
   return (
-    <section className="px-4 pb-20 pt-4">
+    <section id="faq" className="px-4 pb-20 pt-4 scroll-mt-24">
       <div className="mx-auto max-w-6xl">
         <div className="mb-12 text-center">
           <h2 className="text-4xl font-semibold tracking-tight text-slate-900 md:text-5xl">{resolvedTitle}</h2>

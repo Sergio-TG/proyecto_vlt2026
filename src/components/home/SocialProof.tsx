@@ -8,10 +8,10 @@ import { getSiteCopy } from "@/i18n/siteCopy"
 const testimonialMeta = [
   {
     id: 1,
-    name: "Sofia M.",
-    image: "https://images.unsplash.com/photo-1475087542963-13ab5e611954?q=80&w=2070&auto=format&fit=crop",
+    name: "RosarioCeballos38",
+    image: "https://res.cloudinary.com/dxpy1zqj6/image/upload/v1778891515/clientes-rc_w0swrm.png?q=80&w=2070&auto=format&fit=crop",
     rating: 5,
-    stay: "Cabaña Los Aromos",
+    stay: "Termas del Sol",
   },
   {
     id: 2,
