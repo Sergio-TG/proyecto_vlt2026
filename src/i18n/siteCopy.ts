@@ -41,8 +41,8 @@ const messagesEs = {
   termasTeaser: {
     titleLine1: "El Corazón de tu Experiencia:",
     titleLine2: "Nuestras Termas",
-    body: "Aguas termales a 38°C rodeadas de naturaleza virgen. El equilibrio perfecto entre relajación y aventura.",
-    statThermal: "AGUAS TERMALES",
+    body: "Agua de vertientes climatizadas artificialmente a 38°C rodeadas de naturaleza virgen. El equilibrio perfecto entre relajación y aventura.",
+    statThermal: "AGUAS CLIMATIZADAS",
     statAdults: "SOLO ADULTOS",
     statViews: "VISTAS NATURALES",
     ctaMore: "Más info",
@@ -231,7 +231,7 @@ const messagesEn: typeof messagesEs = {
   termasTeaser: {
     titleLine1: "The heart of your experience:",
     titleLine2: "Our Thermal Spa",
-    body: "At our Thermal Spa, 38°C waters and pristine nature come together. The perfect balance of relaxation and adventure.",
+    body: "At our Thermal Spa, 38°C waters artificially heated and pristine nature come together. The perfect balance of relaxation and adventure.",
     statThermal: "THERMAL SPA",
     statAdults: "ADULTS ONLY",
     statViews: "NATURAL VIEWS",

@@ -23,6 +23,8 @@ export const IK_TRANSFORMS = {
   galMain: "tr=w-900,h-600,c-maintain_ratio,f-auto,q-85",
   galThumb: "tr=w-450,h-300,c-maintain_ratio,f-auto,q-75",
   galFull: "tr=w-1400,f-auto,q-90",
+  reviewThumb: "tr=w-150,h-150,fo-auto",
+  reviewFull: "tr=w-1400,f-auto,q-85",
 } as const;
 
 export type IKTransform = keyof typeof IK_TRANSFORMS;
@@ -161,5 +163,12 @@ export function getHeroPagina(pagina: string, fallback: string = "hero-home"): s
   const rel = `${IMAGE_FOLDERS.ENTORNO}/bg-paginas/${heroBase}.webp`;
 
   return `${base}/${rel}?${IK_TRANSFORMS.heroPage}`;
+}
+
+/** Aplica transformación ImageKit sobre la URL base (sin query previa). */
+export function withImageKitTransform(url: string, transform: IKTransform): string {
+  const base = String(url || "").trim().split("?")[0]
+  if (!base) return ""
+  return `${base}?${IK_TRANSFORMS[transform]}`
 }
 

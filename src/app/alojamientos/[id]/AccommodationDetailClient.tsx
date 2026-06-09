@@ -37,8 +37,11 @@ import {
   needsGoogleMapsRedirectResolve,
 } from "@/lib/google-maps-embed"
 import { AlojamientoDetailLocationMap } from "@/components/maps/AlojamientoDetailLocationMap"
+import { AccommodationReviewsSection } from "@/components/accommodations/AccommodationReviewsSection"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+import type { ApprovedReview } from "@/lib/reviews"
+import type { ReviewStats } from "@/lib/review-stats"
 
 type AccommodationWithExtras = AlojamientoAprobado & {
   google_maps?: string | null
@@ -73,11 +76,17 @@ export function AccommodationDetailClient({
   thumbUrls,
   fullUrls,
   portadaPath,
+  approvedReviews,
+  initialReviewsTotalCount,
+  reviewStats,
 }: {
   accommodation: AccommodationWithExtras
   thumbUrls: string[]
   fullUrls: string[]
   portadaPath: string | null
+  approvedReviews: ApprovedReview[]
+  initialReviewsTotalCount: number
+  reviewStats: ReviewStats
 }) {
   const { locale } = useLanguage()
   const copy = getSiteCopy(locale)
@@ -636,6 +645,13 @@ export function AccommodationDetailClient({
           </section>
         ) : null}
       </div>
+
+      <AccommodationReviewsSection
+        alojamientoId={accommodation.id}
+        initialApprovedReviews={approvedReviews}
+        initialTotalCount={initialReviewsTotalCount}
+        reviewStats={reviewStats}
+      />
     </div>
   )
 }
