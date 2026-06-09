@@ -8,6 +8,13 @@ export type ImageFolder = keyof typeof IMAGE_FOLDERS;
 
 export const IMAGEKIT_URL_ENDPOINT =
   process.env.NEXT_PUBLIC_IMAGEKIT_URL_ENDPOINT || process.env.NEXT_PUBLIC_URL_ENDPOINT;
+
+/** URL origin de ImageKit (sin barra final). Si falta `.env`, se usa el endpoint del proyecto. */
+export function getResolvedImageKitBase(): string {
+  const fromEnv = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "");
+  return fromEnv || "https://ik.imagekit.io/vivilastermas";
+}
+
 export const IMAGEKIT_PUBLIC_KEY = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY;
 
 export const IK_TRANSFORMS = {
@@ -16,6 +23,8 @@ export const IK_TRANSFORMS = {
   galMain: "tr=w-900,h-600,c-maintain_ratio,f-auto,q-85",
   galThumb: "tr=w-450,h-300,c-maintain_ratio,f-auto,q-75",
   galFull: "tr=w-1400,f-auto,q-90",
+  reviewThumb: "tr=w-150,h-150,fo-auto",
+  reviewFull: "tr=w-1400,f-auto,q-85",
 } as const;
 
 export type IKTransform = keyof typeof IK_TRANSFORMS;
@@ -81,7 +90,7 @@ export function sortGaleriaFiles(nombres: string[]): string[] {
 
 
 export function buildGaleriaUrls(slug: string, archivos: string[], transform: IKTransform = "galThumb"): string[] {
-  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "");
+  const base = getResolvedImageKitBase().replace(/\/+$/, "");
   const tr = IK_TRANSFORMS[transform];
 
   const cleanSlug = String(slug || "")
@@ -102,12 +111,35 @@ export function buildGaleriaUrls(slug: string, archivos: string[], transform: IK
     const fileName = hasExt ? `${baseName}.${ext}` : `${baseName}.webp`;
 
     const rel = `${IMAGE_FOLDERS.ALOJAMIENTOS}/${cleanSlug}/${fileName}`;
-    return base ? `${base}/${rel}?${tr}` : `/${rel}?${tr}`;
+    return `${base}/${rel}?${tr}`;
+  });
+}
+
+/** URLs públicas para archivos en ImageKit `galeria/termas/` (listados vía API). */
+export function buildGaleriaTermasUrls(archivos: string[], transform: IKTransform = "galThumb"): string[] {
+  const base = getResolvedImageKitBase().replace(/\/+$/, "");
+  const tr = IK_TRANSFORMS[transform];
+  const prefix = `${IMAGE_FOLDERS.GALERIA}/termas`;
+
+  return archivos.map((nombre) => {
+    const clean = String(nombre || "")
+      .trim()
+      .replace(/^\/+/, "");
+
+    const withoutQuery = clean.split("?")[0] ?? clean;
+    const extMatch = withoutQuery.match(/\.([a-z0-9]+)$/i);
+    const ext = extMatch?.[1]?.toLowerCase();
+    const hasExt = Boolean(ext);
+    const baseName = withoutQuery.replace(/\.[^.]+$/, "");
+    const fileName = hasExt ? `${baseName}.${ext}` : `${baseName}.webp`;
+
+    const rel = `${prefix}/${fileName}`;
+    return `${base}/${rel}?${tr}`;
   });
 }
 
 export function getAlojamientoPortada(slug: string, transform: IKTransform = "card"): string {
-  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "");
+  const base = getResolvedImageKitBase().replace(/\/+$/, "");
   const tr = IK_TRANSFORMS[transform];
 
   const cleanSlug = String(slug || "")
@@ -116,11 +148,11 @@ export function getAlojamientoPortada(slug: string, transform: IKTransform = "ca
     .replace(/\/+$/, "");
 
   const rel = `${IMAGE_FOLDERS.ALOJAMIENTOS}/${cleanSlug}/portada.webp`;
-  return base ? `${base}/${rel}?${tr}` : `/${rel}?${tr}`;
+  return `${base}/${rel}?${tr}`;
 }
 
 export function getHeroPagina(pagina: string, fallback: string = "hero-home"): string {
-  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "");
+  const base = getResolvedImageKitBase().replace(/\/+$/, "");
 
   const clean = String(pagina || "")
     .trim()
@@ -128,7 +160,15 @@ export function getHeroPagina(pagina: string, fallback: string = "hero-home"): s
     .replace(/\/+$/, "");
 
   const heroBase = clean ? `hero-${clean}` : fallback;
-  const rel = `${IMAGE_FOLDERS.ENTORNO}/bh-paginas/${heroBase}.webp`;
+  const rel = `${IMAGE_FOLDERS.ENTORNO}/bg-paginas/${heroBase}.webp`;
 
-  return base ? `${base}/${rel}?${IK_TRANSFORMS.heroPage}` : `/${rel}?${IK_TRANSFORMS.heroPage}`;
+  return `${base}/${rel}?${IK_TRANSFORMS.heroPage}`;
 }
+
+/** Aplica transformación ImageKit sobre la URL base (sin query previa). */
+export function withImageKitTransform(url: string, transform: IKTransform): string {
+  const base = String(url || "").trim().split("?")[0]
+  if (!base) return ""
+  return `${base}?${IK_TRANSFORMS[transform]}`
+}
+

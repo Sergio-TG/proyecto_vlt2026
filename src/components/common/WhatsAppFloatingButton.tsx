@@ -2,33 +2,30 @@
 
 import { MessageCircle } from "lucide-react"
 import { motion } from "framer-motion"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 const DEFAULT_WHATSAPP_PHONE = "5493546525404"
 
 export default function WhatsAppFloatingButton() {
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
   const phone = (process.env.NEXT_PUBLIC_WHATSAPP_PHONE || DEFAULT_WHATSAPP_PHONE).replace(/[^\d]/g, "")
-  const prefill = "Hola, quiero comenzar mi experiencia de bienestar en Viví las Termas. ¿Me podrían asesorar?"
-  const href = `https://wa.me/${phone}?text=${encodeURIComponent(prefill)}`
+  const href = `https://wa.me/${phone}?text=${encodeURIComponent(copy.whatsapp.prefill)}`
 
   return (
-    <motion.a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      aria-label="Contactar por WhatsApp"
-      style={{
-        position: "fixed",
-        bottom: 24,
-        right: 24,
-        zIndex: 2147483647,
-        outline: "none",
-        textDecoration: "none",
-      }}
-      initial={{ opacity: 0, scale: 0.9, y: 10 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-    >
+    <div className="pointer-events-none fixed bottom-6 right-6 z-50 flex">
+      <motion.a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={copy.whatsapp.label}
+        className="pointer-events-auto outline-none no-underline"
+        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+      >
       <span
         style={{
           display: "inline-flex",
@@ -62,9 +59,10 @@ export default function WhatsAppFloatingButton() {
             lineHeight: 1,
           }}
         >
-          ¿Dudas? Escríbenos
+          {copy.whatsapp.chip}
         </span>
       </span>
     </motion.a>
+    </div>
   )
 }

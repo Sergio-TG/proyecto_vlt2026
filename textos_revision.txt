@@ -1,0 +1,658 @@
+TEXTOS DE REVISIÓN — Viví las Termas
+Generado: 19/5/2026, 11:35:30
+
+Idioma: español. Textos desde siteCopy.ts y pagesCopy.ts.
+Podés abrirlo en Word/Google Docs y exportar a PDF.
+
+Regenerar: npm run export-textos
+========================================================================
+CONTENIDO DE LA WEB (español)
+========================================================================
+
+--- Navegación y cabecera ---
+nav › [1] › name: Inicio
+nav › [2] › name: Termas
+nav › [3] › name: Alojamientos
+nav › [4] › name: Experiencias
+nav › [5] › name: Blog
+nav › [6] › name: Contacto
+header › accessSocios: Acceso Socios
+header › planTrip: Planifica tu Viaje
+header › logoAlt: Logotipo de Viví las Termas
+header › mobileLangHint: ES / EN
+header › mobileLangHintEn: EN / ES
+
+--- Inicio (hero, secciones) ---
+hero › badge: Termas Night - Exclusivo
+hero › titleLine1: Tu Escapada
+hero › titleLine2: Perfecta
+hero › subtitleBefore: Termas • Alojamientos Verificados •
+hero › subtitleAccent: Experiencias Auténticas
+hero › trust1: Inspección personal
+hero › trust2: Asesoría experta
+hero › trust3: Sin comisiones ocultas
+hero › ctaStay: Encuentra tu Alojamiento
+hero › ctaTermas: Conoce las Termas
+hero › imageAlt: Termas en El Durazno
+trustBuilders › items › [1] › title: VERIFICADO
+trustBuilders › items › [1] › subtitle: Inspección personal de cada propiedad
+trustBuilders › items › [2] › title: FOTOS REALES
+trustBuilders › items › [2] › subtitle: Lo que ves es lo que obtenés
+trustBuilders › items › [3] › title: EXPERTOS LOCALES
+trustBuilders › items › [3] › subtitle: Asesoría personalizada 24/7
+trustBuilders › items › [4] › title: SIN SORPRESAS
+trustBuilders › items › [4] › subtitle: Transparencia total en precios
+termasTeaser › titleLine1: El Corazón de tu Experiencia:
+termasTeaser › titleLine2: Nuestras Termas
+termasTeaser › body: Aguas termales a 38°C rodeadas de naturaleza virgen. El equilibrio perfecto entre relajación y aventura.
+termasTeaser › statThermal: AGUAS TERMALES
+termasTeaser › statAdults: SOLO ADULTOS
+termasTeaser › statViews: VISTAS NATURALES
+termasTeaser › ctaMore: Más info
+featuredAccommodations › titleLine1: Alojamientos
+featuredAccommodations › titleAccent: Recomendados
+featuredAccommodations › subtitle: Selección exclusiva verificada personalmente para garantizar tu descanso en las sierras.
+featuredAccommodations › catalog: Ver Catálogo Completo
+featuredAccommodations › catalogMobile: Ver todo el catálogo
+featuredAccommodations › shareTitle: Viví las Termas
+featuredAccommodations › toastCopied: ¡Enlace copiado al portapapeles!
+narrative › title: Contanos sobre tu viaje ideal
+narrative › subtitle: Te recomendaremos lo mejor para vos
+narrative › step1Title: ¿Quién viaja?
+narrative › step2Title: ¿Qué tipo de experiencia buscas?
+narrative › step3Title: Preferencias y Servicios
+narrative › back: Atrás
+narrative › next: Siguiente
+narrative › seeRecommendations: Ver Recomendaciones Personalizadas
+narrative › travelers › couple › label: Pareja
+narrative › travelers › couple › sub: Escapada Romántica
+narrative › travelers › family_kids › label: Familia con niños
+narrative › travelers › family_kids › sub: Aventura Familiar
+narrative › travelers › friends › label: Grupo de Amigos
+narrative › travelers › friends › sub: Desconexión Grupal
+narrative › travelers › corporate › label: Corporativo
+narrative › travelers › corporate › sub: Team Building Natural
+narrative › travelers › solo › label: Viajero
+narrative › travelers › solo › sub: Reconexión Personal
+narrative › travelers › seniors › label: Senior +60
+narrative › travelers › seniors › sub: Confort y Tranquilidad
+narrative › experiences › relax › label: BIENESTAR Y RELAX
+narrative › experiences › relax › desc: Desconexión total, masajes y aguas termales para renovar energías
+narrative › experiences › adventure › label: AVENTURA Y EXPLORACIÓN
+narrative › experiences › adventure › desc: Senderismo, recorridos guiados y actividades al aire libre
+narrative › experiences › nature › label: ESCENARIOS NATURALES
+narrative › experiences › nature › desc: Vistas panorámicas, atardeceres únicos y aire puro de montaña
+narrative › amenities › pet_friendly: Pet Friendly
+narrative › amenities › wifi_high: Wi-Fi
+narrative › amenities › breakfast: Desayuno
+narrative › amenities › parking_covered: Cochera
+narrative › amenities › linens: Ropa de Cama y Toallas
+narrative › amenities › bbq: Parrilla / Quincho
+narrative › amenities › heating: Calefacción
+narrative › amenities › ac: Aire Acondicionado
+narrative › amenities › pool: Pileta
+narrative › amenities › mountain_view: Vista a la Montaña
+narrative › amenities › river: Cerca de Río/Arroyo
+narrative › amenities › accessibility: Accesibilidad
+socialProof › title: Lo que dicen nuestros viajeros
+socialProof › subtitle: Más de 1.200 viajeros felices en 2026
+socialProof › ctaInstagram: Ver más reseñas en Instagram
+socialProof › testimonials › [1] › quote: Increíble experiencia. Enamoradas de este lugar, las termas son un sueño.
+socialProof › testimonials › [2] › quote: La atención personalizada marcó la diferencia. Nos ayudaron a organizar todo el viaje.
+socialProof › testimonials › [3] › quote: Un lugar mágico para desconectar. Con mi mascota disfrutamos muchísimo de la naturaleza.
+socialProof › testimonials › [4] › quote: Volveremos sin dudas. La paz que se respira en Villa Yacanto es única.
+newsletter › titleHome: Newsletter
+newsletter › descHome: Recibí ofertas exclusivas y novedades de temporada.
+newsletter › titleFooter: Newsletter
+newsletter › descFooter: Recibí ofertas exclusivas y novedades de temporada.
+newsletter › placeholderHome: Escribe tu email aquí
+newsletter › placeholderFooter: Tu email
+newsletter › submitHome: Suscribirme
+newsletter › submitFooter: Suscribirse
+newsletter › disclaimerHome: Al suscribirte confirmás que aceptás nuestros Términos y Condiciones.
+newsletter › thanks: ¡Gracias por suscribirte!
+newsletter › errorGeneric: Ocurrió un error. Intentá de nuevo.
+
+--- Footer y tarjetas ---
+footer › tagline: Donde el descanso se vuelve experiencia
+footer › blurb: Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y todo el bienestar de nuestro complejo termal.
+footer › exploreTitle: Explorar
+footer › resourcesTitle: Recursos
+footer › exploreLinks › [1] › name: Inicio
+footer › exploreLinks › [2] › name: Termas
+footer › exploreLinks › [3] › name: Alojamientos
+footer › exploreLinks › [4] › name: Experiencias
+footer › resourcesLinks › [1] › name: Contacto
+footer › resourcesLinks › [2] › name: Preguntas Frecuentes
+footer › resourcesLinks › [3] › name: Blog
+footer › sociosCta: Socios: Sumar mi servicio
+footer › contactTitle: Contacto
+footer › tel: Tel:
+footer › email: Email:
+footer › location: Ubicación:
+footer › address: Av. Marrero S/N, Villa Yacanto,X5197, Córdoba, Argentina
+footer › copyright: © 2026 Viví las Termas. Todos los derechos reservados.
+footer › creditsPrefix: Diseño y Desarrollo
+footer › privacy: Política de Privacidad
+footer › terms: Términos de Servicio
+footer › cookieSettings: Configuración de Cookies
+accommodationCard › cta: + Info
+accommodationCard › shareTitle: Compartir alojamiento
+accommodationCard › badgeTop: MÁS PEDIDO
+accommodationCard › badgePremium: PREMIUM
+accommodationCard › badgeEco: ECO-FRIENDLY
+accommodationCard › persons: Personas
+accommodationCard › perNight: por noche
+accommodationCard › inquire: Consultar
+
+--- Páginas ---
+termas › heroAlt: Termas del Sol - Paisaje
+termas › heroTitle: Termas del Sol
+termas › heroSubtitle: Un oasis de relajación en el corazón de El Durazno
+termas › introLine1: Bienvenido al
+termas › introHighlight: Paraíso Termal
+termas › introHtml: Sumergite en un entorno donde el agua calma, el cuerpo se suelta y el alma respira. En Termas del Sol, cada detalle está pensado para tu bienestar. Contamos con aguas climatizadas artificialmente con temperaturas de hasta 40°C, rodeadas de la imponente naturaleza de las Sierras Grandes.
+termas › ctaReserve: Reservar Pase
+termas › features › [1] › title: 22 Piletas
+termas › features › [1] › desc: Circuito de piscinas a diferentes temperaturas, incluyendo una cubierta y otras con borde infinito hacia las sierras.
+termas › features › [2] › title: Spa & Relax
+termas › features › [2] › desc: Masajes descontracturantes, fangoterapia, sauna seco y húmedo para una renovación total.
+termas › features › [3] › title: Gastronomía
+termas › features › [3] › desc: Disfrutá de nuestro servicio de cafetería y restaurante con vistas panorámicas increíbles.
+termas › galleryTitle: Termas del Sol
+termas › infoTitle: Información Útil
+termas › infoRows › [1] › title: Horarios
+termas › infoRows › [1] › desc: Abierto todos los días de 10:00 a 18:00 hs.
+termas › infoRows › [2] › title: Qué incluye el pase
+termas › infoRows › [2] › desc: Acceso a todas las piletas, bata, locker, almuerzo y la actividad del día.
+termas › infoRows › [3] › title: Ubicación
+termas › infoRows › [3] › desc: A solo metros de Hostería El Durazno. Acceso fácil para todo tipo de vehículos.
+termas › spaRelaxAlt: Spa Relax
+termas › mapTitle: Nuestra Ubicación
+termas › mapSubtitle: Encuéntranos en el corazón de El Durazno, un paraíso natural de fácil acceso.
+termas › iframeTitle: Mapa de Ubicación Termas del Sol
+termas › cardTitle: Termas del Sol
+termas › cardRegion: El Durazno, Valle de Calamuchita
+termas › cardBody: Ubicadas en un entorno natural privilegiado, rodeadas de sierras y ríos cristalinos. Un lugar único para conectar con la naturaleza.
+termas › gpsLabel: Coordenadas GPS:
+termas › directionsBtn: Cómo Llegar con Google Maps
+experiencias › heroAlt: Experiencias en El Durazno
+experiencias › heroTitle: Experiencias
+experiencias › heroSubtitle: ¡Próximamente!, un destino para vivir.
+experiencias › consultBtn: Consultar Actividad
+experiencias › items › [1] › title: Trekking y Senderismo
+experiencias › items › [1] › description: Explorá los senderos de las Sierras Grandes. Desde caminatas suaves a orillas del río hasta ascensos desafiantes.
+experiencias › items › [2] › title: Yoga
+experiencias › items › [2] › description: Sentí la energía de la montaña. Encontrá tu equilibrio en un entorno cálido, con la serenidad de la brisa serrana a través de nuestros ventanales.
+experiencias › items › [3] › title: Sound Healing
+experiencias › items › [3] › description: Sintoniza con la frecuencia de la naturaleza. Una sesión de armonización con cuencos de cuarzo y sonidos ancestrales, diseñada para equilibrar tu energía en el silencio absoluto de El Durazno.
+experiencias › items › [4] › title: Puntos de Interés
+experiencias › items › [4] › description: Aguas cristalinas, descubre el lugar perfecto para refrescarse en verano y matear en invierno.
+experiencias › items › [5] › title: Cabalgatas
+experiencias › items › [5] › description: Recorré paisajes inaccesibles a pie en cabalgatas guiadas, ideales para disfrutar en pareja o en familia.
+experiencias › items › [6] › title: Astroturismo
+experiencias › items › [6] › description: Viví la experiencia de observar uno de los cielos más limpios de Córdoba, con guiado nocturno, reconocimiento de constelaciones y fotografía básica del cielo.
+contacto › heroAlt: Paisaje - contacto
+contacto › heroTitle: Contactanos
+contacto › heroSubtitle: Estamos acá para ayudarte a planificar tu escapada perfecta.
+contacto › infoTitle: Información de Contacto
+contacto › whatsappTitle: WhatsApp
+contacto › whatsappHint: Para respuestas rápidas
+contacto › phoneTitle: Teléfono
+contacto › phoneHint: Llamadas y consultas
+contacto › emailTitle: Email
+contacto › emailHint: Para consultas generales
+contacto › locationTitle: Ubicación
+contacto › formTitle: Envianos un mensaje
+contacto › labelName: Nombre
+contacto › phName: Tu nombre
+contacto › labelLastname: Apellido
+contacto › phLastname: Tu apellido
+contacto › labelEmail: Email
+contacto › phEmail: tu@email.com
+contacto › labelPhone: Teléfono (Opcional)
+contacto › phPhone: +54 9 ...
+contacto › labelMessage: Mensaje
+contacto › phMessage: Contanos qué estás buscando...
+contacto › termsCheckbox: Acepto recibir información sobre promociones y novedades.
+contacto › submitSending: Enviando...
+contacto › submitIdle: Enviar Consulta
+contactMap › title: Contacto
+contactMap › subtitle: Escribinos y te ayudamos a elegir el alojamiento ideal.
+contactMap › whatsappTitle: WhatsApp
+contactMap › whatsappHint: Consultas y reservas
+contactMap › emailTitle: Email
+contactMap › emailHint: Para consultas generales
+contactMap › phoneTitle: Teléfono
+contactMap › phoneHint: Llamadas
+contactMap › addressTitle: Dirección
+contactMap › addressHint: Cómo llegar
+contactMap › ctaWhatsapp: Contactar por WhatsApp
+contactMap › mapTitle: Mapa - Viví Las Termas
+alojamientos › heroAlt: Alojamientos en El Durazno
+alojamientos › heroTitle: Alojamientos
+alojamientos › heroSubtitle: Encontrá tu lugar ideal en las sierras
+alojamientos › sectionLine1: Alojamientos
+alojamientos › sectionAccent: Verificados
+alojamientos › sectionSubtitle: Encontrá tu lugar ideal en las sierras. Todos inspeccionados personalmente para garantizar tu bienestar.
+alojamientos › clearFilters: Limpiar Filtros
+alojamientos › filterBtn: Filtrar
+alojamientos › sheetTitle: Filtros de Búsqueda
+alojamientos › sheetDesc: Ajustá los resultados según tus preferencias.
+alojamientos › sidebarTitle: Filtros
+alojamientos › sidebarSubtitle: Refiná tu búsqueda
+alojamientos › filterLocalidad: Localidad
+alojamientos › filterServicios: Servicios
+alojamientos › featureWifi: Wi-Fi Gratis
+alojamientos › featurePet: Pet Friendly
+alojamientos › featurePool: Pileta
+alojamientos › featureParking: Cochera
+alojamientos › featureBbq: Parrilla / Quincho
+alojamientos › featureBreakfast: Desayuno
+alojamientos › mapTitle: Mapa de alojamientos
+alojamientos › emptyTitle: No hay resultados
+alojamientos › emptyHint: Probá ajustando los filtros para encontrar lo que buscás.
+alojamientos › emptyCta: Ver todos los alojamientos
+accommodationDetail › backCatalog: Volver al catálogo
+accommodationDetail › share: Compartir
+accommodationDetail › viewGoogleMaps: Ver en Google Maps
+accommodationDetail › gallery: Galería
+accommodationDetail › aboutTitle: Sobre este alojamiento
+accommodationDetail › servicesTitle: Servicios Incluidos
+accommodationDetail › noServices: No hay servicios para mostrar.
+accommodationDetail › stayTitle: Información de estadía
+accommodationDetail › labelGuests: Personas
+accommodationDetail › labelBeds: Distribución de camas
+accommodationDetail › labelCheckIn: Check-in
+accommodationDetail › labelCheckOut: Check-out
+accommodationDetail › labelCancel: Cancelación
+accommodationDetail › askPrice: Consultar
+accommodationDetail › ctaWhatsapp: Consultar Disponibilidad
+accommodationDetail › whatsappHint: Serás redirigido a WhatsApp para hablar directamente con nosotros y recibir asesoría personalizada.
+accommodationDetail › locationTitle: Ubicación
+accommodationDetail › loadingMap: Cargando ubicación…
+accommodationDetail › mapHelpTitle: Ver ubicación en Google Maps
+accommodationDetail › mapHelpBody: El mapa interactivo usa coordenadas extraídas del enlace del alojamiento. Si no hay coordenadas en ese enlace, abrí Google Maps con el botón de abajo para ver la ubicación exacta.
+accommodationDetail › mapOpenBtn: Ver ubicación en Google Maps
+accommodationDetail › toastCopied: ¡Enlace copiado al portapapeles!
+accommodationDetail › featWifiOn: Wi-Fi Gratis
+accommodationDetail › featWifiOff: Sin Wi-Fi
+accommodationDetail › featAcOn: Aire Acondicionado
+accommodationDetail › featPoolOn: Pileta
+accommodationDetail › featPetOn: Pet Friendly
+accommodationDetail › featPetOff: No Mascotas
+mapListing › priceLabel: Precio
+mapListing › inquire: Consultar
+mapListing › ctaInfo: + Info
+mapListing › ratingExceptional: Excepcional
+mapListing › ratingExcellent: Excelente
+mapListing › ratingVeryGood: Muy bueno
+mapListing › ratingGood: Bueno
+mapListing › ratingOk: Bien
+mapListing › noCoords: No hay coordenadas disponibles para mostrar en el mapa.
+mapListing › expandMap: Ver mapa completo
+mapListing › closeMapAria: Cerrar mapa completo
+detailLocationMap › popupNote: Vista aproximada (OpenStreetMap). Para la ficha de Google usá el enlace del alojamiento.
+detailLocationMap › openGoogle: Abrir en Google Maps
+gallery › closeAria: Cerrar galería
+gallery › verTodasBtn: Ver todas
+gallery › prevPhoto: Foto anterior
+gallery › nextPhoto: Foto siguiente
+legal › cookies › title: Política de Cookies
+legal › cookies › intro: Utilizamos tecnologías de seguimiento para:
+legal › cookies › h1: 1. Funcionalidad
+legal › cookies › p1: Mejorar la navegación del sitio y recordar sus preferencias.
+legal › cookies › h2: 2. Analítica
+legal › cookies › p2: Utilizamos servicios de análisis web de terceros para medir el tráfico y mejorar la calidad de nuestro portal.
+legal › cookies › outro: Usted puede gestionar o rechazar estas tecnologías a través del banner de consentimiento o configurando su navegador.
+legal › privacidad › title: Política de Privacidad
+legal › privacidad › p0: En Viví Las Termas, protegemos su privacidad.
+legal › privacidad › h1: 1. Datos recolectados
+legal › privacidad › p1: Recopilamos información de contacto enviada voluntariamente (nombre, email, teléfono) para gestionar consultas y mejorar la experiencia.
+legal › privacidad › h2: 2. Uso
+legal › privacidad › p2: Utilizamos sus datos para responder a sus solicitudes. No vendemos sus datos a terceros.
+legal › privacidad › h3: 3. Seguridad
+legal › privacidad › p3: Utilizamos proveedores de infraestructura en la nube reconocidos y medidas de seguridad estándar de la industria para proteger su información.
+legal › privacidad › h4: 4. Derechos
+legal › privacidad › p4: Usted tiene derecho a solicitar el acceso, rectificación o eliminación de sus datos enviando un correo a hola@vivilastermas.com.ar.
+legal › terminos › title: Términos y Condiciones de Uso - Viví Las Termas
+legal › terminos › h1: 1. Introducción
+legal › terminos › p1: Al utilizar el sitio web vivilastermas.com.ar, usted acepta estos términos.
+legal › terminos › h2: 2. Naturaleza del Servicio
+legal › terminos › p2: Viví Las Termas actúa como un portal de información y difusión turística. No somos responsables directos de los servicios, reservas o veracidad de la información publicada por terceros (dueños de alojamientos).
+legal › terminos › h3: 3. Propiedad Intelectual
+legal › terminos › p3: Todo el diseño, código y contenido es propiedad de Viví Las Termas, salvo las imágenes provistas por terceros, sobre las cuales poseen licencia de uso.
+legal › terminos › h4: 4. Responsabilidad
+legal › terminos › p4: No nos hacemos responsables por daños derivados del uso del sitio o de los servicios contratados con terceros.
+legal › terminos › h5: 5. Contacto
+legal › terminos › p5: Para consultas, escriba a hola@vivilastermas.com.ar o llame al +54 9 3546 525404. Dirección: Av. Marrero S/N, X5197, Villa Yacanto, Córdoba, Argentina.
+faq › title: Preguntas Frecuentes
+faq › subtitle: Resolviendo tus dudas más comunes.
+faq › items › [1] › q: ¿Cómo hago una reserva?
+faq › items › [1] › a: Podés consultar disponibilidad y reservar por WhatsApp, teléfono o formulario web.
+faq › items › [2] › q: ¿La reserva tiene costo adicional?
+faq › items › [2] › a: No, la gestión de reserva no tiene costo extra para el huésped.
+faq › items › [3] › q: ¿Cómo elijo el alojamiento ideal según mis preferencias?
+faq › items › [3] › a: Te ayudamos a encontrar la opción que mejor se adapte a lo que buscás. Solo contanos qué es importante para vos.
+faq › items › [4] › q: ¿Puedo modificar mi reserva?
+faq › items › [4] › a: Sí, las modificaciones están sujetas a disponibilidad y a las políticas de cada alojamiento. Si necesitás cambiar fechas, cantidad de huéspedes o cualquier detalle de tu estadía, contactanos lo antes posible para ayudarte a gestionar el cambio.
+faq › items › [5] › q: ¿Qué hace diferente a esta central de reservas?
+faq › items › [5] › a: No solo te ayudamos a encontrar alojamiento: diseñamos experiencias de bienestar y conexión con la naturaleza para que tu estadía sea más significativa.
+faq › items › [6] › q: ¿Hay beneficios por reservar con la central?
+faq › items › [6] › a: Acceso a promociones, asesoramiento personalizado y experiencias integradas.
+faq › items › [7] › q: ¿Puedo hablar con una persona antes de reservar?
+faq › items › [7] › a: Sí, el asesoramiento es personalizado.
+faq › items › [8] › q: ¿Trabajan con alojamientos habilitados?
+faq › items › [8] › a: Sí, trabajamos con alojamientos seleccionados y verificados.
+faq › items › [9] › q: ¿Dónde conviene alojarse?
+faq › items › [9] › a: Depende de lo que busques: más conexión con la naturaleza, cercanía al río o mayor accesibilidad.
+faq › items › [10] › q: ¿Puedo reservar experiencias además del alojamiento?
+faq › items › [10] › a: Sí, podés sumar experiencias de bienestar, naturaleza y actividades complementarias.
+blog › heroAlt: Villa Yacanto y El Durazno — naturaleza y bienestar
+blog › heroTitle: Bienvenidos a nuestra experiencia
+blog › heroSubtitle: Historias, guías y novedades para planificar tu escapada a las Sierras: termas verificadas, alojamientos seleccionados y el encanto de Villa Yacanto y El Durazno.
+blog › latestTitle: Últimos Artículos del Blog
+blog › viewAll: Ver todo
+blog › latestSubtitle: Explorá nuestras publicaciones sobre viajes y naturaleza.
+blog › readMore: Leer más
+blog › backToBlog: Volver al blog
+blog › articleCta: Consultar mi viaje
+blog › notFound: Artículo no encontrado.
+blog › newsletterTitle: Mantente informado sobre nuestras ofertas
+blog › newsletterSubtitle: Suscribite a nuestro boletín y descubrí lo mejor de Villa Yacanto y El Durazno.
+blog › posts › [1] › slug: guia-escapada-sierras-calculo
+blog › posts › [1] › title: Cómo planificar tu escapada a las Sierras de Córdoba
+blog › posts › [1] › excerpt: Temporadas, rutas recomendadas y consejos prácticos para combinar naturaleza, descanso y una visita a las termas sin estrés.
+blog › posts › [1] › date: May 2026
+blog › posts › [1] › category: Guías
+blog › posts › [1] › paragraphs › [1]: Elegir temporada y día de llegada marca la diferencia entre un viaje relajado y uno apretado. En primavera y otoño disfrutás colores cambiantes y temperaturas agradables; en verano hay más opciones para el agua.
+blog › posts › [1] › paragraphs › [2]: Combiná noches tranquilas en alojamiento verificado con al menos una visita a las termas y un paseo ligero por El Durazno o Villa Yacanto. Reservá con anticipación en fechas largas y consultá rutas antes de partir.
+blog › posts › [2] › slug: alojamiento-verificado-vs-reserva-directa
+blog › posts › [2] › title: Por qué importa elegir un alojamiento verificado
+blog › posts › [2] › excerpt: Transparencia, fotos reales y asesoramiento local para que sepas exactamente qué esperar antes de reservar.
+blog › posts › [2] › date: Feb 2026
+blog › posts › [2] › category: Turismo responsable
+blog › posts › [2] › paragraphs › [1]: Un alojamiento verificado implica inspección, fotos coherentes con la propuesta y soporte ante dudas. Así elegís mejor y evitás sorpresas al llegar.
+blog › posts › [2] › paragraphs › [2]: Somos punto de encuentro entre viajeros y prestadores locales: cuando veás el sello Viví las Termas, esperá comunicación transparente y alineada con lo que conocimos en campo.
+blog › posts › [3] › slug: termas-del-sol-que-esperar
+blog › posts › [3] › title: Termas Del Sol: qué incluye el pase y cómo llegar
+blog › posts › [3] › excerpt: Horarios útiles, qué llevar en la mochila y cómo encajar las termas con tu día en El Durazno.
+blog › posts › [3] › date: Nov 2025
+blog › posts › [3] › category: Termas
+blog › posts › [3] › paragraphs › [1]: El circuito suele estar pensado para quedarse entre dos y cuatro horas: traé protector solar, gorro y calzado antideslizante para las zonas mojadas.
+blog › posts › [3] › paragraphs › [2]: Combiná tu visita con almuerzo o merienda en la zona para no apurar tiempos. Si venís desde Córdoba capital, controlá el clima y partí con margen en fin de semana largo.
+blog › posts › [4] › slug: experiencias-en-el-durazno-top-5
+blog › posts › [4] › title: 5 experiencias naturales imperdibles cerca del complejo
+blog › posts › [4] › excerpt: Desde trekking suave hasta sound healing al atardecer — ideas para quien quiere vivir algo más que el descanso en cabaña.
+blog › posts › [4] › date: Oct 2025
+blog › posts › [4] › category: Experiencias
+blog › posts › [4] › paragraphs › [1]: El valle ofrece senderos suaves, miradores y actividades de bienestar que combinan con el ritmo de las termas.
+blog › posts › [4] › paragraphs › [2]: Reservá con tiempo actividades guiadas o masajes; en temporada alta los cupos vuelan. Escribinos y armamos un itinerario acorde a tu grupo y fechas.
+socios › heroAlt: Alojamiento en las sierras de Córdoba
+socios › heroTitle: Tu alojamiento, en la vidriera más importante de la zona
+socios › heroSubtitle: Unite a la red de prestadores verificados y recibí consultas directas de turistas
+socios › benefitsTitle: ¿Por qué sumarte?
+socios › benefits › [1] › title: Visibilidad
+socios › benefits › [1] › desc: Aparecé en búsquedas, galerías y secciones destacadas de nuestro sitio.
+socios › benefits › [2] › title: Conexión Directa
+socios › benefits › [2] › desc: Recibí consultas a tu WhatsApp. Facilitamos el contacto para que cierres la venta de forma ágil.
+socios › benefits › [3] › title: Sello de Confianza
+socios › benefits › [3] › desc: Ser un 'Socio Verificado' le da seguridad al turista y jerarquiza tu propuesta.
+socios › ctaJoin: Quiero unirme
+socios › ctaPortal: Acceder al Portal de Socios
+
+========================================================================
+TEXTOS HARDCODEADOS en page.tsx / index.tsx (no están en i18n)
+========================================================================
+
+--- src\app\(maintenance)\en-construccion\page.tsx ---
+• Próximamente | Viví las Termas
+• flex-grow flex flex-col items-center justify-center relative z-10 px-6 text-center
+• text-4xl md:text-6xl font-extrabold text-gray-900 mb-6 tracking-tight
+• max-w-xl text-lg text-gray-600 mb-10 leading-relaxed
+• text-xs font-semibold text-gray-400 uppercase mb-4 tracking-widest
+• py-8 text-center text-xs text-gray-400 tracking-wider relative z-10
+• noopener noreferrer
+
+--- src\app\admin\accept-invite\page.tsx ---
+• use client
+• POST
+• text-3xl font-black text-slate-900 tracking-tight
+• text-slate-500 font-medium
+
+--- src\app\admin\analytics\page.tsx ---
+• use client
+• text-3xl font-black text-slate-900 tracking-tight flex items-center gap-3
+• text-slate-500 font-medium
+
+--- src\app\admin\invitar\page.tsx ---
+• use client
+• Sesión inválida o expirada. Volvé a iniciar sesión.
+• POST
+• text-3xl font-black text-slate-900 tracking-tight
+• text-slate-500 font-medium
+
+--- src\app\admin\leads\page.tsx ---
+• use client
+• en_gestión
+• En gestión
+• text-3xl font-black text-slate-900 tracking-tight
+• text-slate-500 font-medium
+• min-w-[980px] w-full
+• bg-slate-50 border-b border-slate-100
+• text-left text-xs font-black uppercase tracking-widest text-slate-500
+• px-6 py-4
+• px-6 py-4 text-right
+• divide-y divide-slate-100
+• px-6 py-10 text-slate-500 font-medium
+• px-6 py-5
+• px-6 py-5 w-[320px]
+• Notas internas...
+• px-6 py-5 text-right
+
+--- src\app\admin\page.tsx ---
+• use client
+• Sesión inválida o expirada.
+• No tienes permisos para acceder a este panel.
+• Sesión inválida o expirada. Volvé a iniciar sesión en el panel de Admin.
+• POST
+• Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para eliminar con privilegios.
+• Error al eliminar (server)
+• Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para rechazar con privilegios.
+• Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para aprobar con privilegios.
+• Error al aprobar (server)
+• Error al eliminar duplicados en el servidor
+• text-3xl font-black text-white tracking-tight
+• text-slate-400 mt-2 font-medium
+• text-center text-slate-500 mt-8 text-sm font-medium
+• text-4xl font-black text-slate-900 flex items-center gap-3
+• text-slate-500 font-medium
+• Buscar por nombre o dueño...
+• Buscar por nombre, slug o localidad...
+• text-slate-900 font-black
+• text-slate-500 font-medium text-sm
+• text-slate-400 font-bold animate-pulse uppercase tracking-widest text-xs
+• text-xl font-bold text-slate-900
+• text-slate-500 max-w-xs
+• bg-blue-100 text-blue-700 hover:bg-blue-100
+• bg-yellow-100 text-yellow-700 hover:bg-yellow-100
+• text-2xl font-black text-slate-900 group-hover:text-primary transition-colors leading-tight
+• text-slate-500 font-medium flex items-center gap-1.5 mt-1
+• text-[10px] font-bold text-slate-400 uppercase tracking-widest
+• text-sm font-bold text-slate-700
+• text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3
+• text-sm text-slate-600 line-clamp-2 italic leading-relaxed
+• text-slate-900 font-black truncate
+• text-slate-500 font-medium text-sm truncate
+• Este registro no tiene diferencias respecto al aprobado. Si esperabas ver cambios aquí, es porque el Portal de Socios no guardó esos cambios en la tabla de pendientes.
+
+--- src\app\alojamientos\page.tsx ---
+• use client
+• aire libre
+• aire puro
+• wifi gratis
+• wi-fi gratis
+• Parrilla / Quincho
+• Pet Friendly
+• Ropa de Cama y Toallas
+• Estufa a leña
+• Calefacción
+• Aire Acondicionado
+• Vista a la Montaña
+• Cerca de Río/Arroyo
+• start start
+• end start
+• POST
+• )} ${String(acc.descripcion || 
+• )} ${(Array.isArray(acc.servicios) ? acc.servicios : []).join(
+• text-lg font-bold tracking-tight
+• w-4 h-4 opacity-60
+• text-3xl md:text-5xl font-bold tracking-tight text-slate-900 leading-tight
+• text-base md:text-lg text-slate-500 max-w-2xl font-light leading-relaxed text-balance
+• hidden md:block w-80 flex-shrink-0
+• text-2xl font-black tracking-tight mb-2
+• text-slate-500 text-sm font-medium mb-8
+• text-slate-400 font-bold uppercase tracking-widest text-xs
+• text-3xl font-bold text-slate-900
+• text-xl text-slate-500 font-light
+• text-xl md:text-2xl font-black text-slate-900 tracking-tight
+• text-xs uppercase tracking-widest text-slate-400 font-bold
+
+--- src\app\blog\[slug]\page.tsx ---
+• use client
+• mt-4 max-w-3xl text-3xl font-semibold text-primary md:text-5xl
+• mt-6 max-w-2xl text-lg font-light leading-relaxed text-slate-600
+• mb-6 text-base leading-relaxed text-slate-600 last:mb-0 md:text-lg
+
+--- src\app\blog\page.tsx ---
+• use client
+• text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-sm sm:text-5xl md:text-6xl lg:text-[3.25rem] xl:text-7xl
+• mt-6 max-w-xl text-base font-light leading-relaxed text-white/92 md:text-lg lg:mx-0 mx-auto
+• text-3xl font-semibold text-primary md:text-4xl lg:text-5xl
+• mt-2 max-w-xl text-slate-600
+• text-xl font-semibold text-primary md:text-2xl lg:text-[1.35rem]
+• mt-3 flex-1 text-sm leading-relaxed text-slate-600 md:text-base
+
+--- src\app\contacto\page.tsx ---
+• use client
+• start start
+• end start
+• ENTORNO
+• text-2xl font-semibold mb-6
+• font-semibold text-lg
+• text-gray-600 mb-1
+• noopener noreferrer
+• text-slate-700 font-medium hover:underline
+• text-blue-600 font-medium hover:underline
+
+--- src\app\cookies\page.tsx ---
+• use client
+• text-3xl md:text-4xl font-black tracking-tight text-slate-900
+• text-lg font-bold text-slate-900
+
+--- src\app\experiencias\page.tsx ---
+• use client
+• w-6 h-6
+• https://ik.imagekit.io/vivilastermas/entorno/experiencias/sound-healing002.JPG?q=80&w=2070&auto=format&fit=crop
+• start start
+• end start
+• text-3xl font-bold group-hover:text-primary transition-colors duration-300 tracking-tight
+• text-slate-500 mb-6 flex-grow leading-relaxed text-lg font-light
+
+--- src\app\privacidad\page.tsx ---
+• use client
+• text-3xl md:text-4xl font-black tracking-tight text-slate-900
+• text-lg font-bold text-slate-900
+
+--- src\app\socios\page.tsx ---
+• use client
+• bg-blue-100 text-blue-600
+• bg-green-100 text-green-600
+• bg-amber-100 text-amber-600
+• start start
+• end start
+• w-full h-full object-cover
+• text-4xl md:text-5xl font-bold text-gray-900 tracking-tight
+• text-2xl font-bold text-slate-900
+• text-slate-500 leading-relaxed text-lg font-light
+
+--- src\app\socios\portal\page.tsx ---
+• use client
+• Completá los campos obligatorios para continuar:
+• Parrillero / Quincho
+• Parrilla / Quincho
+• Ropa Blanca
+• Ropa de Cama y Toallas
+• POST
+• No se pudo guardar la actualización. Volvé a intentar.
+• Falta la configuración del servidor (Supabase). Si administrás el sitio, agregá NEXT_PUBLIC_SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY en el panel de hosting y volvé a desplegar.
+• text-white/60 leading-relaxed
+• font-bold text-lg text-white tracking-tight flex items-center gap-2
+• text-[11px] text-white/40 font-medium mt-0.5 truncate
+• No hay sesión activa. Volvé a iniciar sesión.
+• No se pudo crear el registro pendiente.
+• text-3xl md:text-4xl font-black text-white tracking-tighter drop-shadow-2xl
+• text-white/70 text-base font-light
+• Ingresa tus credenciales para continuar
+• Regístrate para dar de alta tu alojamiento
+• text-[10px] font-bold text-white/40 hover:text-white transition-colors
+• ¿No tienes cuenta? Regístrate gratis
+• ¿Ya tienes cuenta? Inicia sesión
+• mt-6 text-center text-[10px] text-white/30 leading-relaxed font-medium px-8
+• w-3 h-3
+• text-4xl md:text-5xl font-black text-white tracking-tighter drop-shadow-lg
+• text-white/70 text-lg font-light
+• w-10 h-10 rounded-full flex items-center justify-center transition-all border-2
+• bg-primary text-white border-primary shadow-lg scale-110
+• bg-green-500 text-white border-green-500
+• bg-white/10 text-white/50 border-white/20
+• text-[10px] font-bold uppercase tracking-tighter
+• list-disc pl-10 space-y-1 font-medium text-red-100/90
+• text-2xl font-bold text-white
+• text-sm text-white/60 mt-1 flex items-center gap-1.5
+• Ej: Cabañas El Paraíso
+• Nombre completo
+• +54 9 351 ...
+• text-sm text-white/60 mt-1
+• El Durazno
+• Santa Rosa de Calamuchita
+• Villa Yacanto
+• Cabaña
+• Hostería
+• Casa de Campo
+• Complejo Turístico
+• Estancia Rural
+• Refugio de Montaña
+• Cantidad total de huéspedes
+• Ej: 3 cabañas
+• Precio base por noche
+• Mínimo de noches
+• Calle, Barrio, Paraje...
+• Copiá el link de la app de Google Maps
+• Ej: 500 metros o 10 min en auto
+• Huella 4x4
+• Camino de tierra
+• Ej: 
+• flex items-center gap-2 p-4 rounded-xl border transition-all cursor-pointer bg-white/5
+• border-primary/60 bg-primary/20
+• border-white/10 hover:border-primary/50 hover:bg-white/10
+• w-5 h-5 rounded-md border flex items-center justify-center flex-shrink-0
+• bg-primary border-primary
+• border-white/30 bg-white/5
+• Ej: 14:00
+• Ej: 10:00
+• Ej: Reembolso 48hs antes
+• text-sm text-white/60 leading-relaxed
+• text-sm text-white/40 mb-3 italic ml-1
+• Escribe aquí el relato que verán los huéspedes...
+• font-black text-white uppercase tracking-widest text-xs
+• text-white text-lg
+• ¿Estás seguro de que querés cancelar la edición? Se perderán los cambios no guardados.
+• w-4 h-4
+• text-sm text-white/40 font-medium
+• noopener noreferrer
+
+--- src\app\terminos\page.tsx ---
+• use client
+• text-3xl md:text-4xl font-black tracking-tight text-slate-900
+• text-lg font-bold text-slate-900

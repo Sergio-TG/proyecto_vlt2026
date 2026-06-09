@@ -4,8 +4,12 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 export function TermasTeaser() {
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
   const ref = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: ref,
@@ -47,22 +51,20 @@ export function TermasTeaser() {
             className="space-y-6 max-w-4xl"
           >
             <h2 className="text-4xl md:text-6xl font-bold text-white tracking-tight leading-tight">
-              El Corazón de tu Experiencia: <br/> 
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">Nuestras Termas</span>
+              {copy.termasTeaser.titleLine1} <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">{copy.termasTeaser.titleLine2}</span>
             </h2>
             <p className="text-xl md:text-2xl text-white/80 font-light leading-relaxed max-w-2xl mx-auto">
-              Aguas termales a 38°C rodeadas de naturaleza virgen.
-              El equilibrio perfecto entre relajación y aventura.
+              {copy.termasTeaser.body}
             </p>
           </motion.div>
 
           {/* Floating Stats Cards with Apple Hover Effect */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 w-full max-w-5xl py-8 items-stretch">
             {[
-              { title: "38°C", subtitle: "AGUAS TERMALES", delay: 0.2 },
-              { title: "Termas Night", subtitle: "SOLO ADULTOS", delay: 0.4 },
-              { title: "360°", subtitle: "VISTAS NATURALES", delay: 0.6 },
-              
+              { title: "38°C", subtitle: copy.termasTeaser.statThermal, delay: 0.2 },
+              { title: "Termas Night", subtitle: copy.termasTeaser.statAdults, delay: 0.4 },
+              { title: "360°", subtitle: copy.termasTeaser.statViews, delay: 0.6 },
             ].map((stat, idx) => (
               <motion.div 
                 key={idx}
@@ -90,7 +92,7 @@ export function TermasTeaser() {
           >
             <Link href="/termas">
                 <Button size="lg" className="w-full sm:w-auto text-xl h-16 px-12 bg-white text-black hover:bg-white/90 rounded-full font-bold shadow-2xl transition-transform hover:scale-105">
-                Más info
+                {copy.termasTeaser.ctaMore}
                 </Button>
             </Link>
           </motion.div>

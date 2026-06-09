@@ -4,6 +4,8 @@ import { buildGaleriaUrls } from "@/lib/imagekit.config"
 import { getArchivosAlojamientoWithCandidates, getPortadaAlojamientoWithCandidates } from "@/lib/imagekit"
 import { AccommodationDetailClient } from "./AccommodationDetailClient"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
+import { parseApprovedReviewRow, REVIEWS_PAGE_SIZE, type ApprovedReview } from "@/lib/reviews"
+import { computeReviewStats, type ReviewStats } from "@/lib/review-stats"
 import { slugify } from "@/lib/utils"
 
 type AccommodationWithExtras = AlojamientoAprobado & {
@@ -38,12 +40,43 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
   const thumbUrls = buildGaleriaUrls(folderSlug, ordered, "galThumb")
   const fullUrls = buildGaleriaUrls(folderSlug, ordered, "galFull")
 
+  const [{ data: approvedReviewsRaw, count: totalReviewCount }, { data: statsRowsRaw }] = await Promise.all([
+    supabase
+      .from("reviews")
+      .select("id, nombre_usuario, estrellas_alojamiento, estrellas_plataforma, comentario, fotos, created_at", {
+        count: "exact",
+      })
+      .eq("alojamiento_id", accommodation.id)
+      .eq("aprobada", true)
+      .order("created_at", { ascending: false })
+      .range(0, REVIEWS_PAGE_SIZE - 1),
+    supabase
+      .from("reviews")
+      .select("estrellas_alojamiento, estrellas_plataforma")
+      .eq("alojamiento_id", accommodation.id)
+      .eq("aprobada", true),
+  ])
+
+  const approvedReviews: ApprovedReview[] = (approvedReviewsRaw ?? []).map(parseApprovedReviewRow)
+
+  const reviewStats: ReviewStats = computeReviewStats(
+    (statsRowsRaw ?? []).map((row) => ({
+      estrellas_alojamiento: Number(row.estrellas_alojamiento),
+      estrellas_plataforma: Number(row.estrellas_plataforma),
+    })),
+  )
+
+  const initialReviewsTotalCount = totalReviewCount ?? approvedReviews.length
+
   return (
     <AccommodationDetailClient
       accommodation={accommodation}
       thumbUrls={thumbUrls}
       fullUrls={fullUrls}
       portadaPath={portadaPath}
+      approvedReviews={approvedReviews}
+      initialReviewsTotalCount={initialReviewsTotalCount}
+      reviewStats={reviewStats}
     />
   )
 }

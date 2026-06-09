@@ -16,8 +16,12 @@ import { slugify } from "@/lib/utils"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { useRef, useState, useEffect } from "react"
 import { AccommodationCard } from "@/components/accommodations/AccommodationCard"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 export function FeaturedAccommodations() {
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
   const [showShareToast, setShowShareToast] = useState(false)
@@ -68,8 +72,8 @@ export function FeaturedAccommodations() {
     
     const url = `${window.location.origin}/alojamientos/${slug}`
     const shareData = {
-      title: `Viví las Termas - ${title}`,
-      text: `Mirá este alojamiento increíble en las sierras: ${title}`,
+      title: `${copy.featuredAccommodations.shareTitle} - ${title}`,
+      text: copy.featuredAccommodations.shareText(title),
       url: url,
     }
 
@@ -107,10 +111,11 @@ export function FeaturedAccommodations() {
         >
           <div className="space-y-3">
             <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-gray-900 leading-tight text-balance">
-              Alojamientos <br/><span className="text-primary">Recomendados</span>
+              {copy.featuredAccommodations.titleLine1} <br />
+              <span className="text-primary">{copy.featuredAccommodations.titleAccent}</span>
             </h2>
             <p className="text-slate-500 text-lg md:text-xl font-light max-w-2xl leading-relaxed">
-              Selección exclusiva verificada personalmente para garantizar tu descanso en las sierras.
+              {copy.featuredAccommodations.subtitle}
             </p>
           </div>
           
@@ -122,7 +127,7 @@ export function FeaturedAccommodations() {
                 transition={{ type: "spring", stiffness: 400, damping: 15 }}
               >
                 <Button variant="ghost" className="flex gap-2 text-primary font-bold text-base hover:bg-primary/5 px-6 h-12 rounded-full border border-transparent hover:border-primary/10 transition-all">
-                    Ver Catálogo Completo <ArrowRight className="w-5 h-5" />
+                    {copy.featuredAccommodations.catalog} <ArrowRight className="w-5 h-5" />
                 </Button>
               </motion.div>
             </Link>
@@ -178,7 +183,7 @@ export function FeaturedAccommodations() {
         <div className="mt-16 text-center md:hidden">
             <Link href="/alojamientos">
                 <Button variant="outline" className="w-full h-16 rounded-full font-black text-xl border-2 border-primary text-primary hover:bg-primary/5 shadow-xl">
-                    Ver todo el catálogo
+                    {copy.featuredAccommodations.catalogMobile}
                 </Button>
             </Link>
         </div>
@@ -194,7 +199,7 @@ export function FeaturedAccommodations() {
             className="fixed bottom-10 left-1/2 z-[100] bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-3"
           >
             <CheckCircle2 className="w-5 h-5 text-green-400" />
-            <span className="font-bold">¡Enlace copiado al portapapeles!</span>
+            <span className="font-bold">{copy.featuredAccommodations.toastCopied}</span>
           </motion.div>
         )}
       </AnimatePresence>

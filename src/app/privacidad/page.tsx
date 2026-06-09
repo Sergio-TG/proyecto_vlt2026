@@ -1,42 +1,39 @@
+"use client"
+
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
+
 export default function PrivacidadPage() {
+  const { locale } = useLanguage()
+  const l = getSiteCopy(locale).pages.legal.privacidad
+
   return (
     <main className="bg-white">
       <div className="container mx-auto px-4 py-16 md:py-20">
         <div className="max-w-3xl">
-          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">Política de Privacidad</h1>
+          <h1 className="text-3xl md:text-4xl font-black tracking-tight text-slate-900">{l.title}</h1>
 
           <div className="mt-8 space-y-6 text-slate-700 leading-relaxed">
-            <p>En Viví Las Termas, protegemos su privacidad.</p>
+            <p>{l.p0}</p>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-bold text-slate-900">1. Datos recolectados</h2>
-              <p>
-                Recopilamos información de contacto enviada voluntariamente (nombre, email, teléfono) para gestionar
-                consultas y mejorar la experiencia.
-              </p>
+              <h2 className="text-lg font-bold text-slate-900">{l.h1}</h2>
+              <p>{l.p1}</p>
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-bold text-slate-900">2. Uso</h2>
-              <p>
-                Utilizamos sus datos para responder a sus solicitudes. No vendemos sus datos a terceros.
-              </p>
+              <h2 className="text-lg font-bold text-slate-900">{l.h2}</h2>
+              <p>{l.p2}</p>
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-bold text-slate-900">3. Seguridad</h2>
-              <p>
-                Utilizamos proveedores de infraestructura en la nube reconocidos y medidas de seguridad estándar de la
-                industria para proteger su información.
-              </p>
+              <h2 className="text-lg font-bold text-slate-900">{l.h3}</h2>
+              <p>{l.p3}</p>
             </section>
 
             <section className="space-y-2">
-              <h2 className="text-lg font-bold text-slate-900">4. Derechos</h2>
-              <p>
-                Usted tiene derecho a solicitar el acceso, rectificación o eliminación de sus datos enviando un correo a
-                hola@vivilastermas.com.ar.
-              </p>
+              <h2 className="text-lg font-bold text-slate-900">{l.h4}</h2>
+              <p>{l.p4}</p>
             </section>
           </div>
         </div>

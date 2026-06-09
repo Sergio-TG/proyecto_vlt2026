@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { 
   CheckCircle2, Clock, AlertTriangle, Eye, 
   ExternalLink, ShieldCheck, 
-  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin
+  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin, MessageSquareQuote
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
@@ -912,6 +912,12 @@ export default function AdminDashboard() {
             <Link href="/admin/invitar" className="flex-shrink-0">
               <Button variant="outline" className="bg-white font-bold">
                 Invitar admin
+              </Button>
+            </Link>
+            <Link href="/admin/reviews" className="flex-shrink-0">
+              <Button variant="outline" className="bg-white font-bold gap-2">
+                <MessageSquareQuote className="w-4 h-4" />
+                Moderar reseñas
               </Button>
             </Link>
             <Button variant="outline" onClick={fetchPendientes} disabled={loading} className="bg-white">

@@ -6,8 +6,12 @@ import { ShieldCheck, UserCheck, Wallet } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useRef } from "react"
 import CustomImage from "@/components/common/CustomImage"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 export function Hero() {
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
   const containerRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -34,7 +38,7 @@ export function Hero() {
         <CustomImage
           path="/bg-paginas/hero-termas.webp"
           folder="ENTORNO"
-          alt="Termas en El Durazno"
+          alt={copy.hero.imageAlt}
           fill
           priority
           className="transition-transform duration-1000 ease-out"
@@ -60,11 +64,11 @@ export function Hero() {
             className="inline-flex items-center gap-2 bg-black/40 backdrop-blur-[8px] px-5 py-2.5 rounded-full border border-white/20 mb-4 shadow-2xl"
           >
             <span className="text-orange-400 drop-shadow-[0_0_8px_rgba(251,146,60,0.8)] animate-pulse">🔥</span>
-            <span className="text-sm font-bold tracking-wide uppercase text-white">Termas Night - Exclusivo</span>
+            <span className="text-sm font-bold tracking-wide uppercase text-white">{copy.hero.badge}</span>
           </motion.div>
 
           <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.1] drop-shadow-2xl">
-            Tu Escapada <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/60">Perfecta</span>
+            {copy.hero.titleLine1} <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/60">{copy.hero.titleLine2}</span>
           </h1>
 
           <motion.h2
@@ -73,7 +77,7 @@ export function Hero() {
             transition={{ delay: 0.8, duration: 1 }}
             className="text-xl md:text-2xl font-semibold text-white/95 tracking-wide max-w-3xl mx-auto leading-relaxed [text-shadow:0_2px_10px_rgba(0,0,0,0.5)]"
           >
-            Termas • Alojamientos Verificados • <span className="font-bold text-white underline decoration-accent/50 underline-offset-8">Experiencias Auténticas</span>
+            {copy.hero.subtitleBefore} <span className="font-bold text-white underline decoration-accent/50 underline-offset-8">{copy.hero.subtitleAccent}</span>
           </motion.h2>
 
           <motion.div
@@ -86,19 +90,19 @@ export function Hero() {
               <div className="p-2 rounded-full bg-green-500/30 group-hover:bg-green-500/50 transition-colors shadow-lg">
                 <ShieldCheck className="w-5 h-5 text-green-400" />
               </div>
-              <span className="tracking-[0.02em] font-bold">Inspección personal</span>
+              <span className="tracking-[0.02em] font-bold">{copy.hero.trust1}</span>
             </div>
             <div className="flex items-center gap-3 group px-4 py-2 rounded-xl bg-gradient-to-t from-black/40 to-transparent backdrop-blur-[2px] border border-white/5">
               <div className="p-2 rounded-full bg-blue-500/30 group-hover:bg-blue-500/50 transition-colors shadow-lg">
                 <UserCheck className="w-5 h-5 text-blue-400" />
               </div>
-              <span className="tracking-[0.02em] font-bold">Asesoría experta</span>
+              <span className="tracking-[0.02em] font-bold">{copy.hero.trust2}</span>
             </div>
             <div className="flex items-center gap-3 group px-4 py-2 rounded-xl bg-gradient-to-t from-black/40 to-transparent backdrop-blur-[2px] border border-white/5">
               <div className="p-2 rounded-full bg-yellow-500/30 group-hover:bg-yellow-500/50 transition-colors shadow-lg">
                 <Wallet className="w-5 h-5 text-yellow-400" />
               </div>
-              <span className="tracking-[0.02em] font-bold">Sin comisiones ocultas</span>
+              <span className="tracking-[0.02em] font-bold">{copy.hero.trust3}</span>
             </div>
           </motion.div>
 
@@ -110,12 +114,12 @@ export function Hero() {
           >
             <Link href="/alojamientos" className="w-full md:w-auto">
               <Button size="lg" className="h-16 px-10 text-xl rounded-full bg-white text-black hover:bg-white/90 shadow-[0_20px_50px_rgba(255,255,255,0.2)] transition-all duration-300 hover:scale-105 w-full font-bold">
-                Encuentra tu Alojamiento
+                {copy.hero.ctaStay}
               </Button>
             </Link>
             <Link href="/termas" className="w-full md:w-auto">
               <Button size="lg" variant="outline" className="h-16 px-10 text-xl rounded-full bg-white/5 text-white border-white/20 backdrop-blur-md hover:bg-white hover:text-black hover:border-white transition-colors duration-300 w-full">
-                Conoce las Termas
+                {copy.hero.ctaTermas}
               </Button>
             </Link>
           </motion.div>

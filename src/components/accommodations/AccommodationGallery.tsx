@@ -4,7 +4,7 @@
 import * as React from "react"
 import { X } from "lucide-react"
 import CustomImage from "@/components/common/CustomImage"
-import { IMAGE_FOLDERS, type ImageFolder, IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+import { IMAGE_FOLDERS, type ImageFolder, getResolvedImageKitBase } from "@/lib/imagekit.config"
 import {
   Carousel,
   CarouselContent,
@@ -13,6 +13,8 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel"
 import { Button } from "@/components/ui/button"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 interface AccommodationGalleryProps {
   images?: string[]
@@ -23,6 +25,9 @@ interface AccommodationGalleryProps {
 }
 
 export function AccommodationGallery({ images, folder, subfolder, paths, title }: AccommodationGalleryProps) {
+  const { locale } = useLanguage()
+  const g = getSiteCopy(locale).pages.gallery
+
   const [isOpen, setIsOpen] = React.useState(false)
   const [initialSlide, setInitialSlide] = React.useState(0)
   const [orientationByIndex, setOrientationByIndex] = React.useState<Record<number, "portrait" | "landscape">>({})
@@ -49,7 +54,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
   }, [isOpen])
 
   const toImageKitUrl = React.useCallback((relativePath: string) => {
-    const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
+    const base = getResolvedImageKitBase().replace(/\/+$/, "")
     const rel = relativePath.trim().replace(/^\/+/, "")
     return `${base}/${rel}`
   }, [])
@@ -69,7 +74,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
           {isUrl ? (
             <img
               src={(images as string[])[index]}
-              alt={`${title} - Foto ${index + 1}`}
+              alt={g.photoAlt(title, index)}
               className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
             />
           ) : (
@@ -77,7 +82,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
               path={(paths as string[])[index]}
               folder={folder as ImageFolder}
               subfolder={subfolder}
-              alt={`${title} - Foto ${index + 1}`}
+              alt={g.photoAlt(title, index)}
               fill
               className="absolute inset-0"
               sizes="(max-width: 1024px) 100vw, 1200px"
@@ -96,7 +101,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
         </button>
       )
     },
-    [folder, images, paths, subfolder, title]
+    [folder, images, paths, subfolder, title, g]
   )
 
   const sources = React.useMemo(() => {
@@ -153,7 +158,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
     <>
       <div className="space-y-4">
         <div className="flex items-end justify-between gap-4">
-          <h3 className="text-2xl font-black text-slate-900 tracking-tight">Fotos</h3>
+          <h3 className="text-2xl font-black text-slate-900 tracking-tight">Galería</h3>
           <button
             type="button"
             className="text-sm font-black text-primary hover:underline"
@@ -223,7 +228,7 @@ export function AccommodationGallery({ images, folder, subfolder, paths, title }
                 <CarouselItem key={index} className="flex items-center justify-center h-[80vh]">
                   <img
                     src={img}
-                    alt={`${title} - Foto ${index + 1}`}
+                    alt={g.photoAlt(title, index)}
                     className="max-h-full max-w-full object-contain"
                   />
                 </CarouselItem>

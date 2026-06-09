@@ -9,6 +9,8 @@ import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { Gem, Leaf, MapPin, Share2, Star, Users, Wifi, PawPrint } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 const premiumEase: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
@@ -54,8 +56,11 @@ export type AccommodationCardProps = {
 }
 
 export function AccommodationCard({ item, portadaFile, onShare }: AccommodationCardProps) {
+  const { locale } = useLanguage()
+  const copy = getSiteCopy(locale)
+  const numberLocale = locale === "en" ? "en-US" : "es-AR"
   const slug = item.slug || slugify(item.nombre)
-  const ctaText = "+ Info"
+  const ctaText = copy.accommodationCard.cta
 
   const servicios = Array.isArray(item.servicios) ? item.servicios : []
   const normalized = servicios.map(normalizeService)
@@ -78,8 +83,8 @@ export function AccommodationCard({ item, portadaFile, onShare }: AccommodationC
         transition={cardHoverTransition}
         className="w-full"
       >
-        <Card className="group w-full overflow-hidden border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
-          <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem]">
+        <Card className="group w-full overflow-hidden border-0 ring-0 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
+          <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem] -mt-4 z-0">
             <motion.div variants={imageHoverVariants} transition={imageHoverTransition} className="relative w-full h-full">
               {portadaFile ? (
                 <CustomImage
@@ -101,15 +106,15 @@ export function AccommodationCard({ item, portadaFile, onShare }: AccommodationC
               <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2.5 py-1 rounded-full font-black text-[8px] uppercase tracking-wider flex items-center gap-1">
                 {item.rating_google && item.rating_google >= 4.8 ? (
                   <>
-                    <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> MÁS PEDIDO
+                    <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> {copy.accommodationCard.badgeTop}
                   </>
                 ) : item.precio_base && item.precio_base > 100000 ? (
                   <>
-                    <Gem className="w-2.5 h-2.5 text-blue-500" /> PREMIUM
+                    <Gem className="w-2.5 h-2.5 text-blue-500" /> {copy.accommodationCard.badgePremium}
                   </>
                 ) : (
                   <>
-                    <Leaf className="w-2.5 h-2.5 text-green-500" /> ECO-FRIENDLY
+                    <Leaf className="w-2.5 h-2.5 text-green-500" /> {copy.accommodationCard.badgeEco}
                   </>
                 )}
               </Badge>
@@ -120,7 +125,7 @@ export function AccommodationCard({ item, portadaFile, onShare }: AccommodationC
               whileTap={{ scale: 0.9 }}
               onClick={(e) => onShare(e, slug, item.nombre)}
               className="absolute top-4 right-4 z-30 bg-white/90 backdrop-blur-md p-2 rounded-full shadow-md border border-white/20 text-slate-700 hover:bg-primary hover:text-white transition-all duration-300"
-              title="Compartir alojamiento"
+              title={copy.accommodationCard.shareTitle}
             >
               <Share2 className="w-3.5 h-3.5" />
             </motion.button>
@@ -147,7 +152,7 @@ export function AccommodationCard({ item, portadaFile, onShare }: AccommodationC
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 pt-1">
               <div className="flex items-center gap-1 text-slate-400">
                 <Users className="w-3 h-3" />
-                <span className="text-[10px] font-bold">{capacidad} Personas</span>
+                <span className="text-[10px] font-bold">{capacidad} {copy.accommodationCard.persons}</span>
               </div>
 
               {hasWifi && (
@@ -170,12 +175,12 @@ export function AccommodationCard({ item, portadaFile, onShare }: AccommodationC
                 {item.precio_base ? (
                   <div className="flex items-baseline flex-wrap gap-x-1">
                     <span className="text-lg xl:text-xl font-black text-slate-900 leading-none">
-                      {`$${item.precio_base.toLocaleString("es-AR")}`}
+                      {`$${item.precio_base.toLocaleString(numberLocale)}`}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">por noche</span>
+                    <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">{copy.accommodationCard.perNight}</span>
                   </div>
                 ) : (
-                  <span className="text-sm font-black text-slate-900 leading-none">Consultar</span>
+                  <span className="text-sm font-black text-slate-900 leading-none">{copy.accommodationCard.inquire}</span>
                 )}
               </motion.div>
 

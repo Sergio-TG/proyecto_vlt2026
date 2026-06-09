@@ -18,7 +18,7 @@ export function AuthHashHandler() {
     const type = parsed.get("type");
 
     if (!accessToken || !refreshToken) {
-      window.location.replace("/socios?error=auth-missing-token");
+      window.location.replace("/socios/portal?error=auth-missing-token");
       return;
     }
 
@@ -30,12 +30,12 @@ export function AuthHashHandler() {
 
       if (error) {
         console.error("Error al procesar hash de confirmación:", error);
-        window.location.replace("/socios?error=auth-callback-failed");
+        window.location.replace("/socios/portal?error=auth-callback-failed");
         return;
       }
 
       const reason = type === "signup" ? "confirmed=1" : "recovered=1";
-      window.location.replace(`/socios?${reason}`);
+      window.location.replace(`/socios/portal?${reason}`);
     };
 
     void completeAuth();

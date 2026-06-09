@@ -3,6 +3,9 @@
 import * as React from "react"
 import Image from "next/image"
 import { createPortal } from "react-dom"
+import { AnimatePresence, motion } from "framer-motion"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 export interface GaleriaLightboxProps {
   fullUrls: string[]
@@ -32,6 +35,9 @@ export function GaleriaLightbox({
   onImageError,
   failedIndexes,
 }: GaleriaLightboxProps) {
+  const { locale } = useLanguage()
+  const g = getSiteCopy(locale).pages.gallery
+
   const [mounted, setMounted] = React.useState(false)
   const [active, setActive] = React.useState(0)
   const modalRef = React.useRef<HTMLDivElement | null>(null)
@@ -166,7 +172,7 @@ export function GaleriaLightbox({
       ref={modalRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Galería de fotos de ${nombreAlojamiento}`}
+      aria-label={g.ariaGallery(nombreAlojamiento)}
       className="fixed inset-0 bg-black flex flex-col"
       style={{ zIndex: 9999 }}
       onMouseDown={(e) => {
@@ -183,7 +189,7 @@ export function GaleriaLightbox({
           ref={closeBtnRef}
           autoFocus
           onClick={onClose}
-          aria-label="Cerrar galería"
+          aria-label={g.closeAria}
           type="button"
           className="text-white text-2xl leading-none hover:opacity-70 transition-opacity p-1 cursor-pointer"
         >
@@ -194,7 +200,7 @@ export function GaleriaLightbox({
       <div className="flex-1 relative flex items-center justify-center px-12 min-h-0">
         <button
           type="button"
-          aria-label="Foto anterior"
+          aria-label={g.prevPhoto}
           className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl hover:opacity-70 transition-opacity z-10 px-2 cursor-pointer"
           onClick={goPrev}
         >
@@ -202,24 +208,33 @@ export function GaleriaLightbox({
         </button>
 
         <div className="relative w-full h-full min-h-0">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-full h-full min-h-0 rounded-2xl overflow-hidden">
-              <Image
-                src={activeItem.full}
-                alt={`${nombreAlojamiento} — foto ${active + 1} de ${total}`}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                priority
-                onError={() => onImageError(activeItem.index)}
-              />
-            </div>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeItem.index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              <div className="relative h-full w-full min-h-0 max-h-[78vh] rounded-2xl overflow-hidden">
+                <Image
+                  src={activeItem.full}
+                  alt={g.photoAltIndexed(nombreAlojamiento, active + 1, total)}
+                  fill
+                  className="object-contain"
+                  sizes="100vw"
+                  priority
+                  onError={() => onImageError(activeItem.index)}
+                />
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <button
           type="button"
-          aria-label="Foto siguiente"
+          aria-label={g.nextPhoto}
           className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl hover:opacity-70 transition-opacity z-10 px-2 cursor-pointer"
           onClick={goNext}
         >
@@ -242,11 +257,11 @@ export function GaleriaLightbox({
               i === active ? "ring-2 ring-white opacity-100 cursor-default" : "opacity-60 hover:opacity-90 cursor-pointer"
             }`}
             style={{ width: "72px", height: "72px", minWidth: "72px", minHeight: "72px" }}
-            aria-label={`Ir a la foto ${i + 1}`}
+            aria-label={g.thumbAria(i)}
           >
             <Image
               src={v.thumb}
-              alt={`Miniatura ${i + 1}`}
+              alt={g.thumbAlt(i)}
               width={72}
               height={72}
               className="object-cover w-full h-full"
