@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { onlyActiveAlojamientos } from './alojamientos-active';
 
 export interface AlojamientoAprobado {
   id: string;
@@ -22,6 +23,7 @@ export interface AlojamientoAprobado {
   check_in?: string | null;
   check_out?: string | null;
   cancelacion?: string | null;
+  deleted_at?: string | null;
 }
 
 export type TaxonomiaServicio = {
@@ -62,9 +64,9 @@ export async function getTaxonomiaServicios(): Promise<TaxonomiaServicio[]> {
 }
 
 export async function getAlojamientos() {
-  const { data, error } = await supabase
-    .from('alojamientos_aprobados')
-    .select('*');
+  const { data, error } = await onlyActiveAlojamientos(
+    supabase.from('alojamientos_aprobados').select('*'),
+  );
 
   if (error) {
     console.error('Error fetching alojamientos:', {
@@ -183,10 +185,9 @@ export async function getAlojamientosFiltered(input: {
   if (!hasFilters) return getAlojamientos();
 
   let serviciosKind: "array" | "text" | "unknown" = "unknown";
-  const { data: probeData, error: probeError } = await supabase
-    .from("alojamientos_aprobados")
-    .select("servicios")
-    .limit(1);
+  const { data: probeData, error: probeError } = await onlyActiveAlojamientos(
+    supabase.from("alojamientos_aprobados").select("servicios").limit(1),
+  );
 
   if (probeError) {
     logPostgrestError("Error probing servicios type:", probeError);
@@ -224,7 +225,7 @@ export async function getAlojamientosFiltered(input: {
   const runQuery = async (opts: { servicios: string[]; mascotasEq?: boolean }) => {
     if (serviciosKind === "text") {
       const runAttempt = async (mascotasValue?: "Sí" | true) => {
-        let q = supabase.from("alojamientos_aprobados").select("*");
+        let q = onlyActiveAlojamientos(supabase.from("alojamientos_aprobados").select("*"));
 
         for (const service of opts.servicios) {
           q = q.ilike("servicios", `%${service}%`);
@@ -261,7 +262,7 @@ export async function getAlojamientosFiltered(input: {
       let hadSuccess = false;
 
       const runAttempt = async (mascotasValue?: "Sí" | true) => {
-        let q = supabase.from("alojamientos_aprobados").select("*");
+        let q = onlyActiveAlojamientos(supabase.from("alojamientos_aprobados").select("*"));
 
         if (opts.servicios.length > 0) {
           if (mode === "contains") {
@@ -323,11 +324,9 @@ export async function getAlojamientosFiltered(input: {
 }
 
 export async function getAlojamientoBySlug(slug: string) {
-  const { data, error } = await supabase
-    .from('alojamientos_aprobados')
-    .select('*')
-    .eq('slug', slug)
-    .single();
+  const { data, error } = await onlyActiveAlojamientos(
+    supabase.from('alojamientos_aprobados').select('*').eq('slug', slug),
+  ).single();
 
   if (error) {
     console.error(`Error fetching alojamiento with slug ${slug}:`, error);

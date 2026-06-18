@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
 import { buildGaleriaUrls } from "@/lib/imagekit.config"
 import { getArchivosAlojamientoWithCandidates, getPortadaAlojamientoWithCandidates } from "@/lib/imagekit"
 import { AccommodationDetailClient } from "./AccommodationDetailClient"
@@ -19,7 +20,9 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
   const slug = String(id || "").trim()
   if (!slug) notFound()
 
-  const { data, error } = await supabase.from("alojamientos_aprobados").select("*").eq("slug", slug).single()
+  const { data, error } = await onlyActiveAlojamientos(
+    supabase.from("alojamientos_aprobados").select("*").eq("slug", slug),
+  ).single()
   if (error || !data) notFound()
 
   const accommodation = data as unknown as AccommodationWithExtras
