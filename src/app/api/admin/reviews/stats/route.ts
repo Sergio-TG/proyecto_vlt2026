@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSupabase } from "@/lib/supabase-server"
 import { requireAdmin } from "@/lib/requireAdmin"
+import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
 import { computeReviewStats, type ReviewStats } from "@/lib/review-stats"
 
 type AlojamientoOption = {
@@ -25,10 +26,9 @@ export async function GET(req: Request) {
     const { searchParams } = new URL(req.url)
     const alojamientoId = searchParams.get("alojamientoId")?.trim() || null
 
-    const { data: alojamientosRaw } = await supabase
-      .from("alojamientos_aprobados")
-      .select("id, nombre")
-      .order("nombre", { ascending: true })
+    const { data: alojamientosRaw } = await onlyActiveAlojamientos(
+      supabase.from("alojamientos_aprobados").select("id, nombre").order("nombre", { ascending: true }),
+    )
 
     const alojamientos: AlojamientoOption[] = (alojamientosRaw ?? []).map((row) => ({
       id: String(row.id),

@@ -51,3 +51,10 @@ for select
 using (aprobada = true);
 
 -- UPDATE y DELETE: solo vía service role en rutas /api/admin/reviews/* (RLS deniega al anon key).
+
+-- Borrado lógico en alojamientos publicados
+alter table public.alojamientos_aprobados add column if not exists deleted_at timestamptz default null;
+
+create index if not exists idx_alojamientos_aprobados_deleted_at
+  on public.alojamientos_aprobados (deleted_at)
+  where deleted_at is null;

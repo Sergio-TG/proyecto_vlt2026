@@ -1287,6 +1287,7 @@ export default function SociosPage() {
                           <option value="" className="bg-slate-900">Seleccione tipo</option>
                           <option value="Cabaña" className="bg-slate-900">Cabaña</option>
                           <option value="Hostería" className="bg-slate-900">Hostería</option>
+                          <option value="Hotel" className="bg-slate-900">Hotel</option>
                           <option value="Apart-Hotel" className="bg-slate-900">Apart-Hotel</option>
                           <option value="Departamento" className="bg-slate-900">Departamento</option>
                           <option value="Casa de Campo" className="bg-slate-900">Casa de Campo</option>
