@@ -258,6 +258,11 @@ export const pagesEs = {
     prevPhoto: "Foto anterior",
     nextPhoto: "Foto siguiente",
     thumbAlt: (i: number) => `Miniatura ${i + 1}`,
+    videoThumbAlt: "Video con toma de dron",
+    presentationVideo: "Video de presentación",
+    playVideo: "Reproducir video",
+    thumbVideoAria: "Ir al video",
+    closeVideoAria: "Cerrar video",
   },
   legal: {
     cookies: {
@@ -703,6 +708,11 @@ export const pagesEn: typeof pagesEs = {
     prevPhoto: "Previous photo",
     nextPhoto: "Next photo",
     thumbAlt: (i: number) => `Thumbnail ${i + 1}`,
+    videoThumbAlt: "Drone video",
+    presentationVideo: "Presentation video",
+    playVideo: "Play video",
+    thumbVideoAria: "Go to video",
+    closeVideoAria: "Close video",
   },
   legal: {
     cookies: {

@@ -26,6 +26,7 @@ export function FeaturedAccommodations() {
   const [loading, setLoading] = useState(true)
   const [showShareToast, setShowShareToast] = useState(false)
   const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
+  const [imageKitFolderBySlug, setImageKitFolderBySlug] = useState<Record<string, string | null>>({})
   const sectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -56,8 +57,10 @@ export function FeaturedAccommodations() {
       }).catch(() => null)
       const json = (await res?.json().catch(() => null)) as unknown
       const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
+      const folders = (json as { imageKitFolders?: Record<string, string | null> })?.imageKitFolders ?? {}
       if (ignore) return
       setPortadaBySlug(map)
+      setImageKitFolderBySlug(folders)
     }
     loadPortadas()
     return () => {
@@ -169,6 +172,7 @@ export function FeaturedAccommodations() {
                         variant="home"
                         item={item}
                         portadaFile={portadaBySlug[item.slug || slugify(item.nombre)]}
+                        imageKitFolder={imageKitFolderBySlug[item.slug || slugify(item.nombre)]}
                         onShare={handleShare}
                       />
                     </div>

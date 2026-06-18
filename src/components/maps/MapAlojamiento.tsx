@@ -214,13 +214,31 @@ function HoverMarker({ marker, m, numberLocale }: { marker: MarkerItem; m: MapLi
 export default function MapAlojamiento({
   accommodations,
   portadaBySlug,
+  imageKitFolderBySlug,
 }: {
   accommodations: AlojamientoAprobado[]
   portadaBySlug: Record<string, string | null>
+  imageKitFolderBySlug?: Record<string, string | null>
 }) {
   const { locale } = useLanguage()
   const m = getSiteCopy(locale).pages.mapListing
   const [isFullscreen, setIsFullscreen] = React.useState(false)
+  const expandBtnRef = React.useRef<HTMLButtonElement>(null)
+  const closeBtnRef = React.useRef<HTMLButtonElement>(null)
+
+  const closeFullscreen = React.useCallback(() => {
+    setIsFullscreen(false)
+    requestAnimationFrame(() => {
+      expandBtnRef.current?.focus()
+    })
+  }, [])
+
+  const openFullscreen = React.useCallback(() => {
+    setIsFullscreen(true)
+    requestAnimationFrame(() => {
+      closeBtnRef.current?.focus()
+    })
+  }, [])
 
   React.useEffect(() => {
     delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
@@ -239,6 +257,20 @@ export default function MapAlojamiento({
       document.body.style.overflow = previous
     }
   }, [isFullscreen])
+
+  React.useEffect(() => {
+    if (!isFullscreen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        closeFullscreen()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [closeFullscreen, isFullscreen])
 
   const markers = React.useMemo<MarkerItem[]>(() => {
     return accommodations.reduce<MarkerItem[]>((acc, a) => {
@@ -262,7 +294,8 @@ export default function MapAlojamiento({
 
       const slug = a.slug || slugify(a.nombre)
       const portadaFile = portadaBySlug[slug]
-      const portadaUrl = portadaFile ? buildGaleriaUrls(slug, [String(portadaFile)], "card")[0] ?? null : null
+      const mediaFolder = imageKitFolderBySlug?.[slug] ?? slug
+      const portadaUrl = portadaFile ? buildGaleriaUrls(mediaFolder, [String(portadaFile)], "card")[0] ?? null : null
 
       acc.push({
         id: a.id,
@@ -277,7 +310,7 @@ export default function MapAlojamiento({
       })
       return acc
     }, [])
-  }, [accommodations, portadaBySlug])
+  }, [accommodations, imageKitFolderBySlug, portadaBySlug])
 
   const mapCenter = React.useMemo<[number, number]>(() => {
     if (markers.length === 0) return [-27.496, -64.859]
@@ -322,8 +355,9 @@ export default function MapAlojamiento({
       <div className="relative h-[400px] rounded-lg overflow-hidden border border-slate-200 shadow-sm">
         {renderMap("inline", "h-full w-full z-0")}
         <button
+          ref={expandBtnRef}
           type="button"
-          onClick={() => setIsFullscreen(true)}
+          onClick={openFullscreen}
           className="absolute right-4 top-4 z-[500] rounded-xl bg-white/95 px-4 py-2 text-sm font-black text-slate-900 shadow-lg backdrop-blur hover:bg-white"
         >
           {m.expandMap}
@@ -338,23 +372,28 @@ export default function MapAlojamiento({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}
             className="fixed inset-0 z-50 bg-slate-950/80 p-3 md:p-5"
+            role="dialog"
+            aria-modal="true"
+            aria-label={m.expandMap}
           >
+            <button
+              ref={closeBtnRef}
+              type="button"
+              onClick={closeFullscreen}
+              aria-label={m.closeMapAria}
+              className="fixed top-4 right-4 z-[100] flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-2xl font-black leading-none text-slate-900 shadow-xl backdrop-blur-md transition-colors hover:bg-white md:top-6 md:right-6 cursor-pointer"
+            >
+              ✕
+            </button>
+
             <motion.div
               initial={{ opacity: 0, scale: 0.98, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 8 }}
               transition={{ duration: 0.24 }}
-              className="relative h-full w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
+              className="relative z-0 h-full w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
             >
               {renderMap("fullscreen", "h-full w-full z-0")}
-              <button
-                type="button"
-                onClick={() => setIsFullscreen(false)}
-                aria-label={m.closeMapAria}
-                className="absolute right-4 top-4 z-[600] h-12 w-12 rounded-full bg-slate-900/90 text-2xl font-black leading-none text-white shadow-xl hover:bg-slate-900"
-              >
-                X
-              </button>
             </motion.div>
           </motion.div>
         ) : null}

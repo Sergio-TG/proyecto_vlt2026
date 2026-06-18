@@ -31,6 +31,8 @@ export type IKTransform = keyof typeof IK_TRANSFORMS;
 
 export const GALERIA_PREFIX_ORDER = [
   "portada",
+  "frente",
+  "recepcion",
   "habitacion",
   "dormitorio",
   "bano",
@@ -71,6 +73,7 @@ export function sortGaleriaFiles(nombres: string[]): string[] {
       if (base === p) return true
       if (base.startsWith(`${p}-`) || base.startsWith(`${p}_`)) return true
       if (new RegExp(`^${p}\\d`).test(base)) return true
+      if (base.startsWith(p) && base.length > p.length) return true
       if (base.includes(`-${p}`) || base.includes(`_${p}`)) return true
       return false
     });

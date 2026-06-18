@@ -148,6 +148,7 @@ function AlojamientosPageInner() {
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
   const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
+  const [imageKitFolderBySlug, setImageKitFolderBySlug] = useState<Record<string, string | null>>({})
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => {
     if (typeof window === "undefined") return []
@@ -273,8 +274,10 @@ function AlojamientosPageInner() {
       }).catch(() => null)
       const json = (await res?.json().catch(() => null)) as unknown
       const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
+      const folders = (json as { imageKitFolders?: Record<string, string | null> })?.imageKitFolders ?? {}
       if (ignore) return
       setPortadaBySlug(map)
+      setImageKitFolderBySlug(folders)
     }
     loadPortadas()
     return () => {
@@ -589,6 +592,7 @@ function AlojamientosPageInner() {
                   variant="listing"
                   item={item}
                   portadaFile={portadaBySlug[item.slug || slugify(item.nombre)]}
+                  imageKitFolder={imageKitFolderBySlug[item.slug || slugify(item.nombre)]}
                   onShare={handleShare}
                 />
               </motion.div>
@@ -628,7 +632,11 @@ function AlojamientosPageInner() {
               {p.mapResults(filteredAccommodations.length)}
             </p>
           </div>
-          <MapAlojamiento accommodations={filteredAccommodations} portadaBySlug={portadaBySlug} />
+          <MapAlojamiento
+            accommodations={filteredAccommodations}
+            portadaBySlug={portadaBySlug}
+            imageKitFolderBySlug={imageKitFolderBySlug}
+          />
         </motion.div>
       </div>
 

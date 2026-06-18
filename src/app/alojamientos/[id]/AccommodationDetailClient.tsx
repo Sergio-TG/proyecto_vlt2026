@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { GaleriaAlojamiento } from "@/components/alojamientos/GaleriaAlojamiento"
+import { getAccommodationGalleryVideo } from "@/lib/accommodation-gallery.config"
 import CustomImage from "@/components/common/CustomImage"
 import { IK_TRANSFORMS } from "@/lib/imagekit.config"
 import { slugify } from "@/lib/utils"
@@ -30,18 +31,33 @@ import {
 } from "lucide-react"
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import * as React from "react"
+import dynamic from "next/dynamic"
 import { getTaxonomiaServicios, type AlojamientoAprobado, type TaxonomiaServicio } from "@/lib/supabase-queries"
 import {
   buildGoogleMapsHref,
   getAccommodationMapPin,
   needsGoogleMapsRedirectResolve,
 } from "@/lib/google-maps-embed"
-import { AlojamientoDetailLocationMap } from "@/components/maps/AlojamientoDetailLocationMap"
 import { AccommodationReviewsSection } from "@/components/accommodations/AccommodationReviewsSection"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 import type { ApprovedReview } from "@/lib/reviews"
 import type { ReviewStats } from "@/lib/review-stats"
+
+const AlojamientoDetailLocationMap = dynamic(
+  () =>
+    import("@/components/maps/AlojamientoDetailLocationMap").then((mod) => ({
+      default: mod.AlojamientoDetailLocationMap,
+    })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="flex h-[360px] w-full items-center justify-center bg-slate-50 text-slate-500">
+        <MapPin className="mr-2 h-5 w-5 animate-pulse" />
+      </div>
+    ),
+  },
+)
 
 type AccommodationWithExtras = AlojamientoAprobado & {
   google_maps?: string | null
@@ -76,6 +92,7 @@ export function AccommodationDetailClient({
   thumbUrls,
   fullUrls,
   portadaPath,
+  imageKitFolder,
   approvedReviews,
   initialReviewsTotalCount,
   reviewStats,
@@ -84,6 +101,7 @@ export function AccommodationDetailClient({
   thumbUrls: string[]
   fullUrls: string[]
   portadaPath: string | null
+  imageKitFolder: string
   approvedReviews: ApprovedReview[]
   initialReviewsTotalCount: number
   reviewStats: ReviewStats
@@ -318,7 +336,22 @@ export function AccommodationDetailClient({
   const showUbicacionSection = Boolean(googleMapsHref || mapPin || mapsUrlStillResolving)
 
   const folderSlug = (accommodation.slug || slugify(accommodation.nombre || "")).trim()
-  const heroPath = portadaPath ? `${portadaPath.split("?")[0]}?${IK_TRANSFORMS.heroPage}` : null
+  const mediaFolder = imageKitFolder || folderSlug
+  const galleryVideo = React.useMemo(
+    () => getAccommodationGalleryVideo(folderSlug, accommodation.nombre),
+    [folderSlug, accommodation.nombre],
+  )
+  const hasGallery = (thumbUrls.length > 0 && fullUrls.length > 0) || Boolean(galleryVideo)
+
+  const heroFileName = React.useMemo(() => {
+    if (portadaPath) return portadaPath.split("?")[0]?.trim() || null
+    const firstThumb = thumbUrls[0]
+    if (!firstThumb) return null
+    const segment = firstThumb.split("/").pop()
+    return segment?.split("?")[0]?.trim() || null
+  }, [portadaPath, thumbUrls])
+
+  const heroPath = heroFileName ? `${heroFileName}?${IK_TRANSFORMS.heroPage}` : null
 
   return (
     <div className="min-h-screen bg-white pb-20 overflow-hidden">
@@ -329,7 +362,7 @@ export function AccommodationDetailClient({
             <CustomImage
               path={heroPath}
               folder="ALOJAMIENTOS"
-              subfolder={folderSlug}
+              subfolder={mediaFolder}
               alt={accommodation.nombre}
               fill
               priority
@@ -436,10 +469,15 @@ export function AccommodationDetailClient({
       </AnimatePresence>
 
       <div className="container mx-auto px-4 mt-8 md:mt-12">
-        {thumbUrls.length > 0 && fullUrls.length > 0 && (
+        {hasGallery && (
           <section className="mt-10 md:mt-12">
             <h2 className="text-2xl font-bold text-slate-900 mb-6">{d.gallery}</h2>
-            <GaleriaAlojamiento thumbUrls={thumbUrls} fullUrls={fullUrls} nombreAlojamiento={accommodation.nombre} />
+            <GaleriaAlojamiento
+              thumbUrls={thumbUrls}
+              fullUrls={fullUrls}
+              nombreAlojamiento={accommodation.nombre}
+              galleryVideo={galleryVideo}
+            />
           </section>
         )}
 

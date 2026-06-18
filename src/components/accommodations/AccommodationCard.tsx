@@ -52,14 +52,16 @@ export type AccommodationCardProps = {
   variant: AccommodationCardVariant
   item: AlojamientoAprobado
   portadaFile?: string | null
+  imageKitFolder?: string | null
   onShare: (e: React.MouseEvent<HTMLButtonElement>, slug: string, title: string) => void
 }
 
-export function AccommodationCard({ item, portadaFile, onShare }: AccommodationCardProps) {
+export function AccommodationCard({ item, portadaFile, imageKitFolder, onShare }: AccommodationCardProps) {
   const { locale } = useLanguage()
   const copy = getSiteCopy(locale)
   const numberLocale = locale === "en" ? "en-US" : "es-AR"
   const slug = item.slug || slugify(item.nombre)
+  const mediaFolder = imageKitFolder || slug
   const ctaText = copy.accommodationCard.cta
 
   const servicios = Array.isArray(item.servicios) ? item.servicios : []
@@ -90,7 +92,7 @@ export function AccommodationCard({ item, portadaFile, onShare }: AccommodationC
                 <CustomImage
                   path={`${String(portadaFile).split("?")[0]}?${IK_TRANSFORMS.card}`}
                   folder="ALOJAMIENTOS"
-                  subfolder={slug}
+                  subfolder={mediaFolder}
                   alt={item.nombre}
                   fill
                   className="object-cover"

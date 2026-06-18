@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { getPortadaAlojamientoWithCandidates, getPortadasAlojamientos } from "@/lib/imagekit"
+import { getAlojamientoPortadaInfo, getPortadasAlojamientos } from "@/lib/imagekit"
+import { slugify } from "@/lib/utils"
 
 export async function POST(req: Request) {
   try {
@@ -22,25 +23,28 @@ export async function POST(req: Request) {
       : []
 
     if (items.length === 0 && slugs.length === 0) {
-      return NextResponse.json({ portadas: {} })
+      return NextResponse.json({ portadas: {}, imageKitFolders: {} })
     }
 
     if (items.length > 0) {
       const limitedItems = items.slice(0, 300)
       const entries = await Promise.all(
         limitedItems.map(async (item) => {
-          const portada = await getPortadaAlojamientoWithCandidates(item.slug, [item.nombre])
-          return [item.key, portada] as const
-        })
+          const info = await getAlojamientoPortadaInfo(item.slug, [slugify(item.nombre)])
+          return [item.key, info] as const
+        }),
       )
-      return NextResponse.json({ portadas: Object.fromEntries(entries) })
+
+      const portadas = Object.fromEntries(entries.map(([key, info]) => [key, info.file]))
+      const imageKitFolders = Object.fromEntries(entries.map(([key, info]) => [key, info.imageKitFolder]))
+
+      return NextResponse.json({ portadas, imageKitFolders })
     }
 
     const limited = slugs.slice(0, 200)
     const portadas = await getPortadasAlojamientos(limited)
-    return NextResponse.json({ portadas })
+    return NextResponse.json({ portadas, imageKitFolders: {} })
   } catch {
-    return NextResponse.json({ portadas: {} }, { status: 200 })
+    return NextResponse.json({ portadas: {}, imageKitFolders: {} }, { status: 200 })
   }
 }
-

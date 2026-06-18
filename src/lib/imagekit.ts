@@ -10,6 +10,16 @@ type ImageKitFileItem = {
   mime?: string
 }
 
+export type AlojamientoImageKitGaleria = {
+  imageKitFolder: string | null
+  archivos: string[]
+}
+
+export type AlojamientoPortadaInfo = {
+  file: string | null
+  imageKitFolder: string | null
+}
+
 function getImageKitPrivateKey() {
   const k =
     process.env.IMAGEKIT_PRIVATE_KEY ||
@@ -29,8 +39,10 @@ function isImageName(name: string) {
   return n.endsWith(".webp") || n.endsWith(".jpg") || n.endsWith(".jpeg") || n.endsWith(".png")
 }
 
-export async function getArchivosAlojamiento(slug: string): Promise<string[]> {
-  return getArchivosAlojamientoWithCandidates(slug)
+function pickPortadaFromArchivos(archivos: string[]): string | null {
+  if (archivos.length === 0) return null
+  const portada = archivos.find((n) => n.toLowerCase() === "portada.webp")
+  return portada ?? archivos[0] ?? null
 }
 
 function buildSlugCandidates(slug: string, extraCandidates?: string[]) {
@@ -48,17 +60,16 @@ function buildSlugCandidates(slug: string, extraCandidates?: string[]) {
 
   const extras = Array.isArray(extraCandidates)
     ? extraCandidates
-        .map((x) => String(x || "").trim())
+        .map((x) => slugify(String(x || "").trim()))
         .filter(Boolean)
     : []
 
   const baseCandidates = [
-      baseSlug,
-      decodedSlug,
-      slugify(baseSlug),
-      slugify(decodedSlug),
-      ...extras,
-      ...extras.map((x) => slugify(x)),
+    baseSlug,
+    decodedSlug,
+    slugify(baseSlug),
+    slugify(decodedSlug),
+    ...extras,
   ].filter(Boolean)
 
   const strippedCandidates = baseCandidates
@@ -67,47 +78,63 @@ function buildSlugCandidates(slug: string, extraCandidates?: string[]) {
     .map((candidate) =>
       candidate.replace(
         /^(cabanas?|cabana|hosteria|hostal|hotel|apart(?:-hotel)?|departamentos?|deptos?|complejo|camping|refugio|estancia)-+/i,
-        ""
-      )
+        "",
+      ),
     )
     .filter(Boolean)
 
   return Array.from(new Set([...baseCandidates, ...strippedCandidates]))
 }
 
-export async function getArchivosAlojamientoWithCandidates(slug: string, extraCandidates?: string[]): Promise<string[]> {
+async function listImageKitFolder(privateKey: string, candidate: string): Promise<string[]> {
+  const url = new URL("https://api.imagekit.io/v1/files")
+  url.searchParams.set("path", `/alojamientos/${candidate}`)
+  url.searchParams.set("fileType", "image")
+
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: buildAuthHeader(privateKey) },
+    cache: "no-store",
+  })
+
+  if (!res.ok) return []
+
+  const data = (await res.json()) as unknown
+  if (!Array.isArray(data)) return []
+
+  const names = (data as ImageKitFileItem[])
+    .map((it) => (it?.name ? String(it.name) : ""))
+    .map((n) => n.trim())
+    .filter(Boolean)
+    .filter(isImageName)
+
+  return Array.from(new Set(names))
+}
+
+export async function resolveAlojamientoImageKitGaleria(
+  slug: string,
+  extraCandidates?: string[],
+): Promise<AlojamientoImageKitGaleria> {
   const privateKey = getImageKitPrivateKey()
-  if (!privateKey) return []
+  if (!privateKey) return { imageKitFolder: null, archivos: [] }
 
   const candidates = buildSlugCandidates(slug, extraCandidates)
   for (const candidate of candidates) {
-    const url = new URL("https://api.imagekit.io/v1/files")
-    url.searchParams.set("path", `/alojamientos/${candidate}`)
-    url.searchParams.set("fileType", "image")
-
-    const res = await fetch(url.toString(), {
-      headers: { Authorization: buildAuthHeader(privateKey) },
-      next: { revalidate: 3600, tags: ["imagekit", `imagekit:alojamientos:${candidate}`] },
-    })
-
-    if (!res.ok) continue
-
-    const data = (await res.json()) as unknown
-    if (!Array.isArray(data)) continue
-
-    const names = (data as ImageKitFileItem[])
-      .map((it) => (it?.name ? String(it.name) : ""))
-      .map((n) => n.trim())
-      .filter(Boolean)
-      .filter(isImageName)
-
-    const unique = Array.from(new Set(names))
-    if (unique.length > 0) {
-      return sortGaleriaFiles(unique)
+    const names = await listImageKitFolder(privateKey, candidate)
+    if (names.length > 0) {
+      return { imageKitFolder: candidate, archivos: sortGaleriaFiles(names) }
     }
   }
 
-  return []
+  return { imageKitFolder: null, archivos: [] }
+}
+
+export async function getArchivosAlojamiento(slug: string): Promise<string[]> {
+  return getArchivosAlojamientoWithCandidates(slug)
+}
+
+export async function getArchivosAlojamientoWithCandidates(slug: string, extraCandidates?: string[]): Promise<string[]> {
+  const { archivos } = await resolveAlojamientoImageKitGaleria(slug, extraCandidates)
+  return archivos
 }
 
 export async function getArchivosGaleriaTermas(): Promise<string[]> {
@@ -120,7 +147,7 @@ export async function getArchivosGaleriaTermas(): Promise<string[]> {
 
   const res = await fetch(url.toString(), {
     headers: { Authorization: buildAuthHeader(privateKey) },
-    next: { revalidate: 3600, tags: ["imagekit", "imagekit:galeria:termas"] },
+    cache: "no-store",
   })
 
   if (!res.ok) return []
@@ -142,33 +169,31 @@ export async function getArchivosGaleriaTermas(): Promise<string[]> {
 
 export async function getPortadaAlojamiento(slug: string): Promise<string | null> {
   const archivos = await getArchivosAlojamiento(slug)
-  if (archivos.length === 0) return null
-
-  const portada = archivos.find((n) => n.toLowerCase() === "portada.webp")
-  if (portada) return portada
-
-  return archivos[0] ?? null
+  return pickPortadaFromArchivos(archivos)
 }
 
 export async function getPortadaAlojamientoWithCandidates(slug: string, extraCandidates?: string[]): Promise<string | null> {
-  const archivos = await getArchivosAlojamientoWithCandidates(slug, extraCandidates)
-  if (archivos.length === 0) return null
-  const portada = archivos.find((n) => n.toLowerCase() === "portada.webp")
-  return portada ?? archivos[0] ?? null
+  const { archivos } = await resolveAlojamientoImageKitGaleria(slug, extraCandidates)
+  return pickPortadaFromArchivos(archivos)
+}
+
+export async function getAlojamientoPortadaInfo(
+  slug: string,
+  extraCandidates?: string[],
+): Promise<AlojamientoPortadaInfo> {
+  const { imageKitFolder, archivos } = await resolveAlojamientoImageKitGaleria(slug, extraCandidates)
+  return { file: pickPortadaFromArchivos(archivos), imageKitFolder }
 }
 
 export async function getPortadasAlojamientos(slugs: string[]): Promise<Record<string, string | null>> {
-  const unique = Array.from(
-    new Set((slugs ?? []).map((s) => String(s || "").trim()).filter(Boolean))
-  )
+  const unique = Array.from(new Set((slugs ?? []).map((s) => String(s || "").trim()).filter(Boolean)))
 
   const entries = await Promise.all(
     unique.map(async (slug) => {
       const portada = await getPortadaAlojamiento(slug)
       return [slug, portada] as const
-    })
+    }),
   )
 
   return Object.fromEntries(entries)
 }
-
