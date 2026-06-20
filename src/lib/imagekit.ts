@@ -8,16 +8,19 @@ type ImageKitFileItem = {
   name?: string
   filePath?: string
   mime?: string
+  updatedAt?: string
 }
 
 export type AlojamientoImageKitGaleria = {
   imageKitFolder: string | null
   archivos: string[]
+  updatedAtByName: Record<string, string>
 }
 
 export type AlojamientoPortadaInfo = {
   file: string | null
   imageKitFolder: string | null
+  fileUpdatedAt: string | null
 }
 
 function getImageKitPrivateKey() {
@@ -86,7 +89,10 @@ function buildSlugCandidates(slug: string, extraCandidates?: string[]) {
   return Array.from(new Set([...baseCandidates, ...strippedCandidates]))
 }
 
-async function listImageKitFolder(privateKey: string, candidate: string): Promise<string[]> {
+async function listImageKitFolder(
+  privateKey: string,
+  candidate: string,
+): Promise<{ names: string[]; updatedAtByName: Record<string, string> }> {
   const url = new URL("https://api.imagekit.io/v1/files")
   url.searchParams.set("path", `/alojamientos/${candidate}`)
   url.searchParams.set("fileType", "image")
@@ -96,18 +102,24 @@ async function listImageKitFolder(privateKey: string, candidate: string): Promis
     cache: "no-store",
   })
 
-  if (!res.ok) return []
+  if (!res.ok) return { names: [], updatedAtByName: {} }
 
   const data = (await res.json()) as unknown
-  if (!Array.isArray(data)) return []
+  if (!Array.isArray(data)) return { names: [], updatedAtByName: {} }
 
+  const updatedAtByName: Record<string, string> = {}
   const names = (data as ImageKitFileItem[])
-    .map((it) => (it?.name ? String(it.name) : ""))
-    .map((n) => n.trim())
+    .map((it) => {
+      const name = it?.name ? String(it.name).trim() : ""
+      if (name && it.updatedAt) {
+        updatedAtByName[name] = String(it.updatedAt)
+      }
+      return name
+    })
     .filter(Boolean)
     .filter(isImageName)
 
-  return Array.from(new Set(names))
+  return { names: Array.from(new Set(names)), updatedAtByName }
 }
 
 export async function resolveAlojamientoImageKitGaleria(
@@ -115,17 +127,21 @@ export async function resolveAlojamientoImageKitGaleria(
   extraCandidates?: string[],
 ): Promise<AlojamientoImageKitGaleria> {
   const privateKey = getImageKitPrivateKey()
-  if (!privateKey) return { imageKitFolder: null, archivos: [] }
+  if (!privateKey) return { imageKitFolder: null, archivos: [], updatedAtByName: {} }
 
   const candidates = buildSlugCandidates(slug, extraCandidates)
   for (const candidate of candidates) {
-    const names = await listImageKitFolder(privateKey, candidate)
+    const { names, updatedAtByName } = await listImageKitFolder(privateKey, candidate)
     if (names.length > 0) {
-      return { imageKitFolder: candidate, archivos: sortGaleriaFiles(names) }
+      return {
+        imageKitFolder: candidate,
+        archivos: sortGaleriaFiles(names),
+        updatedAtByName,
+      }
     }
   }
 
-  return { imageKitFolder: null, archivos: [] }
+  return { imageKitFolder: null, archivos: [], updatedAtByName: {} }
 }
 
 export async function getArchivosAlojamiento(slug: string): Promise<string[]> {
@@ -181,8 +197,10 @@ export async function getAlojamientoPortadaInfo(
   slug: string,
   extraCandidates?: string[],
 ): Promise<AlojamientoPortadaInfo> {
-  const { imageKitFolder, archivos } = await resolveAlojamientoImageKitGaleria(slug, extraCandidates)
-  return { file: pickPortadaFromArchivos(archivos), imageKitFolder }
+  const { imageKitFolder, archivos, updatedAtByName } = await resolveAlojamientoImageKitGaleria(slug, extraCandidates)
+  const file = pickPortadaFromArchivos(archivos)
+  const fileUpdatedAt = file ? updatedAtByName[file] ?? null : null
+  return { file, imageKitFolder, fileUpdatedAt }
 }
 
 export async function getPortadasAlojamientos(slugs: string[]): Promise<Record<string, string | null>> {

@@ -2,6 +2,8 @@ import { NextResponse } from "next/server"
 import { getAlojamientoPortadaInfo, getPortadasAlojamientos } from "@/lib/imagekit"
 import { slugify } from "@/lib/utils"
 
+const NO_STORE_HEADERS = { "Cache-Control": "no-store" }
+
 export async function POST(req: Request) {
   try {
     const body = (await req.json().catch(() => null)) as unknown
@@ -23,7 +25,7 @@ export async function POST(req: Request) {
       : []
 
     if (items.length === 0 && slugs.length === 0) {
-      return NextResponse.json({ portadas: {}, imageKitFolders: {} })
+      return NextResponse.json({ portadas: {}, imageKitFolders: {}, portadaUpdatedAt: {} }, { headers: NO_STORE_HEADERS })
     }
 
     if (items.length > 0) {
@@ -37,14 +39,15 @@ export async function POST(req: Request) {
 
       const portadas = Object.fromEntries(entries.map(([key, info]) => [key, info.file]))
       const imageKitFolders = Object.fromEntries(entries.map(([key, info]) => [key, info.imageKitFolder]))
+      const portadaUpdatedAt = Object.fromEntries(entries.map(([key, info]) => [key, info.fileUpdatedAt]))
 
-      return NextResponse.json({ portadas, imageKitFolders })
+      return NextResponse.json({ portadas, imageKitFolders, portadaUpdatedAt }, { headers: NO_STORE_HEADERS })
     }
 
     const limited = slugs.slice(0, 200)
     const portadas = await getPortadasAlojamientos(limited)
-    return NextResponse.json({ portadas, imageKitFolders: {} })
+    return NextResponse.json({ portadas, imageKitFolders: {}, portadaUpdatedAt: {} }, { headers: NO_STORE_HEADERS })
   } catch {
-    return NextResponse.json({ portadas: {}, imageKitFolders: {} }, { status: 200 })
+    return NextResponse.json({ portadas: {}, imageKitFolders: {}, portadaUpdatedAt: {} }, { status: 200, headers: NO_STORE_HEADERS })
   }
 }

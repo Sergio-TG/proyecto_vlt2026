@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { GaleriaAlojamiento } from "@/components/alojamientos/GaleriaAlojamiento"
 import { getAccommodationGalleryVideo } from "@/lib/accommodation-gallery.config"
 import CustomImage from "@/components/common/CustomImage"
-import { IK_TRANSFORMS } from "@/lib/imagekit.config"
+import { IK_TRANSFORMS, appendImageKitCacheVersion, imageKitCacheVersion } from "@/lib/imagekit.config"
 import { slugify } from "@/lib/utils"
 import { getIconByKey } from "@/lib/icons"
 import {
@@ -92,6 +92,7 @@ export function AccommodationDetailClient({
   thumbUrls,
   fullUrls,
   portadaPath,
+  portadaUpdatedAt,
   imageKitFolder,
   approvedReviews,
   initialReviewsTotalCount,
@@ -101,6 +102,7 @@ export function AccommodationDetailClient({
   thumbUrls: string[]
   fullUrls: string[]
   portadaPath: string | null
+  portadaUpdatedAt: string | null
   imageKitFolder: string
   approvedReviews: ApprovedReview[]
   initialReviewsTotalCount: number
@@ -351,7 +353,12 @@ export function AccommodationDetailClient({
     return segment?.split("?")[0]?.trim() || null
   }, [portadaPath, thumbUrls])
 
-  const heroPath = heroFileName ? `${heroFileName}?${IK_TRANSFORMS.heroPage}` : null
+  const heroPath = heroFileName
+    ? appendImageKitCacheVersion(
+        `${heroFileName}?${IK_TRANSFORMS.heroPage}`,
+        imageKitCacheVersion(portadaUpdatedAt),
+      )
+    : null
 
   return (
     <div className="min-h-screen bg-white pb-20 overflow-hidden">

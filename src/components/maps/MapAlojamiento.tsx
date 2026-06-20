@@ -215,10 +215,12 @@ export default function MapAlojamiento({
   accommodations,
   portadaBySlug,
   imageKitFolderBySlug,
+  portadaUpdatedAtBySlug,
 }: {
   accommodations: AlojamientoAprobado[]
   portadaBySlug: Record<string, string | null>
   imageKitFolderBySlug?: Record<string, string | null>
+  portadaUpdatedAtBySlug?: Record<string, string | null>
 }) {
   const { locale } = useLanguage()
   const m = getSiteCopy(locale).pages.mapListing
@@ -295,7 +297,16 @@ export default function MapAlojamiento({
       const slug = a.slug || slugify(a.nombre)
       const portadaFile = portadaBySlug[slug]
       const mediaFolder = imageKitFolderBySlug?.[slug] ?? slug
-      const portadaUrl = portadaFile ? buildGaleriaUrls(mediaFolder, [String(portadaFile)], "card")[0] ?? null : null
+      const portadaUrl = portadaFile
+        ? buildGaleriaUrls(
+            mediaFolder,
+            [String(portadaFile)],
+            "card",
+            portadaUpdatedAtBySlug?.[slug] && portadaFile
+              ? { [String(portadaFile)]: String(portadaUpdatedAtBySlug[slug]) }
+              : undefined,
+          )[0] ?? null
+        : null
 
       acc.push({
         id: a.id,
@@ -310,7 +321,7 @@ export default function MapAlojamiento({
       })
       return acc
     }, [])
-  }, [accommodations, imageKitFolderBySlug, portadaBySlug])
+  }, [accommodations, imageKitFolderBySlug, portadaBySlug, portadaUpdatedAtBySlug])
 
   const mapCenter = React.useMemo<[number, number]>(() => {
     if (markers.length === 0) return [-27.496, -64.859]

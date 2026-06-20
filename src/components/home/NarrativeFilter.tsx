@@ -75,7 +75,7 @@ const AMENITY_META = [
   { id: "ac" as const, serviceName: "Aire Acondicionado", defaultIcon: Snowflake },
   { id: "pool" as const, serviceName: "Pileta", defaultIcon: Waves },
   { id: "mountain_view" as const, serviceName: "Vista a la Montaña", defaultIcon: Mountain },
-  { id: "river" as const, serviceName: "Cerca de Río/Arroyo", defaultIcon: Fish },
+  { id: "river" as const, serviceName: "Cerca de Río", defaultIcon: Fish },
   { id: "accessibility" as const, serviceName: "Accesibilidad", defaultIcon: Accessibility },
 ]
 

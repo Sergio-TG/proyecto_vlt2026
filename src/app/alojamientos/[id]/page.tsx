@@ -29,7 +29,9 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
   const folderSlug = String(accommodation.slug || slug).trim()
   const fallbackFolderByName = slugify(String(accommodation.nombre || ""))
 
-  const { imageKitFolder, archivos } = await resolveAlojamientoImageKitGaleria(folderSlug, [fallbackFolderByName])
+  const { imageKitFolder, archivos, updatedAtByName } = await resolveAlojamientoImageKitGaleria(folderSlug, [
+    fallbackFolderByName,
+  ])
   const mediaFolder = imageKitFolder ?? folderSlug
 
   const list = Array.from(new Set(archivos.filter(Boolean).map((n) => String(n).trim()).filter(Boolean)))
@@ -37,10 +39,11 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
   const portadaFromList = list.find((n) => (n.split("?")[0] ?? "").toLowerCase() === "portada.webp")
   const portada = portadaFromList || list[0] || ""
   const portadaPath = portada ? String(portada).trim() : null
+  const portadaUpdatedAt = portadaPath ? updatedAtByName[portadaPath] ?? null : null
   const ordered = portada ? [portada, ...list.filter((n) => n !== portada)] : list
 
-  const thumbUrls = buildGaleriaUrls(mediaFolder, ordered, "galThumb")
-  const fullUrls = buildGaleriaUrls(mediaFolder, ordered, "galFull")
+  const thumbUrls = buildGaleriaUrls(mediaFolder, ordered, "galThumb", updatedAtByName)
+  const fullUrls = buildGaleriaUrls(mediaFolder, ordered, "galFull", updatedAtByName)
 
   const [{ data: approvedReviewsRaw, count: totalReviewCount }, { data: statsRowsRaw }] = await Promise.all([
     supabase
@@ -76,6 +79,7 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
       thumbUrls={thumbUrls}
       fullUrls={fullUrls}
       portadaPath={portadaPath}
+      portadaUpdatedAt={portadaUpdatedAt}
       imageKitFolder={mediaFolder}
       approvedReviews={approvedReviews}
       initialReviewsTotalCount={initialReviewsTotalCount}

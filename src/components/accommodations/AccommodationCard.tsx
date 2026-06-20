@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import CustomImage from "@/components/common/CustomImage"
-import { IK_TRANSFORMS } from "@/lib/imagekit.config"
+import { IK_TRANSFORMS, appendImageKitCacheVersion, imageKitCacheVersion } from "@/lib/imagekit.config"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { motion } from "framer-motion"
@@ -53,15 +53,22 @@ export type AccommodationCardProps = {
   item: AlojamientoAprobado
   portadaFile?: string | null
   imageKitFolder?: string | null
+  portadaUpdatedAt?: string | null
   onShare: (e: React.MouseEvent<HTMLButtonElement>, slug: string, title: string) => void
 }
 
-export function AccommodationCard({ item, portadaFile, imageKitFolder, onShare }: AccommodationCardProps) {
+export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUpdatedAt, onShare }: AccommodationCardProps) {
   const { locale } = useLanguage()
   const copy = getSiteCopy(locale)
   const numberLocale = locale === "en" ? "en-US" : "es-AR"
   const slug = item.slug || slugify(item.nombre)
   const mediaFolder = imageKitFolder || slug
+  const portadaPath = portadaFile
+    ? appendImageKitCacheVersion(
+        `${String(portadaFile).split("?")[0]}?${IK_TRANSFORMS.card}`,
+        imageKitCacheVersion(portadaUpdatedAt),
+      )
+    : null
   const ctaText = copy.accommodationCard.cta
 
   const servicios = Array.isArray(item.servicios) ? item.servicios : []
@@ -88,9 +95,9 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, onShare }
         <Card className="group w-full overflow-hidden border-0 ring-0 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
           <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem] -mt-4 z-0">
             <motion.div variants={imageHoverVariants} transition={imageHoverTransition} className="relative w-full h-full">
-              {portadaFile ? (
+              {portadaPath ? (
                 <CustomImage
-                  path={`${String(portadaFile).split("?")[0]}?${IK_TRANSFORMS.card}`}
+                  path={portadaPath}
                   folder="ALOJAMIENTOS"
                   subfolder={mediaFolder}
                   alt={item.nombre}

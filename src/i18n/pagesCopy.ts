@@ -15,7 +15,7 @@ export const pagesEs = {
       },
       {
         title: "Spa & Relax",
-        desc: "Masajes descontracturantes, fangoterapia, sauna seco y húmedo para una renovación total.",
+        desc: "Masajes descontracturantes, sauna seco y húmedo para una renovación total.",
       },
       {
         title: "Gastronomía",
@@ -42,7 +42,7 @@ export const pagesEs = {
     cardTitle: "Termas del Sol",
     cardRegion: "El Durazno, Valle de Calamuchita",
     cardBody:
-      "Ubicadas en un entorno natural privilegiado, rodeadas de sierras y ríos cristalinos. Un lugar único para conectar con la naturaleza.",
+      "Ubicadas en un entorno natural privilegiado, rodeadas de sierras y un río de aguas cristalinas. Un lugar único para conectar con la naturaleza.",
     gpsLabel: "Coordenadas GPS:",
     directionsBtn: "Cómo Llegar con Google Maps",
   },
@@ -455,7 +455,7 @@ export const pagesEn: typeof pagesEs = {
     heroTitle: "Termas del Sol",
     heroSubtitle: "A relaxation oasis in the heart of El Durazno",
     introLine1: "Welcome to our",
-    introHighlight: "Thermal Spa paradise",
+    introHighlight: "Heated Spa paradise",
     introHtml: `Immerse yourself in a setting where the water soothes, the body unwinds and the mind breathes. At <strong>Termas del Sol</strong>, every detail is designed for your wellbeing. Enjoy artificially heated waters up to 40°C, surrounded by the stunning nature of the Sierras Grandes.`,
     ctaReserve: "Book a day pass",
     features: [
@@ -465,7 +465,7 @@ export const pagesEn: typeof pagesEs = {
       },
       {
         title: "Spa & relaxation",
-        desc: "Relaxing massages, mud therapy, dry and wet sauna for a full reset.",
+        desc: "Relaxing massages, dry and wet sauna for a full reset.",
       },
       {
         title: "Dining",
@@ -492,7 +492,7 @@ export const pagesEn: typeof pagesEs = {
     cardTitle: "Termas del Sol",
     cardRegion: "El Durazno, Calamuchita Valley",
     cardBody:
-      "Set in a privileged natural environment, surrounded by mountains and crystal-clear rivers. A unique place to connect with nature.",
+      "Set in a privileged natural environment, surrounded by mountains and crystal-clear river. A unique place to connect with nature.",
     gpsLabel: "GPS coordinates:",
     directionsBtn: "Open directions in Google Maps",
   },
@@ -804,7 +804,7 @@ export const pagesEn: typeof pagesEs = {
     heroAlt: "Villa Yacanto & El Durazno — nature and wellbeing",
     heroTitle: "Welcome to our story",
     heroSubtitle:
-      "Guides and updates to plan your getaway in the Sierras — vetted Thermal Spa stays, curated accommodation and the best of Villa Yacanto & El Durazno.",
+      "Guides and updates to plan your getaway in the Sierras — vetted Heated Spa stays, curated accommodation and the best of Villa Yacanto & El Durazno.",
     latestTitle: "Latest Blog Articles",
     viewAll: "View all",
     latestSubtitle: "Explore our stories about travel and nature.",
@@ -820,14 +820,14 @@ export const pagesEn: typeof pagesEs = {
         slug: "guia-escapada-sierras-calculo",
         title: "Planning your Sierras de Córdoba getaway",
         excerpt:
-          "Seasons, recommended routes and practical tips for combining nature, rest and Thermal Spa visits without fuss.",
+          "Seasons, recommended routes and practical tips for combining nature, rest and Heated Spa visits without fuss.",
         date: "Jan 2026",
         category: "Guides",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-exterior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "Choosing your season and arrival day often defines whether a trip feels paced or rushed. Spring and autumn bring mild weather and changing colours; summer adds more water-centric plans.",
-          "Pair verified accommodation with at least one Thermal Spa visit and an easy walk around El Durazno or Villa Yacanto. Book early on long weekends and check road conditions before departing.",
+          "Pair verified accommodation with at least one Heated Spa visit and an easy walk around El Durazno or Villa Yacanto. Book early on long weekends and check road conditions before departing.",
         ],
       },
       {
@@ -848,9 +848,9 @@ export const pagesEn: typeof pagesEs = {
         slug: "termas-del-sol-que-esperar",
         title: "Termas del Sol: passes, tips and directions",
         excerpt:
-          "Opening hours essentials, packing tips and fitting the Thermal Spa into your El Durazno day.",
+          "Opening hours essentials, packing tips and fitting the Heated Spa into your El Durazno day.",
         date: "Nov 2025",
-        category: "Thermal Spa",
+        category: "Heated Spa",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-interior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -868,7 +868,7 @@ export const pagesEn: typeof pagesEs = {
         image:
           "https://ik.imagekit.io/vivilastermas/entorno/experiencias/yoga-mar.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
-          "The valley offers gentle trails, lookouts and wellness activities that harmonise beautifully with Thermal Spa outings.",
+          "The valley offers gentle trails, lookouts and wellness activities that harmonise beautifully with Heated Spa outings.",
           "Book guided outings or massages in advance — seasonal weekends fill quickly. Reach out and we can sketch an itinerary tailored to your group.",
         ],
       },

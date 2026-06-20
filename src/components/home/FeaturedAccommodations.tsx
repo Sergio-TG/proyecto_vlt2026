@@ -27,6 +27,7 @@ export function FeaturedAccommodations() {
   const [showShareToast, setShowShareToast] = useState(false)
   const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
   const [imageKitFolderBySlug, setImageKitFolderBySlug] = useState<Record<string, string | null>>({})
+  const [portadaUpdatedAtBySlug, setPortadaUpdatedAtBySlug] = useState<Record<string, string | null>>({})
   const sectionRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -53,14 +54,17 @@ export function FeaturedAccommodations() {
       const res = await fetch("/api/portadas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({ items }),
       }).catch(() => null)
       const json = (await res?.json().catch(() => null)) as unknown
       const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
       const folders = (json as { imageKitFolders?: Record<string, string | null> })?.imageKitFolders ?? {}
+      const updatedAt = (json as { portadaUpdatedAt?: Record<string, string | null> })?.portadaUpdatedAt ?? {}
       if (ignore) return
       setPortadaBySlug(map)
       setImageKitFolderBySlug(folders)
+      setPortadaUpdatedAtBySlug(updatedAt)
     }
     loadPortadas()
     return () => {
@@ -173,6 +177,7 @@ export function FeaturedAccommodations() {
                         item={item}
                         portadaFile={portadaBySlug[item.slug || slugify(item.nombre)]}
                         imageKitFolder={imageKitFolderBySlug[item.slug || slugify(item.nombre)]}
+                        portadaUpdatedAt={portadaUpdatedAtBySlug[item.slug || slugify(item.nombre)]}
                         onShare={handleShare}
                       />
                     </div>

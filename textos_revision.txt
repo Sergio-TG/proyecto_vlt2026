@@ -92,7 +92,7 @@ narrative › amenities › heating: Calefacción
 narrative › amenities › ac: Aire Acondicionado
 narrative › amenities › pool: Pileta
 narrative › amenities › mountain_view: Vista a la Montaña
-narrative › amenities › river: Cerca de Río/Arroyo
+narrative › amenities › river: Cerca de Río
 narrative › amenities › accessibility: Accesibilidad
 socialProof › title: Lo que dicen nuestros viajeros
 socialProof › subtitle: Más de 1.200 viajeros felices en 2026
@@ -156,7 +156,7 @@ termas › ctaReserve: Reservar Pase
 termas › features › [1] › title: 22 Piletas
 termas › features › [1] › desc: Circuito de piscinas a diferentes temperaturas, incluyendo una cubierta y otras con borde infinito hacia las sierras.
 termas › features › [2] › title: Spa & Relax
-termas › features › [2] › desc: Masajes descontracturantes, fangoterapia, sauna seco y húmedo para una renovación total.
+termas › features › [2] › desc: Masajes descontracturantes, sauna seco y húmedo para una renovación total.
 termas › features › [3] › title: Gastronomía
 termas › features › [3] › desc: Disfrutá de nuestro servicio de cafetería y restaurante con vistas panorámicas increíbles.
 termas › galleryTitle: Termas del Sol
@@ -173,7 +173,7 @@ termas › mapSubtitle: Encuéntranos en el corazón de El Durazno, un paraíso 
 termas › iframeTitle: Mapa de Ubicación Termas del Sol
 termas › cardTitle: Termas del Sol
 termas › cardRegion: El Durazno, Valle de Calamuchita
-termas › cardBody: Ubicadas en un entorno natural privilegiado, rodeadas de sierras y ríos cristalinos. Un lugar único para conectar con la naturaleza.
+termas › cardBody: Ubicadas en un entorno natural privilegiado, rodeadas de sierras y un río de aguas cristalinas. Un lugar único para conectar con la naturaleza.
 termas › gpsLabel: Coordenadas GPS:
 termas › directionsBtn: Cómo Llegar con Google Maps
 experiencias › heroAlt: Experiencias en El Durazno
@@ -499,7 +499,7 @@ TEXTOS HARDCODEADOS en page.tsx / index.tsx (no están en i18n)
 • Calefacción
 • Aire Acondicionado
 • Vista a la Montaña
-• Cerca de Río/Arroyo
+• Cerca de Río
 • start start
 • end start
 • POST
