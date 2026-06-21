@@ -29,8 +29,23 @@ export const IK_TRANSFORMS = {
 
 export type IKTransform = keyof typeof IK_TRANSFORMS;
 
+/** Convierte `updatedAt` de ImageKit a parámetro de bust de caché (epoch ms). */
+export function imageKitCacheVersion(isoOrMs?: string | number | null): string | null {
+  if (isoOrMs == null || isoOrMs === "") return null
+  if (typeof isoOrMs === "number" && Number.isFinite(isoOrMs)) return String(Math.floor(isoOrMs))
+  const ms = Date.parse(String(isoOrMs))
+  return Number.isFinite(ms) ? String(ms) : null
+}
+
+export function appendImageKitCacheVersion(query: string, version: string | null): string {
+  if (!version) return query
+  return `${query}&updatedAt=${version}`
+}
+
 export const GALERIA_PREFIX_ORDER = [
   "portada",
+  "frente",
+  "recepcion",
   "habitacion",
   "dormitorio",
   "bano",
@@ -71,6 +86,7 @@ export function sortGaleriaFiles(nombres: string[]): string[] {
       if (base === p) return true
       if (base.startsWith(`${p}-`) || base.startsWith(`${p}_`)) return true
       if (new RegExp(`^${p}\\d`).test(base)) return true
+      if (base.startsWith(p) && base.length > p.length) return true
       if (base.includes(`-${p}`) || base.includes(`_${p}`)) return true
       return false
     });
@@ -89,7 +105,12 @@ export function sortGaleriaFiles(nombres: string[]): string[] {
 }
 
 
-export function buildGaleriaUrls(slug: string, archivos: string[], transform: IKTransform = "galThumb"): string[] {
+export function buildGaleriaUrls(
+  slug: string,
+  archivos: string[],
+  transform: IKTransform = "galThumb",
+  updatedAtByName?: Record<string, string>,
+): string[] {
   const base = getResolvedImageKitBase().replace(/\/+$/, "");
   const tr = IK_TRANSFORMS[transform];
 
@@ -111,7 +132,10 @@ export function buildGaleriaUrls(slug: string, archivos: string[], transform: IK
     const fileName = hasExt ? `${baseName}.${ext}` : `${baseName}.webp`;
 
     const rel = `${IMAGE_FOLDERS.ALOJAMIENTOS}/${cleanSlug}/${fileName}`;
-    return `${base}/${rel}?${tr}`;
+    const version = imageKitCacheVersion(
+      updatedAtByName?.[fileName] ?? updatedAtByName?.[withoutQuery] ?? updatedAtByName?.[nombre],
+    );
+    return `${base}/${rel}?${appendImageKitCacheVersion(tr, version)}`;
   });
 }
 

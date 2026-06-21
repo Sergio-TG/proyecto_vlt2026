@@ -78,7 +78,7 @@ const messagesEs = {
     experiences: {
       relax: {
         label: "BIENESTAR Y RELAX",
-        desc: "Desconexión total, masajes y aguas termales para renovar energías",
+        desc: "Desconexión total, masajes y aguas climatizadas para renovar energías",
       },
       adventure: {
         label: "AVENTURA Y EXPLORACIÓN",
@@ -100,7 +100,7 @@ const messagesEs = {
       ac: "Aire Acondicionado",
       pool: "Pileta",
       mountain_view: "Vista a la Montaña",
-      river: "Cerca de Río/Arroyo",
+      river: "Cerca de Río",
       accessibility: "Accesibilidad",
     },
   },
@@ -119,7 +119,7 @@ const messagesEs = {
         quote: "Un lugar mágico para desconectar. Con mi mascota disfrutamos muchísimo de la naturaleza.",
       },
       {
-        quote: "Volveremos sin dudas. La paz que se respira en Villa Yacanto es única.",
+        quote: "Volveremos sin dudas. La paz que se respira en El Durazno es única.",
       },
     ],
   },
@@ -152,7 +152,7 @@ const messagesEs = {
   footer: {
     tagline: "Donde el descanso se vuelve experiencia",
     blurb:
-      "Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y todo el bienestar de nuestro complejo termal.",
+      "Descubrí la esencia de las sierras cordobesas. Alojamientos verificados, experiencias únicas y todo el bienestar de nuestro complejo de piscinas climatizadas.",
     exploreTitle: "Explorar",
     resourcesTitle: "Recursos",
     exploreLinks: [
@@ -194,7 +194,7 @@ const messagesEs = {
 const messagesEn: typeof messagesEs = {
   nav: [
     { name: "Home", href: "/" },
-    { name: "Thermal Spa", href: "/termas" },
+    { name: "Heated Spa", href: "/termas" },
     { name: "Stays", href: "/alojamientos" },
     { name: "Experiences", href: "/experiencias" },
     { name: "Blog", href: "/blog" },
@@ -211,14 +211,14 @@ const messagesEn: typeof messagesEs = {
     badge: "Termas Night — Exclusive",
     titleLine1: "Your Perfect",
     titleLine2: "Getaway",
-    subtitleBefore: "Thermal Spa • Vetted stays •",
+    subtitleBefore: "Heated Spa • Vetted stays •",
     subtitleAccent: "Authentic experiences",
     trust1: "In-person inspections",
     trust2: "Expert guidance",
     trust3: "No hidden fees",
     ctaStay: "Find your stay",
-    ctaTermas: "Discover our Thermal Spa",
-    imageAlt: "Thermal Spa in El Durazno, Córdoba",
+    ctaTermas: "Discover our Heated Spa",
+    imageAlt: "Heated Spa in El Durazno, Córdoba",
   },
   trustBuilders: {
     items: [
@@ -230,9 +230,9 @@ const messagesEn: typeof messagesEs = {
   },
   termasTeaser: {
     titleLine1: "The heart of your experience:",
-    titleLine2: "Our Thermal Spa",
-    body: "At our Thermal Spa, 38°C waters artificially heated and pristine nature come together. The perfect balance of relaxation and adventure.",
-    statThermal: "THERMAL SPA",
+    titleLine2: "Our Heated Spa",
+    body: "At our Heated Spa, 38°C waters artificially heated and pristine nature come together. The perfect balance of relaxation and adventure.",
+    statThermal: "HEATED SPA",
     statAdults: "ADULTS ONLY",
     statViews: "NATURAL VIEWS",
     ctaMore: "Learn more",
@@ -268,7 +268,7 @@ const messagesEn: typeof messagesEs = {
     experiences: {
       relax: {
         label: "WELLNESS & RELAXATION",
-        desc: "Full disconnect with massages and access to our Thermal Spa to recharge",
+        desc: "Full disconnect with massages and access to our Heated Spa to recharge",
       },
       adventure: {
         label: "ADVENTURE & EXPLORATION",
@@ -290,7 +290,7 @@ const messagesEn: typeof messagesEs = {
       ac: "Air conditioning",
       pool: "Pool",
       mountain_view: "Mountain view",
-      river: "Near river / stream",
+      river: "Near river",
       accessibility: "Accessibility",
     },
   },
@@ -300,7 +300,7 @@ const messagesEn: typeof messagesEs = {
     ctaInstagram: "More reviews on Instagram",
     testimonials: [
       {
-        quote: "Amazing experience. The cabin exceeded our expectations and the Thermal Spa is a dream.",
+        quote: "Amazing experience. The cabin exceeded our expectations and the Heated Spa is a dream.",
       },
       {
         quote: "The personalized attention made the difference. They helped us plan the whole trip.",
@@ -309,7 +309,7 @@ const messagesEn: typeof messagesEs = {
         quote: "A magical place to unplug. My pet and I loved the nature.",
       },
       {
-        quote: "We’ll definitely return. The peace in Villa Yacanto is unique.",
+        quote: "We’ll definitely return. The peace in El Durazno is unique.",
       },
     ],
   },
@@ -328,7 +328,7 @@ const messagesEn: typeof messagesEs = {
   },
   whatsapp: {
     prefill:
-      "Hi, I’d like to know more about your Thermal Spa and wellness experience at Viví las Termas. Could you advise me?",
+      "Hi, I’d like to know more about your Heated Spa and wellness experience at Viví las Termas. Could you advise me?",
     label: "Contact us on WhatsApp",
     chip: "Questions? Message us",
   },
@@ -342,12 +342,12 @@ const messagesEn: typeof messagesEs = {
   footer: {
     tagline: "Where rest becomes an experience",
     blurb:
-      "Discover the essence of the Sierras de Córdoba. Vetted stays, unique experiences and the full wellness of our Thermal Spa.",
+      "Discover the essence of the Sierras de Córdoba. Vetted stays, unique experiences and the full wellness of our Heated Spa.",
     exploreTitle: "Explore",
     resourcesTitle: "Resources",
     exploreLinks: [
       { name: "Home", href: "/" },
-      { name: "Thermal Spa", href: "/termas" },
+      { name: "Heated Spa", href: "/termas" },
       { name: "Stays", href: "/alojamientos" },
       { name: "Experiences", href: "/experiencias" },
     ],

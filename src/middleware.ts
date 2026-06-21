@@ -6,6 +6,15 @@ export function middleware(request: NextRequest) {
   if (process.env.NODE_ENV === 'development') {
     return NextResponse.next();
   }
+// 1. Si viene del subdominio temporal, ignorar el bloqueo
+const host = request.headers.get('host') || '';
+if (host.includes('testing.vivilastermas.com')) {
+  const response = NextResponse.next()
+  // Forzamos a que Google NO indexe este sitio temporal bajo ningún concepto
+  response.headers.set('X-Robots-Tag', 'noindex, nofollow')
+  return response
+}
+
 
   const { pathname } = request.nextUrl;
   const isAllowed =

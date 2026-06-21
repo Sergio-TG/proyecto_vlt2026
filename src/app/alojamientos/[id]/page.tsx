@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
 import { buildGaleriaUrls } from "@/lib/imagekit.config"
-import { getArchivosAlojamientoWithCandidates, getPortadaAlojamientoWithCandidates } from "@/lib/imagekit"
+import { resolveAlojamientoImageKitGaleria } from "@/lib/imagekit"
 import { AccommodationDetailClient } from "./AccommodationDetailClient"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { parseApprovedReviewRow, REVIEWS_PAGE_SIZE, type ApprovedReview } from "@/lib/reviews"
@@ -29,19 +29,21 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
   const folderSlug = String(accommodation.slug || slug).trim()
   const fallbackFolderByName = slugify(String(accommodation.nombre || ""))
 
-  const [archivos, portadaPath] = await Promise.all([
-    getArchivosAlojamientoWithCandidates(folderSlug, [fallbackFolderByName]),
-    getPortadaAlojamientoWithCandidates(folderSlug, [fallbackFolderByName]),
+  const { imageKitFolder, archivos, updatedAtByName } = await resolveAlojamientoImageKitGaleria(folderSlug, [
+    fallbackFolderByName,
   ])
+  const mediaFolder = imageKitFolder ?? folderSlug
 
   const list = Array.from(new Set(archivos.filter(Boolean).map((n) => String(n).trim()).filter(Boolean)))
 
   const portadaFromList = list.find((n) => (n.split("?")[0] ?? "").toLowerCase() === "portada.webp")
-  const portada = portadaFromList || (portadaPath ? String(portadaPath).trim() : "")
+  const portada = portadaFromList || list[0] || ""
+  const portadaPath = portada ? String(portada).trim() : null
+  const portadaUpdatedAt = portadaPath ? updatedAtByName[portadaPath] ?? null : null
   const ordered = portada ? [portada, ...list.filter((n) => n !== portada)] : list
 
-  const thumbUrls = buildGaleriaUrls(folderSlug, ordered, "galThumb")
-  const fullUrls = buildGaleriaUrls(folderSlug, ordered, "galFull")
+  const thumbUrls = buildGaleriaUrls(mediaFolder, ordered, "galThumb", updatedAtByName)
+  const fullUrls = buildGaleriaUrls(mediaFolder, ordered, "galFull", updatedAtByName)
 
   const [{ data: approvedReviewsRaw, count: totalReviewCount }, { data: statsRowsRaw }] = await Promise.all([
     supabase
@@ -77,6 +79,8 @@ export default async function AccommodationPage({ params }: { params: Promise<{ 
       thumbUrls={thumbUrls}
       fullUrls={fullUrls}
       portadaPath={portadaPath}
+      portadaUpdatedAt={portadaUpdatedAt}
+      imageKitFolder={mediaFolder}
       approvedReviews={approvedReviews}
       initialReviewsTotalCount={initialReviewsTotalCount}
       reviewStats={reviewStats}

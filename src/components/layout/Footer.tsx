@@ -6,9 +6,17 @@ import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 
+const FOOTER_SOCIAL = {
+  instagram: "https://www.instagram.com/termasdelsoleldurazno/",
+  facebook: "https://www.facebook.com/termasdelsoleldurazno2",
+} as const
+
+const WHATSAPP_PHONE = "5493546525404"
+
 export function Footer() {
   const { locale } = useLanguage()
   const copy = getSiteCopy(locale)
+  const whatsappHref = `https://wa.me/${WHATSAPP_PHONE}?text=${encodeURIComponent(copy.whatsapp.prefill)}`
 
   return (
     <footer className="bg-slate-900 text-slate-200 py-16">
@@ -80,13 +88,31 @@ export function Footer() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="flex gap-4">
-            <a href="#" className="bg-slate-800 p-3 rounded-full hover:bg-primary hover:text-white transition-all hover:scale-110">
+            <a
+              href={FOOTER_SOCIAL.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Instagram — Termas del Sol El Durazno"
+              className="bg-slate-800 p-3 rounded-full hover:bg-primary hover:text-white transition-all hover:scale-110"
+            >
               <Instagram className="w-5 h-5" />
             </a>
-            <a href="#" className="bg-slate-800 p-3 rounded-full hover:bg-primary hover:text-white transition-all hover:scale-110">
+            <a
+              href={FOOTER_SOCIAL.facebook}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Facebook — Termas del Sol El Durazno"
+              className="bg-slate-800 p-3 rounded-full hover:bg-primary hover:text-white transition-all hover:scale-110"
+            >
               <Facebook className="w-5 h-5" />
             </a>
-            <a href="#" className="bg-slate-800 p-3 rounded-full hover:bg-primary hover:text-white transition-all hover:scale-110">
+            <a
+              href={whatsappHref}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={copy.whatsapp.label}
+              className="bg-slate-800 p-3 rounded-full hover:bg-primary hover:text-white transition-all hover:scale-110"
+            >
               <MessageCircle className="w-5 h-5" />
             </a>
           </div>

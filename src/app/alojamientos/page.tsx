@@ -73,7 +73,7 @@ const SEARCH_MAPPING: Record<string, string[]> = {
   "aire-acondicionado": ["aire", "split", "frio", "climatizado"],
   pileta: ["pileta", "piscina", "natacion", "solarium", "chapuzon"],
   "vista-a-la-montana": ["vista", "montana", "cerro", "sierra", "panoramica", "valle", "paisaje"],
-  "cerca-de-rio-arroyo": ["rio", "arroyo", "orilla", "cauce", "agua"],
+  "cerca-de-rio-arroyo": ["rio", "orilla", "cauce", "agua"],
   accesibilidad: ["accesible", "rampa", "silla", "ruedas", "movilidad", "discapacidad"],
 }
 
@@ -95,6 +95,7 @@ const SERVICE_ALIAS_TO_KEY: Record<string, string> = {
   [normalizeText("Aire Acondicionado")]: "aire-acondicionado",
   [normalizeText("Pileta")]: "pileta",
   [normalizeText("Vista a la Montaña")]: "vista-a-la-montana",
+  [normalizeText("Cerca de Río")]: "cerca-de-rio-arroyo",
   [normalizeText("Cerca de Río/Arroyo")]: "cerca-de-rio-arroyo",
   [normalizeText("Accesibilidad")]: "accesibilidad",
 }
@@ -148,6 +149,8 @@ function AlojamientosPageInner() {
   const [accommodations, setAccommodations] = useState<AlojamientoAprobado[]>([])
   const [loading, setLoading] = useState(true)
   const [portadaBySlug, setPortadaBySlug] = useState<Record<string, string | null>>({})
+  const [imageKitFolderBySlug, setImageKitFolderBySlug] = useState<Record<string, string | null>>({})
+  const [portadaUpdatedAtBySlug, setPortadaUpdatedAtBySlug] = useState<Record<string, string | null>>({})
   const [selectedLocation, setSelectedLocation] = useState<string[]>([])
   const [selectedFeatures, setSelectedFeatures] = useState<string[]>(() => {
     if (typeof window === "undefined") return []
@@ -269,12 +272,17 @@ function AlojamientosPageInner() {
       const res = await fetch("/api/portadas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        cache: "no-store",
         body: JSON.stringify({ items }),
       }).catch(() => null)
       const json = (await res?.json().catch(() => null)) as unknown
       const map = (json as { portadas?: Record<string, string | null> })?.portadas ?? {}
+      const folders = (json as { imageKitFolders?: Record<string, string | null> })?.imageKitFolders ?? {}
+      const updatedAt = (json as { portadaUpdatedAt?: Record<string, string | null> })?.portadaUpdatedAt ?? {}
       if (ignore) return
       setPortadaBySlug(map)
+      setImageKitFolderBySlug(folders)
+      setPortadaUpdatedAtBySlug(updatedAt)
     }
     loadPortadas()
     return () => {
@@ -589,6 +597,8 @@ function AlojamientosPageInner() {
                   variant="listing"
                   item={item}
                   portadaFile={portadaBySlug[item.slug || slugify(item.nombre)]}
+                  imageKitFolder={imageKitFolderBySlug[item.slug || slugify(item.nombre)]}
+                  portadaUpdatedAt={portadaUpdatedAtBySlug[item.slug || slugify(item.nombre)]}
                   onShare={handleShare}
                 />
               </motion.div>
@@ -628,7 +638,12 @@ function AlojamientosPageInner() {
               {p.mapResults(filteredAccommodations.length)}
             </p>
           </div>
-          <MapAlojamiento accommodations={filteredAccommodations} portadaBySlug={portadaBySlug} />
+          <MapAlojamiento
+            accommodations={filteredAccommodations}
+            portadaBySlug={portadaBySlug}
+            imageKitFolderBySlug={imageKitFolderBySlug}
+            portadaUpdatedAtBySlug={portadaUpdatedAtBySlug}
+          />
         </motion.div>
       </div>
 
