@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { TermasGallery } from "@/components/termas/TermasGallery"
 import { Droplets, Sun, Coffee, Mountain, Sparkles, Clock, MapPin, Navigation } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
@@ -10,9 +11,21 @@ import { useRef } from "react"
 import { getResolvedImageKitBase } from "@/lib/imagekit.config"
 import { HOME_VIDEOS } from "@/lib/constants"
 import { HomeVideoSection } from "@/components/home/HomeVideoSection"
-import { AlojamientoDetailLocationMap } from "@/components/maps/AlojamientoDetailLocationMap"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+
+const MapaTermas = dynamic(
+  () => import("@/components/termas/MapaTermas").then((mod) => ({ default: mod.MapaTermas })),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-100 animate-pulse">
+        <MapPin className="h-8 w-8 text-primary/40" />
+        <span className="text-sm font-medium text-slate-400">Cargando mapa…</span>
+      </div>
+    ),
+  },
+)
 
 const termasHeroImage = `${getResolvedImageKitBase()}/galeria/termas/termas-dron002.webp?updatedAt=1775687332929&q=80&w=2070&auto=format&fit=crop`
 
@@ -199,7 +212,7 @@ export default function TermasPageClient({
               role="region"
               aria-label={p.iframeTitle}
             >
-              <AlojamientoDetailLocationMap
+              <MapaTermas
                 position={TERMAS_MAP_POSITION}
                 googleMapsHref={TERMAS_GOOGLE_MAPS_URL}
                 titulo={p.cardTitle}
