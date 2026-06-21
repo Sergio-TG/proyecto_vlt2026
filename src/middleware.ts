@@ -4,7 +4,7 @@ import type { NextRequest } from "next/server"
 export function middleware(request: NextRequest) {
   const host = request.headers.get("host") || ""
 
-  // === TEMPORAL: BORRAR PARA PRODUCCIÓN (Acceso para el Propietario) ===
+  // === TEMPORAL: BORRAR PARA PRODUCCIÓN (Acceso para el Propietario ) ===
   // Permite navegar el sitio completo en testing.vivilastermas.com sin redirigir a /en-construccion.
   if (host.includes("testing.vivilastermas.com")) {
     const response = NextResponse.next()
