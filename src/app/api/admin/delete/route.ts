@@ -26,7 +26,7 @@ export async function POST(req: Request) {
 
     const { error: delApprovedErr } = await supabase
       .from("alojamientos_aprobados")
-      .delete()
+      .update({ deleted_at: new Date().toISOString() })
       .eq("id", approvedId);
 
     if (delApprovedErr) {

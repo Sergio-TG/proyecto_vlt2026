@@ -2,6 +2,10 @@
 
 import * as React from "react"
 import Image from "next/image"
+import { Play } from "lucide-react"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
+import type { AccommodationGalleryVideo } from "@/lib/accommodation-gallery.config"
 
 type Overlay = { label: string; count: number }
 
@@ -9,7 +13,9 @@ export interface GaleriaGridProps {
   thumbUrls: string[]
   mainUrl?: string
   nombreAlojamiento: string
+  leadVideo?: AccommodationGalleryVideo | null
   onFotoClick: (index: number) => void
+  onVideoClick: () => void
   onVerTodas: () => void
   onImageError: (index: number) => void
   failedIndexes: Set<number>
@@ -19,6 +25,56 @@ function clampIndex(i: number, max: number) {
   if (i < 0) return 0
   if (i > max) return max
   return i
+}
+
+function VideoTile({
+  thumbUrl,
+  alt,
+  className,
+  onClick,
+  sizes,
+  priority,
+  playLabel,
+  badgeLabel,
+}: {
+  thumbUrl: string
+  alt: string
+  className: string
+  onClick: () => void
+  sizes: string
+  priority?: boolean
+  playLabel: string
+  badgeLabel?: string
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={playLabel}
+      className={`relative w-full h-full overflow-hidden group cursor-pointer ${className}`}
+    >
+      <Image
+        src={thumbUrl}
+        alt={alt}
+        fill
+        sizes={sizes}
+        priority={priority}
+        className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
+      />
+      <div className="absolute inset-0 bg-black/35 flex items-center justify-center transition-colors group-hover:bg-black/45">
+        <div className="flex flex-col items-center gap-2">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/95 shadow-xl backdrop-blur-sm transition-transform group-hover:scale-105">
+            <Play className="ml-1 h-7 w-7 fill-slate-900 text-slate-900" />
+          </div>
+          {badgeLabel ? (
+            <span className="rounded-full bg-black/50 px-3 py-1 text-xs font-semibold text-white backdrop-blur-sm">
+              {badgeLabel}
+            </span>
+          ) : null}
+        </div>
+      </div>
+    </button>
+  )
 }
 
 function Tile({
@@ -64,22 +120,31 @@ export function GaleriaGrid({
   thumbUrls,
   mainUrl,
   nombreAlojamiento,
+  leadVideo,
   onFotoClick,
+  onVideoClick,
   onVerTodas,
   onImageError,
   failedIndexes,
 }: GaleriaGridProps) {
+  const { locale } = useLanguage()
+  const g = getSiteCopy(locale).pages.gallery
+
   const valid = React.useMemo(() => {
     return thumbUrls.map((u, i) => ({ url: u, index: i })).filter((x) => !failedIndexes.has(x.index))
   }, [failedIndexes, thumbUrls])
 
-  if (valid.length === 0) return null
+  if (valid.length === 0 && !leadVideo) return null
 
-  const main = valid[0]
-  const thumbs = valid.slice(1, 5)
-  const total = valid.length
+  const videoAlt =
+    leadVideo?.variant === "presentation" ? g.presentationVideo : g.videoThumbAlt
+  const videoBadge =
+    leadVideo?.variant === "presentation" ? g.presentationVideo : undefined
 
-  const mainSrc = main.index === 0 && mainUrl ? mainUrl : main.url
+  const total = valid.length + (leadVideo ? 1 : 0)
+  const thumbs = leadVideo ? valid.slice(0, 5) : valid.slice(1, 5)
+  const main = leadVideo ? null : valid[0]
+  const mainSrc = main && main.index === 0 && mainUrl ? mainUrl : main?.url
 
   const desktopRightGridClass =
     thumbs.length === 1
@@ -91,20 +156,33 @@ export function GaleriaGrid({
           : "grid-cols-2 grid-rows-2"
 
   return (
-    <section aria-label={`Galería de fotos de ${nombreAlojamiento}`} className="w-full relative z-50">
+    <section aria-label={g.ariaGallery(nombreAlojamiento)} className="w-full relative z-50">
       <div className="hidden md:block">
         <div className="w-full h-[500px] rounded-xl overflow-hidden bg-white">
           <div className="w-full h-full flex gap-[2px]">
             <div className="relative h-full" style={{ width: "60%" }}>
-              <Tile
-                src={mainSrc}
-                alt={`${nombreAlojamiento} — foto 1 de ${total}`}
-                priority
-                sizes="(min-width: 768px) 60vw, 100vw"
-                className="h-full rounded-tl-xl overflow-hidden"
-                onClick={() => onFotoClick(main.index)}
-                onError={() => onImageError(main.index)}
-              />
+              {leadVideo ? (
+                <VideoTile
+                  thumbUrl={leadVideo.thumbUrl}
+                  alt={videoAlt}
+                  playLabel={g.playVideo}
+                  badgeLabel={videoBadge}
+                  priority
+                  sizes="(min-width: 768px) 60vw, 100vw"
+                  className="h-full rounded-tl-xl overflow-hidden"
+                  onClick={onVideoClick}
+                />
+              ) : main && mainSrc ? (
+                <Tile
+                  src={mainSrc}
+                  alt={g.photoAltIndexed(nombreAlojamiento, 1, total)}
+                  priority
+                  sizes="(min-width: 768px) 60vw, 100vw"
+                  className="h-full rounded-tl-xl overflow-hidden"
+                  onClick={() => onFotoClick(main.index)}
+                  onError={() => onImageError(main.index)}
+                />
+              ) : null}
             </div>
 
             {thumbs.length > 0 && (
@@ -116,7 +194,7 @@ export function GaleriaGrid({
                     const shouldOverlay = i === 3 || (thumbs.length < 4 && isLast)
                     const overlay: Overlay | undefined =
                       shouldOverlay && total > 0
-                        ? { label: `Ver todas las fotos (${total})`, count: total }
+                        ? { label: g.verTodasOverlay(total), count: total }
                         : undefined
 
                     const rounding =
@@ -132,7 +210,7 @@ export function GaleriaGrid({
                       <div key={t.index} className={`relative ${span}`}>
                         <Tile
                           src={t.url}
-                          alt={`${nombreAlojamiento} — foto ${clampIndex(t.index + 1, total)} de ${total}`}
+                          alt={g.photoAltIndexed(nombreAlojamiento, clampIndex(t.index + 1, total), total)}
                           sizes="(min-width: 768px) 40vw, 100vw"
                           className={`h-full ${rounding}`}
                           onClick={click}
@@ -151,24 +229,42 @@ export function GaleriaGrid({
 
       <div className="md:hidden">
         <div className="w-full h-[280px] relative">
-          <button type="button" className="absolute inset-0 overflow-hidden group cursor-pointer" onClick={() => onFotoClick(main.index)}>
-            <Image
-              src={mainSrc}
-              alt={`${nombreAlojamiento} — foto 1 de ${total}`}
-              fill
-              sizes="100vw"
+          {leadVideo ? (
+            <VideoTile
+              thumbUrl={leadVideo.thumbUrl}
+              alt={videoAlt}
+              playLabel={g.playVideo}
+              badgeLabel={videoBadge}
               priority
-              className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
-              onError={() => onImageError(main.index)}
+              sizes="100vw"
+              className="absolute inset-0"
+              onClick={onVideoClick}
             />
-          </button>
+          ) : main && mainSrc ? (
+            <button
+              type="button"
+              className="absolute inset-0 overflow-hidden group cursor-pointer"
+              onClick={() => onFotoClick(main.index)}
+            >
+              <Image
+                src={mainSrc}
+                alt={g.photoAltIndexed(nombreAlojamiento, 1, total)}
+                fill
+                sizes="100vw"
+                priority
+                className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                onError={() => onImageError(main.index)}
+              />
+            </button>
+          ) : null}
         </div>
 
-        {valid.length > 1 && (
+        {(leadVideo ? valid.length > 0 : valid.length > 1) && (
           <div className="w-full overflow-x-auto">
             <div className="flex items-stretch w-max">
-              {valid.slice(1).map((t, idx) => {
-                const isLast = idx === valid.slice(1).length - 1
+              {(leadVideo ? valid : valid.slice(1)).map((t, idx) => {
+                const strip = leadVideo ? valid : valid.slice(1)
+                const isLast = idx === strip.length - 1
                 return (
                   <button
                     key={t.index}
@@ -178,7 +274,7 @@ export function GaleriaGrid({
                   >
                     <Image
                       src={t.url}
-                      alt={`${nombreAlojamiento} — foto ${clampIndex(t.index + 1, total)} de ${total}`}
+                      alt={g.photoAltIndexed(nombreAlojamiento, clampIndex(t.index + 1, total), total)}
                       fill
                       sizes="112px"
                       loading="lazy"
@@ -187,7 +283,7 @@ export function GaleriaGrid({
                     />
                     {isLast && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-                        <span className="text-white font-bold text-xs">Ver todas ({total})</span>
+                        <span className="text-white font-bold text-xs">{g.verTodasTiles(total)}</span>
                       </div>
                     )}
                   </button>
@@ -198,7 +294,7 @@ export function GaleriaGrid({
                 className="h-20 px-4 flex-none bg-slate-950 text-white font-bold text-sm"
                 onClick={onVerTodas}
               >
-                Ver todas
+                {g.verTodasBtn}
               </button>
             </div>
           </div>

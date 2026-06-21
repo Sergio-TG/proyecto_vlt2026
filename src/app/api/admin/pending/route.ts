@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServerSupabase } from "@/lib/supabase-server";
 import { requireAdmin } from "@/lib/requireAdmin";
+import { onlyActiveAlojamientos } from "@/lib/alojamientos-active";
 
 export async function GET(req: Request) {
   try {
@@ -44,10 +45,9 @@ export async function GET(req: Request) {
     const aprobadosBySlug: Record<string, unknown> = {};
     for (let i = 0; i < slugs.length; i += 100) {
       const chunk = slugs.slice(i, i + 100);
-      const { data: approvedData, error: approvedErr } = await supabaseService
-        .from("alojamientos_aprobados")
-        .select("*")
-        .in("slug", chunk);
+      const { data: approvedData, error: approvedErr } = await onlyActiveAlojamientos(
+        supabaseService.from("alojamientos_aprobados").select("*").in("slug", chunk),
+      );
 
       if (approvedErr) continue;
       for (const row of approvedData || []) {

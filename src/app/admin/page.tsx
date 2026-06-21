@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge"
 import { 
   CheckCircle2, Clock, AlertTriangle, Eye, 
   ExternalLink, ShieldCheck, 
-  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin
+  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin, MessageSquareQuote, Archive, RotateCcw
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
+import type { TrashAlojamientoRow } from "@/app/api/admin/trash/route"
 
 type PendingRow = {
   id: string
@@ -93,6 +95,9 @@ export default function AdminDashboard() {
   const [approving, setApproving] = React.useState<string | null>(null)
   const [rejectingPendingId, setRejectingPendingId] = React.useState<string | null>(null)
   const [deletingApprovedId, setDeletingApprovedId] = React.useState<string | null>(null)
+  const [trashItems, setTrashItems] = React.useState<TrashAlojamientoRow[]>([])
+  const [loadingTrash, setLoadingTrash] = React.useState(false)
+  const [restoringId, setRestoringId] = React.useState<string | null>(null)
   const [cleaningDuplicates, setCleaningDuplicates] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
   const [approvedSearchTerm, setApprovedSearchTerm] = React.useState("")
@@ -171,6 +176,7 @@ export default function AdminDashboard() {
         setIsAdmin(true)
         fetchPendientes()
         fetchAprobados()
+        fetchTrash()
       } else {
         setIsAdmin(false)
       }
@@ -216,6 +222,7 @@ export default function AdminDashboard() {
       setIsAdmin(true)
       fetchPendientes()
       fetchAprobados()
+      fetchTrash()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error al iniciar sesión"
       setError(message)
@@ -295,9 +302,9 @@ export default function AdminDashboard() {
 
   const fetchAprobados = async () => {
     setLoadingAprobados(true)
-    const { data, error } = await supabase
-      .from("alojamientos_aprobados")
-      .select("id, nombre, slug, localidad, created_at")
+    const { data, error } = await onlyActiveAlojamientos(
+      supabase.from("alojamientos_aprobados").select("id, nombre, slug, localidad, created_at"),
+    )
       .order("created_at", { ascending: false })
       .limit(40)
 
@@ -309,8 +316,78 @@ export default function AdminDashboard() {
     setLoadingAprobados(false)
   }
 
+  const fetchTrash = async () => {
+    setLoadingTrash(true)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        setTrashItems([])
+        return
+      }
+
+      const res = await fetch("/api/admin/trash", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const json = (await res.json()) as {
+        ok?: boolean
+        items?: TrashAlojamientoRow[]
+        error?: string
+        reason?: string
+      }
+
+      if (json.reason === "missing_env") {
+        throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor.")
+      }
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || "Error al cargar la papelera")
+      }
+
+      setTrashItems(json.items ?? [])
+    } catch (err: unknown) {
+      console.error("Error fetching trash:", err)
+      setTrashItems([])
+    } finally {
+      setLoadingTrash(false)
+    }
+  }
+
+  const handleRestoreAprobado = async (item: TrashAlojamientoRow) => {
+    setRestoringId(item.id)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión en el panel de Admin.")
+      }
+
+      const res = await fetch("/api/admin/restore", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ approvedId: item.id }),
+      })
+      const json = await res.json()
+      if (json?.reason === "missing_env") {
+        throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para restaurar.")
+      }
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "Error al restaurar")
+      }
+
+      setTrashItems((prev) => prev.filter((row) => row.id !== item.id))
+      await fetchAprobados()
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al restaurar el alojamiento"
+      alert(message)
+    } finally {
+      setRestoringId(null)
+    }
+  }
+
   const handleDeleteAprobado = async (item: ApprovedRow) => {
-    const confirmed = window.confirm(`Eliminar "${item.nombre}" (slug: ${item.slug}) de alojamientos_aprobados?`)
+    const confirmed = window.confirm(
+      `¿Archivar "${item.nombre}" (slug: ${item.slug})?\n\nDesaparecerá de la web pública pero podrás restaurarlo desde la Papelera.`,
+    )
     if (!confirmed) return
     setDeletingApprovedId(item.id)
     try {
@@ -339,6 +416,7 @@ export default function AdminDashboard() {
       }
       await fetchAprobados()
       await fetchPendientes()
+      await fetchTrash()
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "Error al eliminar el alojamiento aprobado"
       alert(message)
@@ -413,6 +491,7 @@ export default function AdminDashboard() {
         alert(`¡${item.nombre_complejo} ha sido aprobado con éxito!`)
         fetchAprobados()
         fetchPendientes()
+        fetchTrash()
         return
       }
 
@@ -488,6 +567,7 @@ export default function AdminDashboard() {
       alert(`¡${item.nombre_complejo} ha sido aprobado con éxito!`)
       fetchAprobados()
       fetchPendientes()
+      fetchTrash()
     } catch (err: unknown) {
       console.error("Error en proceso de aprobación:", err)
       const errorMessage = err instanceof Error ? err.message : (typeof err === "object" ? JSON.stringify(err) : String(err))
@@ -914,6 +994,12 @@ export default function AdminDashboard() {
                 Invitar admin
               </Button>
             </Link>
+            <Link href="/admin/reviews" className="flex-shrink-0">
+              <Button variant="outline" className="bg-white font-bold gap-2">
+                <MessageSquareQuote className="w-4 h-4" />
+                Moderar reseñas
+              </Button>
+            </Link>
             <Button variant="outline" onClick={fetchPendientes} disabled={loading} className="bg-white">
               <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
             </Button>
@@ -992,15 +1078,74 @@ export default function AdminDashboard() {
                       </div>
                       <Button
                         variant="destructive"
-                        className="h-11 rounded-xl font-black"
+                        className="h-11 rounded-xl font-black gap-2"
                         onClick={() => handleDeleteAprobado(item)}
                         disabled={deletingApprovedId === item.id}
                       >
-                        {deletingApprovedId === item.id ? "Eliminando..." : "Eliminar"}
+                        <Archive className="w-4 h-4" />
+                        {deletingApprovedId === item.id ? "Archivando..." : "Archivar"}
                       </Button>
                     </div>
                   ))
                 )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card className="border-slate-200 bg-white mb-10 overflow-hidden">
+          <CardHeader className="border-b border-slate-100 bg-slate-50/50">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div>
+                <CardTitle className="flex items-center gap-2 text-slate-900 font-black">
+                  <Archive className="w-5 h-5 text-slate-500" />
+                  Papelera de alojamientos
+                </CardTitle>
+                <CardDescription className="font-medium text-slate-500">
+                  Alojamientos archivados (borrado lógico). Restaurá uno para volver a publicarlo.
+                </CardDescription>
+              </div>
+              <Button variant="outline" onClick={fetchTrash} disabled={loadingTrash} className="bg-white">
+                <RefreshCcw className={`w-4 h-4 ${loadingTrash ? "animate-spin" : ""}`} />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            {loadingTrash ? (
+              <div className="flex items-center justify-center py-10">
+                <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary"></div>
+              </div>
+            ) : trashItems.length === 0 ? (
+              <div className="p-8 text-slate-500 font-medium">La papelera está vacía.</div>
+            ) : (
+              <div className="divide-y divide-slate-100">
+                {trashItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                  >
+                    <div className="space-y-1">
+                      <p className="text-slate-900 font-black">{item.nombre ?? "Sin nombre"}</p>
+                      <p className="text-slate-500 font-medium text-sm">
+                        {item.localidad ?? "—"} • <span className="font-mono text-xs">{item.slug}</span>
+                      </p>
+                      {item.deleted_at ? (
+                        <p className="text-xs text-slate-400">
+                          Archivado: {new Date(item.deleted_at).toLocaleString("es-AR")}
+                        </p>
+                      ) : null}
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="h-11 rounded-xl font-bold gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      onClick={() => handleRestoreAprobado(item)}
+                      disabled={restoringId === item.id}
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      {restoringId === item.id ? "Restaurando..." : "Restaurar"}
+                    </Button>
+                  </div>
+                ))}
               </div>
             )}
           </CardContent>

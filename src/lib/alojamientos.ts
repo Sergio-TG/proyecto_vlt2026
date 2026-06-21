@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { onlyActiveAlojamientos } from './alojamientos-active';
 
 export interface Alojamiento {
   id: string;
@@ -38,10 +39,9 @@ export interface Alojamiento {
 export async function getAlojamientos() {
   try {
     console.log('Fetching from table: alojamientos_aprobados...');
-    const { data, error, status, statusText } = await supabase
-      .from('alojamientos_aprobados')
-      .select('*')
-      .limit(10);
+    const { data, error, status, statusText } = await onlyActiveAlojamientos(
+      supabase.from('alojamientos_aprobados').select('*'),
+    ).limit(10);
 
     if (error) {
       console.error('Supabase Error Details:', {
@@ -75,11 +75,9 @@ export async function getAlojamientos() {
 }
 
 export async function getAlojamientoBySlug(slug: string) {
-  const { data, error } = await supabase
-    .from('alojamientos_aprobados')
-    .select('*')
-    .eq('slug', slug)
-    .single();
+  const { data, error } = await onlyActiveAlojamientos(
+    supabase.from('alojamientos_aprobados').select('*').eq('slug', slug),
+  ).single();
 
   if (error) {
     console.error(`Error fetching alojamiento with slug ${slug}:`, error);

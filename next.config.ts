@@ -13,6 +13,11 @@ const nextConfig: NextConfig = {
         hostname: "ik.imagekit.io",
         pathname: "/vivilastermas/**",
       },
+      {
+        protocol: "https",
+        hostname: "res.cloudinary.com",
+        pathname: "/dxpy1zqj6/**",
+      },
     ],
   },
 }

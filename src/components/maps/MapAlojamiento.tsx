@@ -8,6 +8,11 @@ import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { buildGaleriaUrls } from "@/lib/imagekit.config"
+import { getAccommodationMapPin, isValidLatLng } from "@/lib/google-maps-embed"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
+
+type MapListing = ReturnType<typeof getSiteCopy>["pages"]["mapListing"]
 
 type MarkerItem = {
   id: string
@@ -30,52 +35,26 @@ function toNum(v: unknown): number | null {
   return null
 }
 
-function isValidLatLng(lat: number | null, lng: number | null) {
-  if (lat == null || lng == null) return false
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return false
-  if (lat === 0 && lng === 0) return false
-  if (lat < -90 || lat > 90) return false
-  if (lng < -180 || lng > 180) return false
-  return true
-}
-
-function extractLatLngFromGoogleMapsUrl(raw: unknown): { lat: number; lng: number } | null {
-  const url = typeof raw === "string" ? raw.trim() : ""
-  if (!url) return null
-
-  const atMatch = url.match(/@(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
-  if (atMatch) {
-    const lat = Number(atMatch[1])
-    const lng = Number(atMatch[2])
-    if (isValidLatLng(lat, lng)) return { lat, lng }
-  }
-
-  const qMatch = url.match(/[?&]q=(-?\d+(?:\.\d+)?),\s*(-?\d+(?:\.\d+)?)/)
-  if (qMatch) {
-    const lat = Number(qMatch[1])
-    const lng = Number(qMatch[2])
-    if (isValidLatLng(lat, lng)) return { lat, lng }
-  }
-
-  const embedMatch = url.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/)
-  if (embedMatch) {
-    const lat = Number(embedMatch[1])
-    const lng = Number(embedMatch[2])
-    if (isValidLatLng(lat, lng)) return { lat, lng }
-  }
-
-  return null
-}
-
-function getBookingScore(ratingGoogle: number | null) {
+function getBookingScore(
+  ratingGoogle: number | null,
+  m: { ratingExceptional: string; ratingExcellent: string; ratingVeryGood: string; ratingGood: string; ratingOk: string }
+) {
   if (!ratingGoogle || !Number.isFinite(ratingGoogle)) return null
   const score = ratingGoogle * 2
   const label =
-    score >= 9.5 ? "Excepcional" : score >= 9 ? "Excelente" : score >= 8.5 ? "Muy bueno" : score >= 8 ? "Bueno" : "Bien"
+    score >= 9.5
+      ? m.ratingExceptional
+      : score >= 9
+        ? m.ratingExcellent
+        : score >= 8.5
+          ? m.ratingVeryGood
+          : score >= 8
+            ? m.ratingGood
+            : m.ratingOk
   return { score, label }
 }
 
-function HoverMarker({ marker }: { marker: MarkerItem }) {
+function HoverMarker({ marker, m, numberLocale }: { marker: MarkerItem; m: MapListing; numberLocale: string }) {
   const markerRef = React.useRef<L.Marker>(null)
   const closeTimeoutRef = React.useRef<number | null>(null)
   const isMarkerHoveredRef = React.useRef(false)
@@ -191,7 +170,7 @@ function HoverMarker({ marker }: { marker: MarkerItem }) {
     })
   }, [])
 
-  const booking = getBookingScore(marker.rating_google)
+  const booking = getBookingScore(marker.rating_google, m)
 
   return (
     <Marker ref={markerRef} position={[marker.latitud, marker.longitud]} icon={icon} eventHandlers={eventHandlers}>
@@ -216,14 +195,14 @@ function HoverMarker({ marker }: { marker: MarkerItem }) {
 
           <div className="mt-3 flex items-end justify-between gap-3">
             <div>
-              <div className="text-[10px] uppercase tracking-widest font-black text-slate-500">Precio</div>
+              <div className="text-[10px] uppercase tracking-widest font-black text-slate-500">{m.priceLabel}</div>
               <div className="text-base font-black text-[#256b67] leading-none">
-                {marker.precio_base ? `$ ${marker.precio_base.toLocaleString("es-AR")}` : "Consultar"}
+                {marker.precio_base ? `$ ${marker.precio_base.toLocaleString(numberLocale)}` : m.inquire}
               </div>
             </div>
 
             <span className="inline-flex items-center justify-center h-10 px-4 rounded-lg bg-[#4aa39e] text-white font-black text-sm hover:bg-[#3f9792] transition-colors">
-              + Info
+              {m.ctaInfo}
             </span>
           </div>
         </Link>
@@ -235,11 +214,33 @@ function HoverMarker({ marker }: { marker: MarkerItem }) {
 export default function MapAlojamiento({
   accommodations,
   portadaBySlug,
+  imageKitFolderBySlug,
+  portadaUpdatedAtBySlug,
 }: {
   accommodations: AlojamientoAprobado[]
   portadaBySlug: Record<string, string | null>
+  imageKitFolderBySlug?: Record<string, string | null>
+  portadaUpdatedAtBySlug?: Record<string, string | null>
 }) {
+  const { locale } = useLanguage()
+  const m = getSiteCopy(locale).pages.mapListing
   const [isFullscreen, setIsFullscreen] = React.useState(false)
+  const expandBtnRef = React.useRef<HTMLButtonElement>(null)
+  const closeBtnRef = React.useRef<HTMLButtonElement>(null)
+
+  const closeFullscreen = React.useCallback(() => {
+    setIsFullscreen(false)
+    requestAnimationFrame(() => {
+      expandBtnRef.current?.focus()
+    })
+  }, [])
+
+  const openFullscreen = React.useCallback(() => {
+    setIsFullscreen(true)
+    requestAnimationFrame(() => {
+      closeBtnRef.current?.focus()
+    })
+  }, [])
 
   React.useEffect(() => {
     delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl
@@ -259,38 +260,53 @@ export default function MapAlojamiento({
     }
   }, [isFullscreen])
 
+  React.useEffect(() => {
+    if (!isFullscreen) return
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault()
+        closeFullscreen()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown)
+    return () => window.removeEventListener("keydown", handleKeyDown)
+  }, [closeFullscreen, isFullscreen])
+
   const markers = React.useMemo<MarkerItem[]>(() => {
     return accommodations.reduce<MarkerItem[]>((acc, a) => {
-      // Prioridad 1: columnas numéricas en DB (latitud/longitud).
-      let lat = toNum((a as { latitud?: unknown }).latitud)
-      let lng = toNum((a as { longitud?: unknown }).longitud)
+      const dbLat = toNum((a as { latitud?: unknown }).latitud)
+      const dbLng = toNum((a as { longitud?: unknown }).longitud)
+      const mapsUrl =
+        (a as { google_maps?: string | null; ubicacion_google_maps?: string | null }).google_maps ??
+        (a as { ubicacion_google_maps?: string | null }).ubicacion_google_maps
 
-      // Fallback: parsear URL de Maps solo si DB viene vacía.
-      if (lat == null || lng == null) {
-        const fallback = extractLatLngFromGoogleMapsUrl(
-          (a as { google_maps?: unknown; ubicacion_google_maps?: unknown }).google_maps ??
-            (a as { ubicacion_google_maps?: unknown }).ubicacion_google_maps
-        )
-        if (fallback) {
-          lat = fallback.lat
-          lng = fallback.lng
-        }
-      }
+      const pin = getAccommodationMapPin(dbLat, dbLng, mapsUrl ?? null, "listing")
 
-      // Defensive coding: si no hay coordenadas útiles, omitir sin romper.
-      if (!isValidLatLng(lat, lng)) {
+      if (!pin || !isValidLatLng(pin.lat, pin.lng)) {
         console.warn(
-          `Aviso: El alojamiento ${String(a.nombre || "").trim()} no tiene coordenadas en DB ni en URL, omitiendo en mapa`
+          `Aviso: El alojamiento ${String(a.nombre || "").trim()} no tiene coordenadas útiles en URL ni en DB, omitiendo en mapa`
         )
         return acc
       }
 
-      const safeLat = lat as number
-      const safeLng = lng as number
+      const safeLat = pin.lat
+      const safeLng = pin.lng
 
       const slug = a.slug || slugify(a.nombre)
       const portadaFile = portadaBySlug[slug]
-      const portadaUrl = portadaFile ? buildGaleriaUrls(slug, [String(portadaFile)], "card")[0] ?? null : null
+      const mediaFolder = imageKitFolderBySlug?.[slug] ?? slug
+      const portadaUrl = portadaFile
+        ? buildGaleriaUrls(
+            mediaFolder,
+            [String(portadaFile)],
+            "card",
+            portadaUpdatedAtBySlug?.[slug] && portadaFile
+              ? { [String(portadaFile)]: String(portadaUpdatedAtBySlug[slug]) }
+              : undefined,
+          )[0] ?? null
+        : null
 
       acc.push({
         id: a.id,
@@ -305,7 +321,14 @@ export default function MapAlojamiento({
       })
       return acc
     }, [])
-  }, [accommodations, portadaBySlug])
+  }, [accommodations, imageKitFolderBySlug, portadaBySlug, portadaUpdatedAtBySlug])
+
+  const mapCenter = React.useMemo<[number, number]>(() => {
+    if (markers.length === 0) return [-27.496, -64.859]
+    const lat = markers.reduce((s, mk) => s + mk.latitud, 0) / markers.length
+    const lng = markers.reduce((s, mk) => s + mk.longitud, 0) / markers.length
+    return [lat, lng]
+  }, [markers])
 
   if (markers.length === 0) {
     if (process.env.NODE_ENV !== "production" && accommodations.length > 0) {
@@ -320,20 +343,20 @@ export default function MapAlojamiento({
     }
     return (
       <div className="h-[400px] rounded-lg overflow-hidden border border-slate-200 bg-slate-50 flex items-center justify-center text-slate-500 font-medium">
-        No hay coordenadas disponibles para mostrar en el mapa.
+        {m.noCoords}
       </div>
     )
   }
 
-  const center: [number, number] = [markers[0].latitud, markers[0].longitud]
+  const numberLocale = locale === "en" ? "en-US" : "es-AR"
   const renderMap = (mapKey: string, className: string) => (
-    <MapContainer key={mapKey} center={center} zoom={12} scrollWheelZoom className={className}>
+    <MapContainer key={mapKey} center={mapCenter} zoom={12} scrollWheelZoom className={className}>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {markers.map((m) => (
-        <HoverMarker key={`${mapKey}-${m.id}`} marker={m} />
+      {markers.map((mk) => (
+        <HoverMarker key={`${mapKey}-${mk.id}`} marker={mk} m={m} numberLocale={numberLocale} />
       ))}
     </MapContainer>
   )
@@ -343,11 +366,12 @@ export default function MapAlojamiento({
       <div className="relative h-[400px] rounded-lg overflow-hidden border border-slate-200 shadow-sm">
         {renderMap("inline", "h-full w-full z-0")}
         <button
+          ref={expandBtnRef}
           type="button"
-          onClick={() => setIsFullscreen(true)}
+          onClick={openFullscreen}
           className="absolute right-4 top-4 z-[500] rounded-xl bg-white/95 px-4 py-2 text-sm font-black text-slate-900 shadow-lg backdrop-blur hover:bg-white"
         >
-          Ver mapa completo
+          {m.expandMap}
         </button>
       </div>
 
@@ -359,23 +383,28 @@ export default function MapAlojamiento({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.22 }}
             className="fixed inset-0 z-50 bg-slate-950/80 p-3 md:p-5"
+            role="dialog"
+            aria-modal="true"
+            aria-label={m.expandMap}
           >
+            <button
+              ref={closeBtnRef}
+              type="button"
+              onClick={closeFullscreen}
+              aria-label={m.closeMapAria}
+              className="fixed top-4 right-4 z-[100] flex h-12 w-12 items-center justify-center rounded-full bg-white/90 text-2xl font-black leading-none text-slate-900 shadow-xl backdrop-blur-md transition-colors hover:bg-white md:top-6 md:right-6 cursor-pointer"
+            >
+              ✕
+            </button>
+
             <motion.div
               initial={{ opacity: 0, scale: 0.98, y: 8 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.98, y: 8 }}
               transition={{ duration: 0.24 }}
-              className="relative h-full w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
+              className="relative z-0 h-full w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl"
             >
               {renderMap("fullscreen", "h-full w-full z-0")}
-              <button
-                type="button"
-                onClick={() => setIsFullscreen(false)}
-                aria-label="Cerrar mapa completo"
-                className="absolute right-4 top-4 z-[600] h-12 w-12 rounded-full bg-slate-900/90 text-2xl font-black leading-none text-white shadow-xl hover:bg-slate-900"
-              >
-                X
-              </button>
             </motion.div>
           </motion.div>
         ) : null}

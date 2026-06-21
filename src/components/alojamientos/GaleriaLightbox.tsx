@@ -2,12 +2,22 @@
 
 import * as React from "react"
 import Image from "next/image"
+import { Play } from "lucide-react"
 import { createPortal } from "react-dom"
+import { AnimatePresence, motion } from "framer-motion"
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
+import type { AccommodationGalleryVideo } from "@/lib/accommodation-gallery.config"
+
+type LightboxSlide =
+  | { kind: "video"; embedUrl: string; thumbUrl: string; key: "video" }
+  | { kind: "image"; full: string; thumb: string; index: number }
 
 export interface GaleriaLightboxProps {
   fullUrls: string[]
   thumbUrls: string[]
   nombreAlojamiento: string
+  leadVideo?: AccommodationGalleryVideo | null
   initialIndex: number
   onClose: () => void
   onImageError: (index: number) => void
@@ -27,11 +37,15 @@ export function GaleriaLightbox({
   fullUrls,
   thumbUrls,
   nombreAlojamiento,
+  leadVideo,
   initialIndex,
   onClose,
   onImageError,
   failedIndexes,
 }: GaleriaLightboxProps) {
+  const { locale } = useLanguage()
+  const g = getSiteCopy(locale).pages.gallery
+
   const [mounted, setMounted] = React.useState(false)
   const [active, setActive] = React.useState(0)
   const modalRef = React.useRef<HTMLDivElement | null>(null)
@@ -39,11 +53,16 @@ export function GaleriaLightbox({
   const thumbsStripRef = React.useRef<HTMLDivElement | null>(null)
   const touchStartXRef = React.useRef<number | null>(null)
 
-  const valid = React.useMemo(() => {
-    return fullUrls
-      .map((full, i) => ({ full, thumb: thumbUrls[i] ?? full, index: i }))
+  const valid = React.useMemo((): LightboxSlide[] => {
+    const images: LightboxSlide[] = fullUrls
+      .map((full, i) => ({ kind: "image" as const, full, thumb: thumbUrls[i] ?? full, index: i }))
       .filter((x) => !failedIndexes.has(x.index))
-  }, [failedIndexes, fullUrls, thumbUrls])
+
+    if (leadVideo) {
+      return [{ kind: "video", embedUrl: leadVideo.embedUrl, thumbUrl: leadVideo.thumbUrl, key: "video" }, ...images]
+    }
+    return images
+  }, [failedIndexes, fullUrls, leadVideo, thumbUrls])
 
   React.useEffect(() => {
     setMounted(true)
@@ -51,8 +70,8 @@ export function GaleriaLightbox({
 
   React.useEffect(() => {
     if (valid.length === 0) return
-    const startIndex = Math.max(0, valid.findIndex((v) => v.index === initialIndex))
-    setActive(startIndex === -1 ? 0 : startIndex)
+    const startIndex = Math.max(0, Math.min(initialIndex, valid.length - 1))
+    setActive(startIndex)
   }, [initialIndex, valid])
 
   React.useEffect(() => {
@@ -142,10 +161,12 @@ export function GaleriaLightbox({
   }, [active])
 
   const onTouchStart = (e: React.TouchEvent) => {
+    if (valid[active]?.kind === "video") return
     touchStartXRef.current = e.touches?.[0]?.clientX ?? null
   }
 
   const onTouchEnd = (e: React.TouchEvent) => {
+    if (valid[active]?.kind === "video") return
     const start = touchStartXRef.current
     touchStartXRef.current = null
     if (start == null) return
@@ -160,13 +181,14 @@ export function GaleriaLightbox({
 
   const activeItem = valid[active]
   const total = valid.length
+  const isVideoActive = activeItem.kind === "video"
 
   const modal = (
     <div
       ref={modalRef}
       role="dialog"
       aria-modal="true"
-      aria-label={`Galería de fotos de ${nombreAlojamiento}`}
+      aria-label={g.ariaGallery(nombreAlojamiento)}
       className="fixed inset-0 bg-black flex flex-col"
       style={{ zIndex: 9999 }}
       onMouseDown={(e) => {
@@ -183,7 +205,7 @@ export function GaleriaLightbox({
           ref={closeBtnRef}
           autoFocus
           onClick={onClose}
-          aria-label="Cerrar galería"
+          aria-label={isVideoActive ? g.closeVideoAria : g.closeAria}
           type="button"
           className="text-white text-2xl leading-none hover:opacity-70 transition-opacity p-1 cursor-pointer"
         >
@@ -194,7 +216,7 @@ export function GaleriaLightbox({
       <div className="flex-1 relative flex items-center justify-center px-12 min-h-0">
         <button
           type="button"
-          aria-label="Foto anterior"
+          aria-label={g.prevPhoto}
           className="absolute left-2 top-1/2 -translate-y-1/2 text-white text-4xl hover:opacity-70 transition-opacity z-10 px-2 cursor-pointer"
           onClick={goPrev}
         >
@@ -202,24 +224,57 @@ export function GaleriaLightbox({
         </button>
 
         <div className="relative w-full h-full min-h-0">
-          <div className="absolute inset-0 flex items-center justify-center">
-            <div className="relative w-full h-full min-h-0 rounded-2xl overflow-hidden">
-              <Image
-                src={activeItem.full}
-                alt={`${nombreAlojamiento} — foto ${active + 1} de ${total}`}
-                fill
-                className="object-contain"
-                sizes="100vw"
-                priority
-                onError={() => onImageError(activeItem.index)}
-              />
-            </div>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeItem.kind === "video" ? "video" : activeItem.index}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+              className="absolute inset-0 flex items-center justify-center"
+            >
+              {activeItem.kind === "video" ? (
+                <div className="flex w-full max-w-5xl flex-col items-center gap-4 px-2">
+                  <div className="relative aspect-video w-full max-h-[70vh] overflow-hidden rounded-2xl bg-black shadow-2xl">
+                    <iframe
+                      key={activeItem.embedUrl}
+                      src={activeItem.embedUrl}
+                      title={leadVideo?.variant === "presentation" ? g.presentationVideo : g.videoThumbAlt}
+                      width="100%"
+                      height="100%"
+                      className="absolute inset-0 h-full w-full rounded-2xl"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={onClose}
+                    className="rounded-full bg-white/15 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/25 cursor-pointer"
+                  >
+                    {g.closeVideoAria}
+                  </button>
+                </div>
+              ) : (
+                <div className="relative h-full w-full min-h-0 max-h-[78vh] rounded-2xl overflow-hidden">
+                  <Image
+                    src={activeItem.full}
+                    alt={g.photoAltIndexed(nombreAlojamiento, active + 1, total)}
+                    fill
+                    className="object-contain"
+                    sizes="100vw"
+                    priority
+                    onError={() => onImageError(activeItem.index)}
+                  />
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
 
         <button
           type="button"
-          aria-label="Foto siguiente"
+          aria-label={g.nextPhoto}
           className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-4xl hover:opacity-70 transition-opacity z-10 px-2 cursor-pointer"
           onClick={goNext}
         >
@@ -234,7 +289,7 @@ export function GaleriaLightbox({
       >
         {valid.map((v, i) => (
           <button
-            key={v.index}
+            key={v.kind === "video" ? "video-thumb" : v.index}
             onClick={() => setActive(i)}
             type="button"
             data-thumb-index={i}
@@ -242,17 +297,22 @@ export function GaleriaLightbox({
               i === active ? "ring-2 ring-white opacity-100 cursor-default" : "opacity-60 hover:opacity-90 cursor-pointer"
             }`}
             style={{ width: "72px", height: "72px", minWidth: "72px", minHeight: "72px" }}
-            aria-label={`Ir a la foto ${i + 1}`}
+            aria-label={v.kind === "video" ? g.thumbVideoAria : g.thumbAria(i)}
           >
             <Image
-              src={v.thumb}
-              alt={`Miniatura ${i + 1}`}
+              src={v.kind === "video" ? v.thumbUrl : v.thumb}
+              alt={v.kind === "video" ? g.videoThumbAlt : g.thumbAlt(i)}
               width={72}
               height={72}
               className="object-cover w-full h-full"
               sizes="72px"
-              onError={() => onImageError(v.index)}
+              onError={v.kind === "image" ? () => onImageError(v.index) : undefined}
             />
+            {v.kind === "video" ? (
+              <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                <Play className="h-5 w-5 fill-white text-white" />
+              </div>
+            ) : null}
           </button>
         ))}
       </div>

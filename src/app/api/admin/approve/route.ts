@@ -46,9 +46,10 @@ export async function POST(req: Request) {
         }
 
         const isUpdate = existing && existing.length > 0;
+        const upsertPayload = isUpdate ? { ...payload, deleted_at: null } : payload;
         const { error: upErr } = isUpdate
-          ? await supabase.from("alojamientos_aprobados").update(payload).eq("slug", payload.slug as string)
-          : await supabase.from("alojamientos_aprobados").insert([payload]);
+          ? await supabase.from("alojamientos_aprobados").update(upsertPayload).eq("slug", payload.slug as string)
+          : await supabase.from("alojamientos_aprobados").insert([upsertPayload]);
 
         if (!upErr) return { ok: true, error: null };
 

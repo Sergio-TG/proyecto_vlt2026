@@ -7,17 +7,18 @@ import { Footer } from "@/components/layout/Footer";
 import ImageKitProviderWrapper from "@/components/common/ImageKitProviderWrapper";
 import WhatsAppFloatingButton from "@/components/common/WhatsAppFloatingButton";
 import { CookieBanner } from "@/components/ui/CookieBanner";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [cookiesConsent, setCookiesConsent] = React.useState<"granted" | "denied" | null>(null);
 
   // Definimos qué rutas NO deben mostrar Header/Footer (paneles y página de mantenimiento)
-  const isSociosPage = pathname.startsWith('/socios');
+  const isSociosPortal = pathname.startsWith('/socios/portal');
   const isAdminPage = pathname.startsWith('/admin');
   const isMaintenancePage = pathname === '/en-construccion';
   
-  const hideLayout = isSociosPage || isAdminPage || isMaintenancePage;
+  const hideLayout = isSociosPortal || isAdminPage || isMaintenancePage;
 
   React.useEffect(() => {
     const stored = window.localStorage.getItem("cookies_consent");
@@ -28,15 +29,17 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <ImageKitProviderWrapper>
-      {!hideLayout && <Header />}
-      
-      <main className="flex-1 w-full max-w-full overflow-x-hidden relative">
-        {children}
-      </main>
-      
-      {!hideLayout && <Footer />}
-      {!hideLayout && <WhatsAppFloatingButton />}
-      {!hideLayout && <CookieBanner onConsentChange={setCookiesConsent} />}
+      <LanguageProvider>
+        {!hideLayout && <Header />}
+
+        <main className="flex-1 w-full max-w-full overflow-x-hidden relative">
+          {children}
+        </main>
+
+        {!hideLayout && <Footer />}
+        {!hideLayout && <WhatsAppFloatingButton />}
+        {!hideLayout && <CookieBanner onConsentChange={setCookiesConsent} />}
+      </LanguageProvider>
     </ImageKitProviderWrapper>
   );
 }

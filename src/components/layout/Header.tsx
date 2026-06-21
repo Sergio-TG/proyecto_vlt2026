@@ -4,22 +4,17 @@ import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { motion, useScroll, useMotionValueEvent } from "framer-motion"
-import { Menu, X, Globe, MapPin } from "lucide-react"
+import { Menu, X, Globe } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-
-const navItems = [
-  { name: "Inicio", href: "/" },
-  { name: "Termas", href: "/termas" },
-  { name: "Alojamientos", href: "/alojamientos" },
-  { name: "Experiencias", href: "/experiencias" },
-  { name: "Contacto", href: "/contacto" },
-]
+import { useLanguage } from "@/contexts/LanguageContext"
+import { getSiteCopy } from "@/i18n/siteCopy"
 
 export function Header() {
   const [isScrolled, setIsScrolled] = React.useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false)
-  const [language, setLanguage] = React.useState<"es" | "en">("es")
+  const { locale, toggleLocale } = useLanguage()
+  const copy = getSiteCopy(locale)
   const { scrollY } = useScroll()
   const pathname = usePathname()
 
@@ -30,11 +25,14 @@ export function Header() {
     pathname === "/experiencias" ||
     pathname === "/alojamientos" ||
     pathname === "/contacto" ||
+    pathname === "/blog" ||
+    pathname.startsWith("/blog/") ||
     pathname === "/admin" ||
     pathname === "/socios" ||
+    pathname.startsWith("/socios/portal") ||
     (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos");
 
-  useMotionValueEvent(scrollY, "change", (latest) => {
+  useMotionValueEvent(scrollY, "change", () => {
     // Logic moved to native scroll listener for better performance
   })
 
@@ -56,29 +54,6 @@ export function Header() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [])
 
-  React.useEffect(() => {
-    if (typeof window === "undefined") return
-    const stored = window.localStorage.getItem("vivillastermas_lang")
-    const initial = stored === "en" ? "en" : "es"
-    setLanguage(initial)
-    if (typeof document !== "undefined") {
-      document.documentElement.lang = initial
-    }
-  }, [])
-
-  const toggleLanguage = () => {
-    setLanguage(prev => {
-      const next = prev === "es" ? "en" : "es"
-      if (typeof window !== "undefined") {
-        window.localStorage.setItem("vivillastermas_lang", next)
-      }
-      if (typeof document !== "undefined") {
-        document.documentElement.lang = next
-      }
-      return next
-    })
-  }
-
   return (
     <header
       className={cn(
@@ -91,7 +66,7 @@ export function Header() {
         <Link href="/" className="flex items-center gap-2 z-50 h-full">
           <img 
             src="/logotipo.png" 
-            alt="Logotipo de Viví las Termas" 
+            alt={copy.header.logoAlt} 
             className={cn(
               "max-h-12 w-auto transition-all duration-300 object-contain block",
               isScrolled || !isTransparentPage ? "" : "brightness-0 invert"
@@ -101,9 +76,9 @@ export function Header() {
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center gap-8">
-          {navItems.map((item) => (
+          {copy.nav.map((item) => (
             <Link
-              key={item.name}
+              key={item.href}
               href={item.href}
               className={cn(
                 "text-[15px] font-semibold transition-all duration-200 hover:text-primary",
@@ -116,19 +91,33 @@ export function Header() {
         </nav>
 
         {/* Actions */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center gap-3">
           <Button
             variant="ghost"
             size="sm"
-            onClick={toggleLanguage}
+            onClick={toggleLocale}
             className={cn(
               "gap-2 font-medium",
               isScrolled || !isTransparentPage ? "text-slate-600 hover:bg-slate-100" : "text-white hover:bg-white/20"
             )}
           >
             <Globe className="h-4 w-4" />
-            <span>{language.toUpperCase()}</span>
+            <span>{locale.toUpperCase()}</span>
           </Button>
+          <Link href="/socios/portal">
+            <Button
+              variant="outline"
+              size="sm"
+              className={cn(
+                "rounded-full border-2 font-semibold px-4 transition-all duration-300",
+                isScrolled || !isTransparentPage
+                  ? "border-primary text-primary hover:bg-primary/5"
+                  : "border-white/80 bg-white/10 text-white hover:bg-white/20"
+              )}
+            >
+              {copy.header.accessSocios}
+            </Button>
+          </Link>
           <Link href="/#planificar-viaje">
             <Button 
               className={cn(
@@ -138,7 +127,7 @@ export function Header() {
                   : "bg-primary text-white hover:bg-primary/90"
               )}
             >
-              Planifica tu Viaje
+              {copy.header.planTrip}
             </Button>
           </Link>
         </div>
@@ -159,9 +148,9 @@ export function Header() {
         {isMobileMenuOpen && (
           <div className="fixed inset-0 bg-background/95 backdrop-blur-sm z-40 md:hidden flex flex-col items-center justify-center gap-8">
             <nav className="flex flex-col items-center gap-6">
-              {navItems.map((item) => (
+              {copy.nav.map((item) => (
                 <Link
-                  key={item.name}
+                  key={item.href}
                   href={item.href}
                   className="text-lg font-medium text-foreground hover:text-primary"
                 >
@@ -169,12 +158,15 @@ export function Header() {
                 </Link>
               ))}
             </nav>
-            <div className="flex flex-col gap-4">
-               <Button variant="outline" className="w-full justify-center gap-2" onClick={toggleLanguage}>
-                 <Globe className="h-4 w-4" /> {language === "es" ? "ES / EN" : "EN / ES"}
+            <div className="flex flex-col gap-4 w-full max-w-xs">
+               <Button variant="outline" className="w-full justify-center gap-2" onClick={toggleLocale}>
+                 <Globe className="h-4 w-4" /> {locale === "es" ? copy.header.mobileLangHint : copy.header.mobileLangHintEn}
                </Button>
-               <Link href="/#planificar-viaje">
-                 <Button className="w-full">Planifica tu Viaje</Button>
+               <Link href="/socios/portal" className="w-full">
+                 <Button variant="outline" className="w-full font-semibold">{copy.header.accessSocios}</Button>
+               </Link>
+               <Link href="/#planificar-viaje" className="w-full">
+                 <Button className="w-full">{copy.header.planTrip}</Button>
                </Link>
             </div>
           </div>
