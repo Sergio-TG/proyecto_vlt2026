@@ -29,54 +29,36 @@ export default function BlogPage() {
 
   return (
     <div className={cn("min-h-screen bg-white", playfair.variable)}>
-      {/* Hero — full-width ImageKit + layout alineado al sitio */}
-      <section className="relative min-h-[72vh] w-full overflow-hidden flex items-center pt-20 md:pt-0">
+      {/* Hero — fondo completo con piletas + overlay */}
+      <section className="relative flex min-h-[72vh] w-full items-center justify-center overflow-hidden pt-20 md:pt-0">
         <div className="absolute inset-0 z-0">
           <img
             src={p.heroBackground}
             alt={p.heroAlt}
-            className="h-full w-full object-cover scale-105"
+            className="h-full w-full object-cover object-center"
           />
-          <div className="absolute inset-0 bg-gradient-to-br from-teal-900/88 via-teal-800/78 to-slate-900/70" />
-          <div className="absolute inset-0 bg-black/25" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/60 via-black/20 to-black/70" />
         </div>
 
-        <div className="container relative z-10 mx-auto px-4 py-16 md:py-24">
-          <div className="grid grid-cols-1 items-center gap-12 lg:grid-cols-2 lg:gap-16">
-            <motion.div
-              initial={{ opacity: 0, x: -32 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
-              className="text-center lg:text-left"
+        <div className="container relative z-10 mx-auto flex flex-col items-center justify-center px-4 py-20 text-center md:py-28 lg:py-32">
+          <motion.div
+            initial={{ opacity: 0, y: 32 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.85, ease: [0.22, 1, 0.36, 1] }}
+            className="max-w-4xl"
+          >
+            <h1
+              className={cn(
+                playfair.className,
+                "text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-sm sm:text-5xl md:text-6xl lg:text-[3.25rem] xl:text-7xl",
+              )}
             >
-              <h1
-                className={cn(
-                  playfair.className,
-                  "text-4xl font-bold leading-tight tracking-tight text-white drop-shadow-sm sm:text-5xl md:text-6xl lg:text-[3.25rem] xl:text-7xl",
-                )}
-              >
-                {p.heroTitle}
-              </h1>
-              <p className="mt-6 max-w-xl text-base font-light leading-relaxed text-white/92 md:text-lg lg:mx-0 mx-auto">
-                {p.heroSubtitle}
-              </p>
-            </motion.div>
-
-            <motion.div
-              initial={{ opacity: 0, y: 40 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              className="relative mx-auto w-full max-w-lg lg:max-w-none lg:justify-self-end"
-            >
-              <div className="overflow-hidden rounded-2xl border border-white/20 shadow-2xl shadow-black/30 ring-1 ring-white/10">
-                <img
-                  src={p.heroCardImage}
-                  alt=""
-                  className="aspect-[4/3] w-full object-cover md:aspect-[5/4]"
-                />
-              </div>
-            </motion.div>
-          </div>
+              {p.heroTitle}
+            </h1>
+            <p className="mx-auto mt-6 max-w-2xl text-base font-light leading-relaxed text-white/92 md:text-lg">
+              {p.heroSubtitle}
+            </p>
+          </motion.div>
         </div>
       </section>
 
