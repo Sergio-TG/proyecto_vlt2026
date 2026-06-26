@@ -34,6 +34,7 @@ import {
 } from "lucide-react"
 import { cn, slugify } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
+import { SOCIOS_HERO_IMAGE } from "@/lib/socios-hero"
 
 const steps = [
   { id: 1, title: "Identidad", icon: User },
@@ -311,6 +312,19 @@ export default function SociosPage() {
       }
     }
     checkSession()
+  }, [])
+
+  React.useEffect(() => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setUserEmail(null)
+        setUserId(null)
+        setView("auth")
+        setAuthMode("login")
+      }
+    })
+
+    return () => subscription.subscription.unsubscribe()
   }, [])
 
   React.useEffect(() => {
@@ -1790,7 +1804,12 @@ export default function SociosPage() {
             >
               <MessageCircle className="w-5 h-5" /> WhatsApp Soporte
             </a>
-            <a href="#" className="flex items-center gap-2 text-xs font-black text-white/60 hover:text-primary transition-all uppercase tracking-widest">
+            <a
+              href="/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center gap-2 text-xs font-black text-white/60 hover:text-primary transition-all uppercase tracking-widest"
+            >
               <Globe className="w-5 h-5" /> Web Principal
             </a>
           </div>
@@ -1800,17 +1819,17 @@ export default function SociosPage() {
   }
 
   return (
-    <div className="relative min-h-screen w-full overflow-x-hidden selection:bg-primary selection:text-white">
-      <div className="fixed inset-0 z-0">
+    <div className="relative flex flex-1 flex-col w-full min-h-0 overflow-x-hidden selection:bg-primary selection:text-white">
+      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
         <img 
-          src="https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-socios.webp?updatedAt=1775442807257" 
+          src={SOCIOS_HERO_IMAGE}
           alt="Background" 
           className="h-full w-full object-cover scale-105 animate-slow-zoom"
         />
         <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[3px] bg-gradient-to-b from-slate-950/20 via-slate-950/70 to-slate-950" />
       </div>
 
-      <div className="relative z-10 min-h-screen pt-24 pb-16 flex items-center justify-center">
+      <div className="relative z-10 flex flex-1 flex-col items-center justify-center py-8 px-4">
         {renderContent()}
       </div>
 

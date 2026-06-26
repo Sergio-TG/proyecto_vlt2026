@@ -415,7 +415,7 @@ export const pagesEs = {
         date: "Oct 2025",
         category: "Experiencias",
         image:
-          "https://ik.imagekit.io/vivilastermas/galeria/termas/sound-healing-t-night.webp?q=80&w=900&auto=format&fit=crop",
+          "https://ik.imagekit.io/vivilastermas/entorno/experiencias/actividades-yoga-rio.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "El valle ofrece senderos suaves, miradores y actividades de bienestar que combinan con el ritmo de las termas.",
           "Reservá con tiempo actividades guiadas o masajes; en temporada alta los cupos vuelan. Escribinos y armamos un itinerario acorde a tu grupo y fechas.",
@@ -831,10 +831,10 @@ export const pagesEn: typeof pagesEs = {
         title: "Why choosing a verified stay matters",
         excerpt:
           "Transparency, real photos and local guidance so you know exactly what to expect before you book.",
-        date: "Dec 2025",
+        date: "Feb 2026",
         category: "Responsible travel",
         image:
-          "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/galeria-hero003.webp?q=80&w=900&auto=format&fit=crop",
+          "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-alojamientos.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "A verified stay involves on-site checks, photos that match reality and support when you still have questions — it helps you decide with confidence.",
           "We are the meeting point between travelers and local hosts. When you see the Viví las Termas badge, you know there is a real commitment behind it: we only recommend what we know and have personally verified to ensure your experience is just as you imagined it.",
@@ -862,7 +862,7 @@ export const pagesEn: typeof pagesEs = {
         date: "Oct 2025",
         category: "Experiences",
         image:
-          "https://ik.imagekit.io/vivilastermas/entorno/experiencias/yoga-mar.webp?q=80&w=900&auto=format&fit=crop",
+          "https://ik.imagekit.io/vivilastermas/entorno/experiencias/actividades-yoga-rio.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "The valley offers gentle trails, lookouts and wellness activities that harmonise beautifully with Heated Spa outings.",
           "Book guided outings or massages in advance — seasonal weekends fill quickly. Reach out and we can sketch an itinerary tailored to your group.",

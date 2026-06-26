@@ -12,27 +12,31 @@ const testimonialMeta = [
     image: "https://res.cloudinary.com/dxpy1zqj6/image/upload/v1778891515/clientes-rc_w0swrm.png?q=80&w=2070&auto=format&fit=crop",
     rating: 5,
     stay: "Termas del Sol",
+    instagramUrl: "https://www.instagram.com/rosarioceballos38/",
   },
   {
     id: 2,
-    name: "Lucas R.",
-    image: "https://images.unsplash.com/photo-1636344325354-5a2d6d69284b?q=80&w=1974&auto=format&fit=crop",
+    name: "Guada Pereyra",
+    image: "https://ik.imagekit.io/vivilastermas/resenas/resena_002.webp",
     rating: 5,
-    stay: "Refugio del Bosque",
+    stay: "Termas del Sol",
+    instagramUrl: "https://www.instagram.com/p/DZ2Q1bnDvBc/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
   {
     id: 3,
-    name: "Julieta S.",
-    image: "https://images.unsplash.com/photo-1674238924463-98712d8cd55d?q=80&w=1974&auto=format&fit=crop",
+    name: "soledadmiranda08",
+    image: "https://ik.imagekit.io/vivilastermas/alojamientos/hosteria-el-durazno/habitacion_vista_360.webp?updatedAt=1782073656769",
     rating: 5,
-    stay: "Cabaña Rhyanon",
+    stay: "Hostería El Durazno",
+    instagramUrl: "https://www.instagram.com/reel/DV10WRSkUNm/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
   {
     id: 4,
-    name: "Mariana Z.",
-    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/plaza-yacanto.webp?q=80&w=1964&auto=format&fit=crop",
+    name: "Giuliana Blanco",
+    image: "https://ik.imagekit.io/vivilastermas/alojamientos/los-arboles/los-arboles001.webp",
     rating: 5,
-    stay: "Departamentos Valle Escondido",
+    stay: "Cabañas Los Árboles",
+    instagramUrl: "https://www.instagram.com/reel/DXCXhqEE6Pe/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
 ]
 
@@ -81,7 +85,15 @@ export function SocialProof() {
                     <p className="font-bold">{item.name}</p>
                     <p className="text-xs text-white/80">{item.stay}</p>
                   </div>
-                  <Instagram className="w-5 h-5 text-white/80" />
+                  <a
+                    href={item.instagramUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={(e) => e.stopPropagation()}
+                    aria-label={`Ver en Instagram — ${item.name}`}
+                  >
+                    <Instagram className="w-5 h-5 text-white/80 hover:text-white transition-colors" />
+                  </a>
                 </div>
               </div>
             </div>

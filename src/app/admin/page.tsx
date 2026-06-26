@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { 
   CheckCircle2, Clock, AlertTriangle, Eye, 
   ExternalLink, ShieldCheck, 
-  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin, MessageSquareQuote, Archive, RotateCcw
+  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin, MessageSquareQuote, Archive, RotateCcw, BarChart3
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
 import type { TrashAlojamientoRow } from "@/app/api/admin/trash/route"
+import { BADGE_ADMIN_OPTIONS, normalizeBadgeDestacado } from "@/lib/accommodation-badges"
 
 type PendingRow = {
   id: string
@@ -48,6 +49,7 @@ type PendingRow = {
   cancelacion?: string | null
   perfiles?: unknown
   rating_google?: unknown
+  badge_destacado?: string | null
   created_at?: string | null
 }
 
@@ -62,6 +64,7 @@ type ApprovedRow = {
   noches_minimas?: unknown
   rating_google?: unknown
   tipo_alojamiento?: string | null
+  badge_destacado?: string | null
   whatsapp?: string | null
   capacidad_total?: unknown
   mascotas?: string | null
@@ -101,6 +104,8 @@ export default function AdminDashboard() {
   const [cleaningDuplicates, setCleaningDuplicates] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
   const [approvedSearchTerm, setApprovedSearchTerm] = React.useState("")
+  const [pendingBadgeSelections, setPendingBadgeSelections] = React.useState<Record<string, string>>({})
+  const [savingBadgeId, setSavingBadgeId] = React.useState<string | null>(null)
   const [error, setError] = React.useState<string | null>(null)
 
   const toSlug = (value: string) => {
@@ -188,6 +193,16 @@ export default function AdminDashboard() {
 
   React.useEffect(() => {
     checkAdminSession()
+  }, [])
+
+  React.useEffect(() => {
+    const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!session) {
+        setIsAdmin(false)
+      }
+    })
+
+    return () => subscription.subscription.unsubscribe()
   }, [])
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -303,7 +318,7 @@ export default function AdminDashboard() {
   const fetchAprobados = async () => {
     setLoadingAprobados(true)
     const { data, error } = await onlyActiveAlojamientos(
-      supabase.from("alojamientos_aprobados").select("id, nombre, slug, localidad, created_at"),
+      supabase.from("alojamientos_aprobados").select("id, nombre, slug, localidad, created_at, badge_destacado"),
     )
       .order("created_at", { ascending: false })
       .limit(40)
@@ -472,10 +487,69 @@ export default function AdminDashboard() {
     }
   }
 
+  const getPendingBadgeValue = (item: PendingRow) => {
+    const slug = getPendingSlug(item)
+    const selected = pendingBadgeSelections[item.id]
+    if (typeof selected !== "undefined") {
+      return normalizeBadgeDestacado(selected)
+    }
+    return normalizeBadgeDestacado(aprobadosBySlug[slug]?.badge_destacado ?? item.badge_destacado)
+  }
+
+  const persistApprovedBadge = async (slug: string, badge_destacado: string | null) => {
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData?.session?.access_token
+    if (!token) return
+
+    await fetch("/api/admin/badge", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ slug, badge_destacado }),
+    }).catch(() => null)
+  }
+
+  const handleApprovedBadgeChange = async (item: ApprovedRow, value: string) => {
+    setSavingBadgeId(item.id)
+    setError(null)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión en el panel de Admin.")
+      }
+
+      const badge_destacado = normalizeBadgeDestacado(value)
+      const res = await fetch("/api/admin/badge", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ id: item.id, badge_destacado }),
+      })
+      const json = (await res.json().catch(() => null)) as { ok?: boolean; error?: string; reason?: string } | null
+
+      if (json?.reason === "missing_env") {
+        throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor.")
+      }
+      if (!res.ok || !json?.ok) {
+        throw new Error(json?.error || "No se pudo guardar el badge.")
+      }
+
+      setAprobados((prev) =>
+        prev.map((row) => (row.id === item.id ? { ...row, badge_destacado } : row)),
+      )
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al guardar el badge."
+      setError(message)
+      alert(message)
+    } finally {
+      setSavingBadgeId(null)
+    }
+  }
+
   const handleApprove = async (item: PendingRow) => {
     setApproving(item.id)
     try {
       const slug = toSlug(item.nombre_complejo || "")
+      const badge_destacado = getPendingBadgeValue(item)
       const rating =
         typeof item.rating_google !== "undefined" && item.rating_google !== null && item.rating_google !== ""
           ? Number(item.rating_google)
@@ -488,6 +562,7 @@ export default function AdminDashboard() {
       })
 
       if (!rpcError) {
+        await persistApprovedBadge(slug, badge_destacado)
         alert(`¡${item.nombre_complejo} ha sido aprobado con éxito!`)
         fetchAprobados()
         fetchPendientes()
@@ -519,6 +594,7 @@ export default function AdminDashboard() {
         precio_base: item.precio_desde ? Number(item.precio_desde) : null,
         noches_minimas: item.estadia_minima ? Number(item.estadia_minima) : 1,
         rating_google: item.rating_google || 4.5,
+        badge_destacado,
       }
 
       if (typeof item.user_id !== "undefined") payload.user_id = item.user_id
@@ -885,7 +961,7 @@ export default function AdminDashboard() {
 
   if (authLoading && !isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
       </div>
     )
@@ -893,7 +969,7 @@ export default function AdminDashboard() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -953,17 +1029,13 @@ export default function AdminDashboard() {
               </Button>
             </form>
           </Card>
-
-          <p className="text-center text-slate-500 mt-8 text-sm font-medium">
-            &copy; 2026 Viví las Termas - Sistema de Gestión
-          </p>
         </motion.div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-20">
+    <div className="bg-slate-50 pb-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
           <div className="space-y-2">
@@ -989,6 +1061,12 @@ export default function AdminDashboard() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
+            <Link href="/admin/analytics" className="flex-shrink-0">
+              <Button variant="outline" className="bg-white font-bold gap-2">
+                <BarChart3 className="w-4 h-4" />
+                Métricas
+              </Button>
+            </Link>
             <Link href="/admin/invitar" className="flex-shrink-0">
               <Button variant="outline" className="bg-white font-bold">
                 Invitar admin
@@ -1070,11 +1148,28 @@ export default function AdminDashboard() {
                       key={item.id}
                       className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
                     >
-                      <div className="space-y-1">
+                      <div className="space-y-1 flex-grow">
                         <p className="text-slate-900 font-black">{item.nombre}</p>
                         <p className="text-slate-500 font-medium text-sm">
                           {item.localidad} • <span className="font-mono text-xs">{item.slug}</span>
                         </p>
+                        <div className="pt-2">
+                          <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest block mb-1.5">
+                            Badge de marketing
+                          </label>
+                          <select
+                            value={item.badge_destacado ?? ""}
+                            onChange={(e) => handleApprovedBadgeChange(item, e.target.value)}
+                            disabled={savingBadgeId === item.id}
+                            className="h-10 w-full max-w-xs rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-primary/20"
+                          >
+                            {BADGE_ADMIN_OPTIONS.map((opt) => (
+                              <option key={opt.value || "none"} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                       <Button
                         variant="destructive"
@@ -1265,6 +1360,32 @@ export default function AdminDashboard() {
                               </div>
 
                               <div className="flex flex-col sm:flex-row md:flex-col justify-center gap-3 min-w-[200px]">
+                                <div className="space-y-1.5">
+                                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                                    Badge de marketing
+                                  </label>
+                                  <select
+                                    value={
+                                      pendingBadgeSelections[item.id] ??
+                                      aprobadosBySlug[slug]?.badge_destacado ??
+                                      item.badge_destacado ??
+                                      ""
+                                    }
+                                    onChange={(e) =>
+                                      setPendingBadgeSelections((prev) => ({
+                                        ...prev,
+                                        [item.id]: e.target.value,
+                                      }))
+                                    }
+                                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 outline-none focus:ring-2 focus:ring-primary/20"
+                                  >
+                                    {BADGE_ADMIN_OPTIONS.map((opt) => (
+                                      <option key={opt.value || "none"} value={opt.value}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
                                 <Button
                                   className="w-full h-12 rounded-xl font-black text-sm bg-primary hover:bg-primary/90 text-white shadow-lg shadow-primary/20 gap-2"
                                   onClick={() => handleApprove(item)}

@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BarChart3, Lock, RefreshCcw } from "lucide-react"
+import { ArrowLeft, BarChart3, Building2, Lock, Mail, RefreshCcw, Ticket } from "lucide-react"
 import { adminGetAnalytics, type AdminAnalytics } from "@/actions/admin"
 
 function maxCount(items: Array<{ count: number }>) {
@@ -85,7 +85,7 @@ export default function AdminAnalyticsPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
       </div>
     )
@@ -93,7 +93,7 @@ export default function AdminAnalyticsPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8 w-full max-w-md">
           <CardHeader className="text-center space-y-2">
             <div className="bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto border border-primary/20">
@@ -118,11 +118,18 @@ export default function AdminAnalyticsPage() {
 
   const topViewed = data?.topViewed ?? []
   const topServices = data?.topServices ?? []
+  const interactions = data?.interactions ?? {
+    totalAlojamientos: 0,
+    topAlojamientos: [],
+    totalContacto: 0,
+    totalReservaTermas: 0,
+  }
   const maxViewed = maxCount(topViewed)
   const maxService = maxCount(topServices)
+  const maxTopAlojamiento = maxCount(interactions.topAlojamientos)
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-20">
+    <div className="bg-slate-50 pb-8">
       <div className="container mx-auto px-4">
         <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
           <div className="space-y-1">
@@ -151,6 +158,99 @@ export default function AdminAnalyticsPage() {
             {error}
           </div>
         ) : null}
+
+        <div className="mb-10">
+          <h2 className="text-xl font-black text-slate-900 mb-4">Métricas de Interacción</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card className="border-slate-200 bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-black text-slate-900">Clics en Alojamientos</CardTitle>
+                    <CardDescription className="font-medium text-slate-500">Tarjetas y botón + Info</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {loading && !data ? (
+                  <div className="text-slate-500 font-medium">Cargando...</div>
+                ) : (
+                  <>
+                    <div className="text-4xl font-black text-slate-900 mb-4">{interactions.totalAlojamientos}</div>
+                    {interactions.topAlojamientos.length > 0 ? (
+                      <div className="space-y-3 border-t border-slate-100 pt-4">
+                        <p className="text-xs font-bold uppercase tracking-wide text-slate-400">Top 3 más clickeados</p>
+                        {interactions.topAlojamientos.map((it) => {
+                          const pct = maxTopAlojamiento > 0 ? Math.round((it.count / maxTopAlojamiento) * 100) : 0
+                          return (
+                            <div key={it.key} className="space-y-1.5">
+                              <div className="flex items-center justify-between gap-2">
+                                <span className="text-sm font-bold text-slate-800 truncate">{it.key}</span>
+                                <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-bold shrink-0">
+                                  {it.count}
+                                </Badge>
+                              </div>
+                              <div className="h-2 rounded-full bg-slate-100 overflow-hidden">
+                                <div className="h-full bg-primary" style={{ width: `${pct}%` }} />
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-500 font-medium">Sin clics registrados aún.</p>
+                    )}
+                  </>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-100 text-blue-600">
+                    <Mail className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-black text-slate-900">Formulario de Contacto</CardTitle>
+                    <CardDescription className="font-medium text-slate-500">Consultas enviadas</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {loading && !data ? (
+                  <div className="text-slate-500 font-medium">Cargando...</div>
+                ) : (
+                  <div className="text-4xl font-black text-slate-900">{interactions.totalContacto}</div>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-slate-200 bg-white overflow-hidden">
+              <CardHeader className="border-b border-slate-100 bg-slate-50/50 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-100 text-amber-600">
+                    <Ticket className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base font-black text-slate-900">Reserva de Pases Termas</CardTitle>
+                    <CardDescription className="font-medium text-slate-500">Intenciones de reserva</CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                {loading && !data ? (
+                  <div className="text-slate-500 font-medium">Cargando...</div>
+                ) : (
+                  <div className="text-4xl font-black text-slate-900">{interactions.totalReservaTermas}</div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           <Card className="border-slate-200 bg-white overflow-hidden">
