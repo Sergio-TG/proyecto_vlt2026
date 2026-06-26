@@ -1,11 +1,80 @@
 import { supabase } from './supabase';
 import { onlyActiveAlojamientos } from './alojamientos-active';
+import type { SupabaseClient } from '@supabase/supabase-js';
+
+export type BedTypeKey =
+  | 'sommier_matrimonial'
+  | 'sommier_king'
+  | 'cama_matrimonial'
+  | 'sommier_twin'
+  | 'cama_individual'
+  | 'cama_carrito_marinera'
+  | 'cucheta_litera'
+  | 'sofa_cama'
+  | 'futon';
+
+export type DistribucionCamaItem = {
+  tipoCamaKey: BedTypeKey;
+  cantidad: number;
+};
+
+export type CancelacionPoliticaKey =
+  | 'no_reembolso'
+  | 'a_convenir'
+  | 'reembolso_72h'
+  | 'reembolso_dias_x'
+  | 'cobra_primera_noche'
+  | 'cobra_total_estadia'
+  | 'consultar_whatsapp'
+  | 'consultar_politicas'
+  | 'sujeto_disponibilidad';
+
+export type CancelacionPolicy = {
+  politicaKey: CancelacionPoliticaKey;
+  diasPreaviso?: number;
+};
+
+export interface AlojamientoPendiente {
+  id: string;
+  user_id?: string | null;
+  slug?: string | null;
+  nombre_complejo?: string | null;
+  descripcion?: string | null;
+  descripcion_en?: string | null;
+  servicios?: unknown;
+  localidad?: string | null;
+  precio_desde?: unknown;
+  estadia_minima?: unknown;
+  tipo_alojamiento?: string | null;
+  whatsapp?: string | null;
+  capacidad_total?: unknown;
+  mascotas?: string | null;
+  acepta_ninos?: string | null;
+  link_drive?: string | null;
+  email?: string | null;
+  unidades?: string | null;
+  direccion?: string | null;
+  google_maps?: string | null;
+  latitud?: number | null;
+  longitud?: number | null;
+  distribucion_camas?: DistribucionCamaItem[] | null;
+  distancia_termas?: string | null;
+  tipo_acceso?: string | null;
+  check_in?: string | null;
+  check_out?: string | null;
+  cancelacion?: CancelacionPolicy | null;
+  perfiles?: unknown;
+  rating_google?: unknown;
+  badge_destacado?: string | null;
+  created_at?: string | null;
+}
 
 export interface AlojamientoAprobado {
   id: string;
   nombre: string;
   slug: string;
   descripcion: string;
+  descripcion_en?: string | null;
   servicios: string[];
   precio_base: number | null;
   noches_minimas: number | null;
@@ -20,10 +89,10 @@ export interface AlojamientoAprobado {
   google_maps?: string | null;
   latitud?: number | null;
   longitud?: number | null;
-  distribucion_camas?: string | null;
+  distribucion_camas?: DistribucionCamaItem[] | null;
   check_in?: string | null;
   check_out?: string | null;
-  cancelacion?: string | null;
+  cancelacion?: CancelacionPolicy | null;
   deleted_at?: string | null;
   orden_listado?: number | null;
 }
@@ -365,4 +434,74 @@ export async function getAlojamientoBySlug(slug: string) {
   }
 
   return data as AlojamientoAprobado;
+}
+
+export type EliminarAlojamientoDefinitivoResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+/**
+ * Borrado físico: solo permite eliminar filas ya archivadas (deleted_at IS NOT NULL).
+ * Usar exclusivamente desde rutas admin con service role.
+ */
+export async function eliminarAlojamientoDefinitivo(
+  client: SupabaseClient,
+  id: string,
+): Promise<EliminarAlojamientoDefinitivoResult> {
+  const trimmedId = id.trim();
+  if (!trimmedId) {
+    return { ok: false, error: "ID inválido" };
+  }
+
+  const { data: row, error: fetchError } = await client
+    .from("alojamientos_aprobados")
+    .select("id, slug, deleted_at")
+    .eq("id", trimmedId)
+    .maybeSingle();
+
+  if (fetchError) {
+    return { ok: false, error: fetchError.message };
+  }
+  if (!row) {
+    return { ok: false, error: "Alojamiento no encontrado" };
+  }
+  if (row.deleted_at == null) {
+    return {
+      ok: false,
+      error: "Solo se puede eliminar definitivamente un alojamiento que ya está en la papelera",
+    };
+  }
+
+  const { error: reviewsError } = await client
+    .from("reviews")
+    .delete()
+    .eq("alojamiento_id", trimmedId);
+
+  if (reviewsError) {
+    return { ok: false, error: reviewsError.message };
+  }
+
+  const slug = row.slug ? String(row.slug).trim() : "";
+  if (slug) {
+    await client.from("alojamientos_pendientes").delete().eq("slug", slug);
+  }
+
+  const { data: deletedRows, error: deleteError } = await client
+    .from("alojamientos_aprobados")
+    .delete()
+    .eq("id", trimmedId)
+    .not("deleted_at", "is", null)
+    .select("id");
+
+  if (deleteError) {
+    return { ok: false, error: deleteError.message };
+  }
+  if (!deletedRows?.length) {
+    return {
+      ok: false,
+      error: "No se pudo eliminar el registro. Verificá que siga archivado en la papelera.",
+    };
+  }
+
+  return { ok: true };
 }
