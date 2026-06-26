@@ -85,3 +85,54 @@ export async function uploadReviewPhotoToImageKit(
 
   return url
 }
+
+export async function uploadAvatarToImageKit(file: File, userId: string): Promise<string> {
+  const privateKey = getImageKitPrivateKey()
+  if (!privateKey) {
+    throw new Error("ImageKit no está configurado en el servidor.")
+  }
+
+  const validationError = validateReviewPhotoFile(file)
+  if (validationError) {
+    throw new Error(validationError)
+  }
+
+  const safeId = String(userId || "")
+    .trim()
+    .replace(/[^a-zA-Z0-9-]/g, "")
+  if (!safeId) {
+    throw new Error("Identificador de usuario inválido.")
+  }
+
+  const formData = new FormData()
+  formData.append("file", file, sanitizeFileName(file.name))
+  formData.append("fileName", sanitizeFileName(file.name))
+  formData.append("folder", `/avatars/${safeId}`)
+  formData.append("useUniqueFileName", "true")
+
+  const res = await fetch("https://upload.imagekit.io/api/v1/files/upload", {
+    method: "POST",
+    headers: { Authorization: buildAuthHeader(privateKey) },
+    body: formData,
+  })
+
+  const text = await res.text()
+  const json = (() => {
+    try {
+      return text ? (JSON.parse(text) as { url?: string; message?: string }) : null
+    } catch {
+      return null
+    }
+  })()
+
+  if (!res.ok) {
+    throw new Error(json?.message || text || "Error al subir la imagen a ImageKit.")
+  }
+
+  const url = json?.url?.trim()
+  if (!url) {
+    throw new Error("ImageKit no devolvió la URL de la imagen.")
+  }
+
+  return url
+}

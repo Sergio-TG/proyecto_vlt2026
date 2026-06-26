@@ -20,10 +20,18 @@ const CASABLANCA_PRESENTATION_VIDEO: AccommodationGalleryVideo = {
   variant: "presentation",
 }
 
+const HOSTERIA_EL_DURAZNO_TOUR_VIDEO: AccommodationGalleryVideo = {
+  embedUrl: "https://player.cloudinary.com/embed/?cloud_name=dxpy1zqj6&public_id=hosteria_tour_bshoga",
+  thumbUrl:
+    "https://res.cloudinary.com/dxpy1zqj6/video/upload/so_0,w_1200,h_800,c_fill,q_auto,f_jpg/hosteria_tour_bshoga",
+  variant: "presentation",
+}
+
 /** Videos embebidos en galería por slug de alojamiento (Cloudinary player). */
 const GALLERY_VIDEOS_BY_SLUG: Record<string, AccommodationGalleryVideo> = {
   "la-ensenada": LA_ENSENADA_DRON_VIDEO,
   "casablanca-hotel-spa": CASABLANCA_PRESENTATION_VIDEO,
+  "hosteria-el-durazno": HOSTERIA_EL_DURAZNO_TOUR_VIDEO,
 }
 
 export function getAccommodationGalleryVideo(

@@ -16,8 +16,6 @@ export interface Alojamiento {
   estado_revision: 'pendiente' | 'aprobado' | 'rechazado';
   links_reservas: {
     whatsapp?: string;
-    booking?: string;
-    airbnb?: string;
     web?: string;
   };
   features: {

@@ -179,7 +179,7 @@ export default function AdminReviewsPage() {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 pt-32">
+      <div className="flex min-h-[40vh] items-center justify-center bg-slate-50">
         <div className="h-10 w-10 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     )
@@ -187,7 +187,7 @@ export default function AdminReviewsPage() {
 
   if (!isAdmin) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-slate-900 p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <Lock className="mb-4 h-12 w-12 text-primary" />
         <p className="mb-6 text-lg font-medium text-white">Acceso restringido a administradores</p>
         <Button asChild>
@@ -198,7 +198,7 @@ export default function AdminReviewsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-20">
+    <div className="bg-slate-50 pb-8">
       <div className="container mx-auto px-4">
         <div className="mb-10 flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
           <div className="space-y-2">

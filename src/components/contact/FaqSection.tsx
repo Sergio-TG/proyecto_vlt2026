@@ -70,7 +70,7 @@ function renderItem(
         className="flex w-full items-center justify-between gap-4 text-left"
         aria-expanded={isOpen}
       >
-        <span className="text-xl font-semibold leading-snug text-slate-900">{item.question}</span>
+        <span className="text-base font-medium tracking-tight leading-snug text-slate-900">{item.question}</span>
         <ChevronDown
           className={`h-5 w-5 shrink-0 text-slate-500 transition-transform duration-300 ${isOpen ? "rotate-180" : ""}`}
         />

@@ -12,6 +12,7 @@ export interface AlojamientoAprobado {
   rating_google: number | null;
   localidad: string;
   tipo_alojamiento: string;
+  badge_destacado?: string | null;
   capacidad_total?: number | null;
   acepta_ninos?: string | null;
   mascotas?: string | null;
@@ -24,6 +25,7 @@ export interface AlojamientoAprobado {
   check_out?: string | null;
   cancelacion?: string | null;
   deleted_at?: string | null;
+  orden_listado?: number | null;
 }
 
 export type TaxonomiaServicio = {
@@ -63,13 +65,42 @@ export async function getTaxonomiaServicios(): Promise<TaxonomiaServicio[]> {
   })).filter((x) => x.id && x.nombre);
 }
 
+/** Slugs con prioridad si aún no tienen orden_listado en la base (respaldo). */
+const FALLBACK_PRIORITY_SLUGS = ["hosteria-el-durazno"];
+
+function getDisplayOrder(item: AlojamientoAprobado): number {
+  const fromDb = item.orden_listado;
+  if (fromDb != null && Number.isFinite(fromDb)) return fromDb;
+
+  const fallbackIdx = FALLBACK_PRIORITY_SLUGS.indexOf(item.slug);
+  if (fallbackIdx !== -1) return fallbackIdx + 1;
+
+  return Number.MAX_SAFE_INTEGER;
+}
+
+export function sortAlojamientosForDisplay(items: AlojamientoAprobado[]): AlojamientoAprobado[] {
+  return [...items].sort((a, b) => {
+    const orderDiff = getDisplayOrder(a) - getDisplayOrder(b);
+    if (orderDiff !== 0) return orderDiff;
+    return a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" });
+  });
+}
+
 export async function getAlojamientos() {
-  const { data, error } = await onlyActiveAlojamientos(
-    supabase.from('alojamientos_aprobados').select('*'),
-  );
+  let query = onlyActiveAlojamientos(supabase.from("alojamientos_aprobados").select("*"))
+    .order("orden_listado", { ascending: true, nullsFirst: false })
+    .order("nombre", { ascending: true });
+
+  let { data, error } = await query;
 
   if (error) {
-    console.error('Error fetching alojamientos:', {
+    ({ data, error } = await onlyActiveAlojamientos(
+      supabase.from("alojamientos_aprobados").select("*"),
+    ));
+  }
+
+  if (error) {
+    console.error("Error fetching alojamientos:", {
       message: (error as { message?: string })?.message,
       details: (error as { details?: string })?.details,
       hint: (error as { hint?: string })?.hint,
@@ -78,7 +109,7 @@ export async function getAlojamientos() {
     return [];
   }
 
-  return (data ?? []).map(normalizeAlojamiento);
+  return sortAlojamientosForDisplay((data ?? []).map(normalizeAlojamiento));
 }
 
 function uniqueById(items: AlojamientoAprobado[]) {
@@ -320,7 +351,7 @@ export async function getAlojamientosFiltered(input: {
     results.push(...(await runQuery({ servicios: [...servicios, "Pet Friendly"] })));
   }
 
-  return uniqueById(results);
+  return sortAlojamientosForDisplay(uniqueById(results));
 }
 
 export async function getAlojamientoBySlug(slug: string) {

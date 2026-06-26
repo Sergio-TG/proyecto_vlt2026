@@ -15,8 +15,9 @@ const benefitColors = [
   "bg-amber-100 text-amber-600",
 ] as const
 
-const HERO_IMAGE =
-  "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-socios.webp?updatedAt=1775442807257&q=80&w=2070&auto=format&fit=crop"
+import { SOCIOS_HERO_IMAGE } from "@/lib/socios-hero"
+
+const HERO_IMAGE = `${SOCIOS_HERO_IMAGE}?q=80&w=2070&auto=format&fit=crop`
 
 export default function SociosLandingPage() {
   const { locale } = useLanguage()
