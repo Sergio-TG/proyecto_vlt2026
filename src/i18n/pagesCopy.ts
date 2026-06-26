@@ -349,13 +349,11 @@ export const pagesEs = {
   },
   blog: {
     heroBackground:
-      "https://ik.imagekit.io/vivilastermas/entorno/experiencias/plaza-yacanto.webp?q=85&w=2400&auto=format&fit=crop",
-    heroCardImage:
-      "https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron003.webp?q=85&w=1200&auto=format&fit=crop",
+      "https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron003.webp?q=85&w=2400&auto=format&fit=crop",
     heroAlt: "Villa Yacanto y El Durazno — naturaleza y bienestar",
     heroTitle: "Bienvenidos a nuestra experiencia",
     heroSubtitle:
-      "Historias, guías y novedades para planificar tu escapada a las Sierras: termas verificadas, alojamientos seleccionados y el encanto de Villa Yacanto y El Durazno.",
+      "Historias, guías y novedades para planificar tu escapada a las Sierras: alojamientos verificados, experiencias naturales y el encanto de El Durazno.",
     latestTitle: "Últimos Artículos del Blog",
     viewAll: "Ver todo",
     latestSubtitle: "Explorá nuestras publicaciones sobre viajes y naturaleza.",
@@ -392,7 +390,7 @@ export const pagesEs = {
           "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-alojamientos.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "Un alojamiento verificado implica inspección, fotos coherentes con la propuesta y soporte ante dudas. Así elegís mejor y evitás sorpresas al llegar.",
-          "Somos punto de encuentro entre viajeros y prestadores locales: cuando veás el sello Viví las Termas, esperá comunicación transparente y alineada con lo que conocimos en campo.",
+          "Somos el punto de encuentro entre viajeros y prestadores locales. Cuando veas el sello Viví las Termas, sabés que detrás hay un compromiso real: recomendamos solo lo que conocemos y hemos verificado personalmente para asegurar que tu experiencia sea tal como la imaginaste.",
         ],
       },
       {
@@ -417,7 +415,7 @@ export const pagesEs = {
         date: "Oct 2025",
         category: "Experiencias",
         image:
-          "https://ik.imagekit.io/vivilastermas/galeria/termas/sound-healing-t-night.webp?q=80&w=900&auto=format&fit=crop",
+          "https://ik.imagekit.io/vivilastermas/entorno/experiencias/actividades-yoga-rio.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "El valle ofrece senderos suaves, miradores y actividades de bienestar que combinan con el ritmo de las termas.",
           "Reservá con tiempo actividades guiadas o masajes; en temporada alta los cupos vuelan. Escribinos y armamos un itinerario acorde a tu grupo y fechas.",
@@ -798,13 +796,11 @@ export const pagesEn: typeof pagesEs = {
   },
   blog: {
     heroBackground:
-      "https://ik.imagekit.io/vivilastermas/entorno/experiencias/plaza-yacanto.webp?q=85&w=2400&auto=format&fit=crop",
-    heroCardImage:
-      "https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron003.webp?q=85&w=1200&auto=format&fit=crop",
+      "https://ik.imagekit.io/vivilastermas/galeria/termas/termas-dron003.webp?q=85&w=2400&auto=format&fit=crop",
     heroAlt: "Villa Yacanto & El Durazno — nature and wellbeing",
     heroTitle: "Welcome to our story",
     heroSubtitle:
-      "Guides and updates to plan your getaway in the Sierras — vetted Heated Spa stays, curated accommodation and the best of Villa Yacanto & El Durazno.",
+      "Stories, guides and updates to plan your getaway in the Sierras: verified accommodation, natural experiences and the charm of El Durazno.",
     latestTitle: "Latest Blog Articles",
     viewAll: "View all",
     latestSubtitle: "Explore our stories about travel and nature.",
@@ -835,13 +831,13 @@ export const pagesEn: typeof pagesEs = {
         title: "Why choosing a verified stay matters",
         excerpt:
           "Transparency, real photos and local guidance so you know exactly what to expect before you book.",
-        date: "Dec 2025",
+        date: "Feb 2026",
         category: "Responsible travel",
         image:
-          "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/galeria-hero003.webp?q=80&w=900&auto=format&fit=crop",
+          "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-alojamientos.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "A verified stay involves on-site checks, photos that match reality and support when you still have questions — it helps you decide with confidence.",
-          "We bridge travellers and hosts: when you see the Viví las Termas badge, expect clear communication grounded in what we have seen in person.",
+          "We are the meeting point between travelers and local hosts. When you see the Viví las Termas badge, you know there is a real commitment behind it: we only recommend what we know and have personally verified to ensure your experience is just as you imagined it.",
         ],
       },
       {
@@ -866,7 +862,7 @@ export const pagesEn: typeof pagesEs = {
         date: "Oct 2025",
         category: "Experiences",
         image:
-          "https://ik.imagekit.io/vivilastermas/entorno/experiencias/yoga-mar.webp?q=80&w=900&auto=format&fit=crop",
+          "https://ik.imagekit.io/vivilastermas/entorno/experiencias/actividades-yoga-rio.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "The valley offers gentle trails, lookouts and wellness activities that harmonise beautifully with Heated Spa outings.",
           "Book guided outings or massages in advance — seasonal weekends fill quickly. Reach out and we can sketch an itinerary tailored to your group.",

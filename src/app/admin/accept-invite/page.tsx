@@ -15,7 +15,7 @@ export default function AdminAcceptInvitePage() {
   return (
     <React.Suspense
       fallback={
-        <div className="min-h-screen bg-slate-50 pt-32 pb-20 flex items-center justify-center">
+        <div className="bg-slate-50 pb-8 flex items-center justify-center">
           <div className="text-slate-500 font-medium">Cargando...</div>
         </div>
       }
@@ -81,7 +81,7 @@ function AdminAcceptInviteInner() {
 
   if (!token || !email) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8 w-full max-w-md">
           <CardHeader className="text-center space-y-2">
             <div className="bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto border border-primary/20">
@@ -106,7 +106,7 @@ function AdminAcceptInviteInner() {
 
   if (done) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8 w-full max-w-md">
           <CardHeader className="text-center space-y-2">
             <div className="bg-green-500/20 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto border border-green-500/30">
@@ -131,7 +131,7 @@ function AdminAcceptInviteInner() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-20">
+    <div className="bg-slate-50 pb-8">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8 gap-4">
           <div className="space-y-1">

@@ -13,6 +13,7 @@ import { HOME_VIDEOS } from "@/lib/constants"
 import { HomeVideoSection } from "@/components/home/HomeVideoSection"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+import { ANALYTICS_EVENT_TYPES, trackEvent } from "@/services/analytics"
 
 const MapaTermas = dynamic(
   () => import("@/components/termas/MapaTermas").then((mod) => ({ default: mod.MapaTermas })),
@@ -104,7 +105,7 @@ export default function TermasPageClient({
             dangerouslySetInnerHTML={{ __html: p.introHtml }}
           />
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
-            <Link href="/contacto">
+            <Link href="/contacto" onClick={() => trackEvent(ANALYTICS_EVENT_TYPES.CLIC_RESERVA_TERMAS)}>
               <Button size="lg" className="text-xl px-12 py-8 rounded-full shadow-2xl hover:shadow-primary/20 transition-all font-bold">
                 {p.ctaReserve}
               </Button>

@@ -33,7 +33,6 @@ export function FeaturedAccommodations() {
   useEffect(() => {
     async function loadData() {
       const data = await getAlojamientos()
-      // Solo mostrar los primeros 10 o los que tengan mejor rating
       setAccommodations(data.slice(0, 10))
       setLoading(false)
     }

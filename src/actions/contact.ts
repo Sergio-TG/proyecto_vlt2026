@@ -66,6 +66,13 @@ export async function submitContact(formData: FormData): Promise<ContactActionRe
     return { success: false, message: "Error al guardar en base de datos: " + insertError.message }
   }
 
+  const { error: analyticsError } = await supabase.from("analytics_events").insert([
+    { event_type: "clic_contacto", target_id: null },
+  ])
+  if (analyticsError) {
+    console.error("analytics_events insert error:", analyticsError)
+  }
+
   // 3. Envío de Email
   const resendApiKey = process.env.RESEND_API_KEY
   const fromEmail = (process.env.CONTACT_FROM_EMAIL || process.env.RESEND_FROM_EMAIL || "").trim()

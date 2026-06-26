@@ -8,9 +8,11 @@ import { IK_TRANSFORMS, appendImageKitCacheVersion, imageKitCacheVersion } from 
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
 import { slugify } from "@/lib/utils"
 import { motion } from "framer-motion"
-import { Gem, Leaf, MapPin, Share2, Star, Users, Wifi, PawPrint } from "lucide-react"
+import { MapPin, Share2, Star, Users, Wifi, PawPrint } from "lucide-react"
+import { resolveAccommodationBadge } from "@/lib/accommodation-badges"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+import { ANALYTICS_EVENT_TYPES, trackEvent } from "@/services/analytics"
 
 const premiumEase: [number, number, number, number] = [0.22, 1, 0.36, 1]
 
@@ -81,9 +83,14 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUp
     normalized.some((s) => s.includes("pet") || s.includes("mascota") || s.includes("acepta mascotas"))
 
   const capacidad = item.capacidad_total || servicios.find((s) => s.includes("Capacidad"))?.match(/\d+/)?.[0] || "—"
+  const destacadoBadge = resolveAccommodationBadge(item.badge_destacado, copy.accommodationCard.badges)
 
   return (
-    <Link href={`/alojamientos/${slug}`} className="block w-full">
+    <Link
+      href={`/alojamientos/${slug}`}
+      className="block w-full"
+      onClick={() => trackEvent(ANALYTICS_EVENT_TYPES.CLIC_ALOJAMIENTO, slug)}
+    >
       <motion.div
         variants={cardHoverVariants}
         initial="rest"
@@ -111,23 +118,14 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUp
               )}
             </motion.div>
 
-            <motion.div variants={priceHoverVariants} className="absolute top-4 left-4 z-20">
-              <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2.5 py-1 rounded-full font-black text-[8px] uppercase tracking-wider flex items-center gap-1">
-                {item.rating_google && item.rating_google >= 4.8 ? (
-                  <>
-                    <Star className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500" /> {copy.accommodationCard.badgeTop}
-                  </>
-                ) : item.precio_base && item.precio_base > 100000 ? (
-                  <>
-                    <Gem className="w-2.5 h-2.5 text-blue-500" /> {copy.accommodationCard.badgePremium}
-                  </>
-                ) : (
-                  <>
-                    <Leaf className="w-2.5 h-2.5 text-green-500" /> {copy.accommodationCard.badgeEco}
-                  </>
-                )}
-              </Badge>
-            </motion.div>
+            {destacadoBadge ? (
+              <motion.div variants={priceHoverVariants} className="absolute top-4 left-4 z-20">
+                <Badge className="bg-white/95 text-slate-900 backdrop-blur-sm border-none shadow-sm px-2.5 py-1 rounded-full font-black text-[8px] uppercase tracking-wider flex items-center gap-1">
+                  <destacadoBadge.Icon className={destacadoBadge.iconClassName} />
+                  {destacadoBadge.label}
+                </Badge>
+              </motion.div>
+            ) : null}
 
             <motion.button
               whileHover={{ scale: 1.1 }}

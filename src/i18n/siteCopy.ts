@@ -1,4 +1,4 @@
-import type { SiteLocale } from "@/contexts/LanguageContext"
+﻿import type { SiteLocale } from "@/contexts/LanguageContext"
 import { pagesEs, pagesEn } from "@/i18n/pagesCopy"
 
 const messagesEs = {
@@ -113,13 +113,13 @@ const messagesEs = {
         quote: "Increíble experiencia. Enamoradas de este lugar, las termas son un sueño.",
       },
       {
-        quote: "La atención personalizada marcó la diferencia. Nos ayudaron a organizar todo el viaje.",
+        quote: "Ayer Festejando Aniversario y Día del Padre 🫶🏼 Día en Pareja ✨ Salimos de la Rutina. Hermoso Todo 😍 Lugar 1000 de 10 Súper Súper Recomendable 🔥",
       },
       {
-        quote: "Un lugar mágico para desconectar. Con mi mascota disfrutamos muchísimo de la naturaleza.",
+        quote: "Excelente estadía. Poseen un cálido y profesional equipo de trabajo. Agradezco a todo el personal que nos atendió, especialmente a Angeles.",
       },
       {
-        quote: "Volveremos sin dudas. La paz que se respira en El Durazno es única.",
+        quote: "Que ganas de un viajecito en @cabanaslosarboles 🌿",
       },
     ],
   },
@@ -181,9 +181,14 @@ const messagesEs = {
   accommodationCard: {
     cta: "+ Info",
     shareTitle: "Compartir alojamiento",
-    badgeTop: "MÁS PEDIDO",
-    badgePremium: "PREMIUM",
-    badgeEco: "ECO-FRIENDLY",
+    badges: {
+      mas_pedido: "MÁS PEDIDO",
+      premium: "PREMIUM",
+      eco_friendly: "ECO-FRIENDLY",
+      nuevo: "NUEVO",
+      familiar: "FAMILIAR",
+      romantico: "ROMÁNTICO",
+    },
     persons: "Personas",
     perNight: "por noche",
     inquire: "Consultar",
@@ -303,13 +308,13 @@ const messagesEn: typeof messagesEs = {
         quote: "Amazing experience. The cabin exceeded our expectations and the Heated Spa is a dream.",
       },
       {
-        quote: "The personalized attention made the difference. They helped us plan the whole trip.",
+        quote: "Celebrating our Anniversary and Father's Day 🫶🏼 A day as a couple ✨ We escaped the routine. Everything was beautiful 😍 10 out of 10, super super recommended 🔥",
       },
       {
-        quote: "A magical place to unplug. My pet and I loved the nature.",
+        quote: "Excellent stay. They have a warm and professional team. My gratitude to all the staff who took care of us, especially Angeles.",
       },
       {
-        quote: "We’ll definitely return. The peace in El Durazno is unique.",
+        quote: "Can't wait for a little getaway at @cabanaslosarboles 🌿",
       },
     ],
   },
@@ -371,9 +376,14 @@ const messagesEn: typeof messagesEs = {
   accommodationCard: {
     cta: "+ Info",
     shareTitle: "Share listing",
-    badgeTop: "TOP PICK",
-    badgePremium: "PREMIUM",
-    badgeEco: "ECO-FRIENDLY",
+    badges: {
+      mas_pedido: "TOP PICK",
+      premium: "PREMIUM",
+      eco_friendly: "ECO-FRIENDLY",
+      nuevo: "NEW",
+      familiar: "FAMILY",
+      romantico: "ROMANTIC",
+    },
     persons: "Guests",
     perNight: "per night",
     inquire: "Ask us",

@@ -90,9 +90,17 @@ export async function adminUpdateLead(
 
 export type TopCount = { key: string; count: number }
 
+export type InteractionMetrics = {
+  totalAlojamientos: number
+  topAlojamientos: TopCount[]
+  totalContacto: number
+  totalReservaTermas: number
+}
+
 export type AdminAnalytics = {
   topViewed: TopCount[]
   topServices: TopCount[]
+  interactions: InteractionMetrics
 }
 
 export async function adminGetAnalytics(token: string): Promise<ActionResult<AdminAnalytics>> {
@@ -102,13 +110,16 @@ export async function adminGetAnalytics(token: string): Promise<ActionResult<Adm
   const supabase = getServerSupabase()
   if (!supabase) return { success: false, message: "Configuración del servidor incompleta." }
 
-  const [{ data: views, error: viewsErr }, { data: interests, error: interestsErr }] = await Promise.all([
-    supabase.from("page_views").select("slug").order("created_at", { ascending: false }).limit(5000),
-    supabase.from("service_interests").select("service").order("created_at", { ascending: false }).limit(5000),
-  ])
+  const [{ data: views, error: viewsErr }, { data: interests, error: interestsErr }, { data: events, error: eventsErr }] =
+    await Promise.all([
+      supabase.from("page_views").select("slug").order("created_at", { ascending: false }).limit(5000),
+      supabase.from("service_interests").select("service").order("created_at", { ascending: false }).limit(5000),
+      supabase.from("analytics_events").select("event_type, target_id").order("created_at", { ascending: false }).limit(10000),
+    ])
 
   if (viewsErr || !views) return { success: false, message: "No se pudieron cargar las métricas de vistas." }
   if (interestsErr || !interests) return { success: false, message: "No se pudieron cargar las métricas de servicios." }
+  if (eventsErr || !events) return { success: false, message: "No se pudieron cargar las métricas de interacción." }
 
   const viewCounts = new Map<string, number>()
   for (const row of views as unknown as Array<{ slug?: unknown }>) {
@@ -134,6 +145,37 @@ export async function adminGetAnalytics(token: string): Promise<ActionResult<Adm
     .slice(0, 12)
     .map(([key, count]) => ({ key, count }))
 
-  return { success: true, data: { topViewed, topServices } }
+  let totalAlojamientos = 0
+  let totalContacto = 0
+  let totalReservaTermas = 0
+  const alojamientoCounts = new Map<string, number>()
+
+  for (const row of events as unknown as Array<{ event_type?: unknown; target_id?: unknown }>) {
+    const eventType = typeof row?.event_type === "string" ? row.event_type.trim() : ""
+    const targetId = typeof row?.target_id === "string" ? row.target_id.trim() : ""
+
+    if (eventType === "clic_alojamiento") {
+      totalAlojamientos += 1
+      if (targetId) alojamientoCounts.set(targetId, (alojamientoCounts.get(targetId) || 0) + 1)
+    } else if (eventType === "clic_contacto") {
+      totalContacto += 1
+    } else if (eventType === "clic_reserva_termas") {
+      totalReservaTermas += 1
+    }
+  }
+
+  const topAlojamientos = Array.from(alojamientoCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([key, count]) => ({ key, count }))
+
+  const interactions: InteractionMetrics = {
+    totalAlojamientos,
+    topAlojamientos,
+    totalContacto,
+    totalReservaTermas,
+  }
+
+  return { success: true, data: { topViewed, topServices, interactions } }
 }
 

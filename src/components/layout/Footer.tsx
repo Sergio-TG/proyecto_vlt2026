@@ -71,15 +71,34 @@ export function Footer() {
               <ul className="space-y-4 text-sm">
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">{copy.footer.tel}</span>
-                  <span>+54 9 3546 525404</span>
+                  <a
+                    href="https://wa.me/5493546525404"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="no-underline transition-colors duration-300 hover:text-primary"
+                  >
+                    +54 9 3546 525404
+                  </a>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">{copy.footer.email}</span>
-                  <span>hola@vivilastermas.com.ar</span>
+                  <a
+                    href="mailto:hola@vivilastermas.com.ar?subject=Consulta%20Viv%C3%AD%20Las%20Termas"
+                    className="no-underline transition-colors duration-300 hover:text-primary"
+                  >
+                    hola@vivilastermas.com.ar
+                  </a>
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">{copy.footer.location}</span>
-                  <span>{copy.footer.address}</span>
+                  <a
+                    href="https://www.google.com/maps/search/?api=1&query=-32.10208670668308,-64.75739709664914"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="no-underline transition-colors duration-300 hover:text-primary"
+                  >
+                    {copy.footer.address}
+                  </a>
                 </li>
               </ul>
             </div>

@@ -66,7 +66,7 @@ export default function AdminInvitarPage() {
       const { data: sessionData } = await supabase.auth.getSession()
       const token = sessionData?.session?.access_token
       if (!token) {
-        throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión.")
+        throw new Error("Sesi?n inv?lida o expirada. Volv? a iniciar sesi?n.")
       }
 
       const res = await fetch("/api/admin/invite", {
@@ -77,7 +77,7 @@ export default function AdminInvitarPage() {
 
       const json = (await res.json().catch(() => null)) as InviteResponse | null
       if (!res.ok || !json?.ok || !json.url) {
-        const msg = json?.error || json?.reason || "No se pudo generar la invitación."
+        const msg = json?.error || json?.reason || "No se pudo generar la invitaci?n."
         throw new Error(msg)
       }
 
@@ -92,7 +92,7 @@ export default function AdminInvitarPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary" />
       </div>
     )
@@ -100,7 +100,7 @@ export default function AdminInvitarPage() {
 
   if (!isAdmin) {
     return (
-      <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center p-4">
+      <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
         <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8 w-full max-w-md">
           <CardHeader className="text-center space-y-2">
             <div className="bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto border border-primary/20">
@@ -108,7 +108,7 @@ export default function AdminInvitarPage() {
             </div>
             <CardTitle className="text-2xl font-black text-white tracking-tight">Acceso restringido</CardTitle>
             <CardDescription className="text-white/60 font-medium">
-              Necesitás iniciar sesión como Admin para invitar usuarios.
+              Necesit?s iniciar sesi?n como Admin para invitar usuarios.
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4">
@@ -124,12 +124,12 @@ export default function AdminInvitarPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-32 pb-20">
+    <div className="bg-slate-50 pb-8">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between mb-8 gap-4">
           <div className="space-y-1">
             <h1 className="text-3xl font-black text-slate-900 tracking-tight">Invitar Admin</h1>
-            <p className="text-slate-500 font-medium">Generá un link de invitación para un nuevo administrador.</p>
+            <p className="text-slate-500 font-medium">Gener? un link de invitaci?n para un nuevo administrador.</p>
           </div>
           <Link href="/admin" className="flex-shrink-0">
             <Button variant="outline" className="bg-white font-bold gap-2">
@@ -141,9 +141,9 @@ export default function AdminInvitarPage() {
 
         <Card className="border-slate-200 bg-white overflow-hidden max-w-2xl">
           <CardHeader className="border-b border-slate-100 bg-slate-50/50">
-            <CardTitle className="text-slate-900 font-black">Nueva invitación</CardTitle>
+            <CardTitle className="text-slate-900 font-black">Nueva invitaci?n</CardTitle>
             <CardDescription className="font-medium text-slate-500">
-              Ingresá el email del nuevo admin y copiá el link generado.
+              Ingres? el email del nuevo admin y copi? el link generado.
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
@@ -175,7 +175,7 @@ export default function AdminInvitarPage() {
                 disabled={submitting}
                 className="h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl"
               >
-                {submitting ? "Generando..." : "Generar invitación"}
+                {submitting ? "Generando..." : "Generar invitaci?n"}
               </Button>
             </form>
 

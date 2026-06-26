@@ -9,7 +9,7 @@ import { slugify } from "@/lib/utils"
 import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion"
 import React, { Suspense, useState, useMemo, useEffect, useRef } from "react"
 import { AccommodationCard } from "@/components/accommodations/AccommodationCard"
-import { IMAGEKIT_URL_ENDPOINT } from "@/lib/imagekit.config"
+import { appendImageKitCacheVersion, getResolvedImageKitBase, IK_TRANSFORMS } from "@/lib/imagekit.config"
 import dynamic from "next/dynamic"
 import { useSearchParams } from "next/navigation"
 import { SocialProof } from "@/components/home/SocialProof"
@@ -124,13 +124,7 @@ const revealVariants = {
   exit: { opacity: 0, y: 10, scale: 0.98 },
 }
 
-const toImageKitUrl = (relativePath: string) => {
-  const base = (IMAGEKIT_URL_ENDPOINT || "").trim().replace(/\/+$/, "")
-  const rel = relativePath.trim().replace(/^\/+/, "")
-  return `${base}/${rel}`
-}
-
-const heroAlojamientosImage = toImageKitUrl("entorno/bg-paginas/hero-alojamientos.webp")
+const heroAlojamientosImage = `${getResolvedImageKitBase()}/entorno/bg-paginas/hero-alojamientos.webp?${appendImageKitCacheVersion(IK_TRANSFORMS.heroPage, "1777508202766")}`
 const MapAlojamiento = dynamic(() => import("@/components/maps/MapAlojamiento"), {
   ssr: false,
 })
@@ -460,7 +454,7 @@ function AlojamientosPageInner() {
           <img
             src={heroAlojamientosImage}
             alt={p.heroAlt}
-            className="w-full h-full object-cover"
+            className="h-full w-full object-cover object-center"
           />
         </motion.div>
         <div className="absolute inset-0 z-20 flex flex-col items-center justify-center text-center text-white p-4">
