@@ -33,6 +33,7 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import * as React from "react"
 import dynamic from "next/dynamic"
 import { getTaxonomiaServicios, type AlojamientoAprobado, type TaxonomiaServicio } from "@/lib/supabase-queries"
+import { supabase } from "@/lib/supabase"
 import {
   buildGoogleMapsHref,
   getAccommodationMapPin,
@@ -120,7 +121,41 @@ export function AccommodationDetailClient({
   const copy = getSiteCopy(locale)
   const d = copy.pages.accommodationDetail
   const numberLocale = locale === "en" ? "en-US" : "es-AR"
-  const displayDescription = resolveAccommodationDescription(accommodation, locale)
+  const [liveDescripcionEn, setLiveDescripcionEn] = React.useState<string | null>(null)
+
+  React.useEffect(() => {
+    let cancelled = false
+    const slug = String(accommodation.slug || "").trim()
+    if (!slug) return
+
+    void (async () => {
+      const { data } = await supabase
+        .from("alojamientos_aprobados")
+        .select("descripcion_en")
+        .eq("slug", slug)
+        .maybeSingle()
+
+      if (cancelled) return
+      const value = String(data?.descripcion_en ?? "").trim()
+      setLiveDescripcionEn(value || null)
+    })()
+
+    return () => {
+      cancelled = true
+    }
+  }, [accommodation.slug])
+
+  const displayDescription = React.useMemo(
+    () =>
+      resolveAccommodationDescription(
+        {
+          descripcion: accommodation.descripcion,
+          descripcion_en: liveDescripcionEn ?? accommodation.descripcion_en,
+        },
+        locale,
+      ),
+    [accommodation.descripcion, accommodation.descripcion_en, liveDescripcionEn, locale],
+  )
   const displayBedLayout = React.useMemo(
     () => translateStayInfoValue(accommodation.distribucion_camas, locale, "beds"),
     [accommodation.distribucion_camas, locale],

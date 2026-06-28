@@ -550,6 +550,24 @@ export default function AdminDashboard() {
     }).catch(() => null)
   }
 
+  const persistApprovedI18nFields = async (item: PendingRow, slug: string) => {
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData?.session?.access_token
+    if (!token) return
+
+    const payload: Record<string, unknown> = { slug }
+    if (String(item.descripcion_en ?? "").trim()) payload.descripcion_en = item.descripcion_en
+    if (String(item.descripcion ?? "").trim()) payload.descripcion = item.descripcion
+    if (typeof item.cancelacion !== "undefined") payload.cancelacion = item.cancelacion
+    if (typeof item.distribucion_camas !== "undefined") payload.distribucion_camas = item.distribucion_camas
+
+    await fetch("/api/admin/approve", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ payload }),
+    }).catch(() => null)
+  }
+
   const handleApprovedBadgeChange = async (item: ApprovedRow, value: string) => {
     setSavingBadgeId(item.id)
     setError(null)
@@ -605,6 +623,7 @@ export default function AdminDashboard() {
 
       if (!rpcError) {
         await persistApprovedBadge(slug, badge_destacado)
+        await persistApprovedI18nFields(item, slug)
         alert(`¡${item.nombre_complejo} ha sido aprobado con éxito!`)
         fetchAprobados()
         fetchPendientes()
