@@ -41,6 +41,14 @@ import {
 import { AccommodationReviewsSection } from "@/components/accommodations/AccommodationReviewsSection"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+import {
+  resolveAccommodationDescription,
+  translateAccommodationService,
+  translateStayInfoValue,
+  hasBedLayoutData,
+  hasCancellationData,
+} from "@/lib/accommodation-i18n"
+import type { DistribucionCamaItem, CancelacionPolicy } from "@/lib/supabase-queries"
 import type { ApprovedReview } from "@/lib/reviews"
 import type { ReviewStats } from "@/lib/review-stats"
 
@@ -64,10 +72,10 @@ type AccommodationWithExtras = AlojamientoAprobado & {
   ubicacion_google_maps?: string | null
   link_drive?: string | null
   direccion?: string | null
-  distribucion_camas?: string | null
+  distribucion_camas?: DistribucionCamaItem[] | null
   check_in?: string | null
   check_out?: string | null
-  cancelacion?: string | null
+  cancelacion?: CancelacionPolicy | null
 }
 
 function toNum(v: unknown): number | null {
@@ -112,6 +120,23 @@ export function AccommodationDetailClient({
   const copy = getSiteCopy(locale)
   const d = copy.pages.accommodationDetail
   const numberLocale = locale === "en" ? "en-US" : "es-AR"
+  const displayDescription = resolveAccommodationDescription(accommodation, locale)
+  const displayBedLayout = React.useMemo(
+    () => translateStayInfoValue(accommodation.distribucion_camas, locale, "beds"),
+    [accommodation.distribucion_camas, locale],
+  )
+  const displayCancellation = React.useMemo(
+    () => translateStayInfoValue(accommodation.cancelacion, locale, "cancellation"),
+    [accommodation.cancelacion, locale],
+  )
+  const showBedLayout = React.useMemo(
+    () => hasBedLayoutData(accommodation.distribucion_camas),
+    [accommodation.distribucion_camas],
+  )
+  const showCancellation = React.useMemo(
+    () => hasCancellationData(accommodation.cancelacion),
+    [accommodation.cancelacion],
+  )
 
   const containerRef = React.useRef<HTMLDivElement>(null)
   const [showShareToast, setShowShareToast] = React.useState(false)
@@ -524,7 +549,7 @@ export function AccommodationDetailClient({
 
                   <div className="space-y-6 text-slate-600 mb-12">
                     <h3 className="text-2xl font-black text-slate-900 tracking-tight">{d.aboutTitle}</h3>
-                    <p className="text-lg leading-relaxed font-light">{accommodation.descripcion}</p>
+                    <p className="text-lg leading-relaxed font-light">{displayDescription}</p>
                   </div>
 
                   <div className="mt-10">
@@ -538,7 +563,9 @@ export function AccommodationDetailClient({
                           return (
                             <div key={servicio.key} className="flex items-center gap-2 text-slate-700 min-w-0">
                               <IconComponent className="w-4 h-4 text-primary flex-shrink-0" />
-                              <span className="text-sm font-medium truncate">{servicio.nombre}</span>
+                              <span className="text-sm font-medium truncate">
+                                {translateAccommodationService(servicio.nombre, locale)}
+                              </span>
                             </div>
                           )
                         })}
@@ -559,16 +586,14 @@ export function AccommodationDetailClient({
                         </div>
                       </div>
 
-                      {String(accommodation.distribucion_camas || "").trim() && (
+                      {showBedLayout && (
                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100">
                           <BedDouble className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
                             <div className="text-xs font-bold uppercase tracking-widest text-slate-400">
                               {d.labelBeds}
                             </div>
-                            <div className="text-sm font-bold text-slate-800 break-words">
-                              {String(accommodation.distribucion_camas)}
-                            </div>
+                            <div className="text-sm font-bold text-slate-800 break-words whitespace-pre-line">{displayBedLayout}</div>
                           </div>
                         </div>
                       )}
@@ -593,14 +618,12 @@ export function AccommodationDetailClient({
                         </div>
                       )}
 
-                      {String(accommodation.cancelacion || "").trim() && (
+                      {showCancellation && (
                         <div className="flex items-start gap-3 p-4 rounded-2xl bg-slate-50/60 border border-slate-100 sm:col-span-2">
                           <CalendarX2 className="w-5 h-5 text-primary flex-shrink-0 mt-0.5" />
                           <div className="min-w-0">
                             <div className="text-xs font-bold uppercase tracking-widest text-slate-400">{d.labelCancel}</div>
-                            <div className="text-sm font-bold text-slate-800 break-words">
-                              {String(accommodation.cancelacion)}
-                            </div>
+                            <div className="text-sm font-bold text-slate-800 break-words">{displayCancellation}</div>
                           </div>
                         </div>
                       )}

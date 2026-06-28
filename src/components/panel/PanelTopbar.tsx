@@ -120,24 +120,24 @@ export function PanelTopbar({ panelTitle }: PanelTopbarProps) {
   }
 
   return (
-    <header className="sticky top-0 z-50 h-16 shrink-0 border-b border-slate-200 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/90">
-      <div className="mx-auto flex h-full max-w-[1600px] items-center justify-between gap-3 px-4 md:px-6">
-        <Link href={profileHref} className="flex min-w-0 items-center gap-3">
-          <img src="/logotipo.png" alt="Viví las Termas" className="h-8 w-auto object-contain" />
+    <header className="sticky top-0 z-50 h-16 shrink-0 border-b border-slate-200 bg-white shadow-sm">
+      <div className="mx-auto flex h-full max-w-[1600px] items-center justify-between gap-2 px-4 md:gap-3 md:px-6">
+        <Link href={profileHref} className="flex min-w-0 items-center gap-2 md:gap-3">
+          <img src="/logotipo.png" alt="Viví las Termas" className="h-7 w-auto shrink-0 object-contain md:h-8" />
           <span className="truncate text-sm font-black tracking-tight text-slate-900">{panelTitle}</span>
         </Link>
 
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-2 md:gap-3">
           <Button
             variant="outline"
             size="sm"
             asChild
-            className="gap-2 font-semibold text-slate-600 hover:text-slate-900"
+            className="h-9 gap-1.5 px-2 font-semibold text-slate-600 hover:text-slate-900 md:h-10 md:px-3 md:gap-2"
           >
-            <a href="/" target="_blank" rel="noopener noreferrer">
+            <a href="/" target="_blank" rel="noopener noreferrer" title="Ver Sitio Público">
               <Eye className="h-4 w-4 shrink-0" />
               <span className="hidden sm:inline">Ver Sitio Público</span>
-              <ExternalLink className="h-3.5 w-3.5 shrink-0 opacity-60" />
+              <ExternalLink className="hidden h-3.5 w-3.5 shrink-0 opacity-60 sm:inline" />
             </a>
           </Button>
 

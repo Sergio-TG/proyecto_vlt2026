@@ -6,6 +6,7 @@ export interface Alojamiento {
   nombre: string;
   slug: string;
   descripcion: string;
+  descripcion_en?: string | null;
   servicios: string[];
   rating_google: number;
   precio: number;

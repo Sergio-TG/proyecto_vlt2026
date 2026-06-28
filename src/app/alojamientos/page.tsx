@@ -506,7 +506,7 @@ function AlojamientosPageInner() {
               </Button>
             )}
             
-            <div className="md:hidden">
+            <div className="lg:hidden">
               <Sheet>
                 <SheetTrigger asChild>
                   <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -545,10 +545,10 @@ function AlojamientosPageInner() {
           </div>
         </motion.div>
 
-        {/* Layout Grid */}
-        <div className="flex flex-col md:flex-row gap-12">
-          {/* Desktop Sidebar */}
-          <aside className="hidden md:block w-80 flex-shrink-0">
+        {/* Layout: sidebar fija en desktop (lg+); tablet usa sheet de filtros */}
+        <div className="flex flex-col lg:flex-row gap-12">
+          {/* Desktop Sidebar — oculta solo en rango tablet (md–lg) */}
+          <aside className="hidden lg:block w-80 flex-shrink-0">
             <div className="sticky top-32 space-y-10 bg-slate-50/50 p-8 rounded-[2.5rem] border border-slate-100">
               <div>
                 <h3 className="text-2xl font-black tracking-tight mb-2">{p.sidebarTitle}</h3>
