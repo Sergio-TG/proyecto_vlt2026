@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge"
 import { 
   CheckCircle2, Clock, AlertTriangle, Eye, 
   ExternalLink, ShieldCheck, 
-  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin, MessageSquareQuote, Archive, RotateCcw, BarChart3
+  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin, Archive, RotateCcw, Trash2
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
@@ -17,6 +17,8 @@ import { Label } from "@/components/ui/label"
 import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
 import type { TrashAlojamientoRow } from "@/app/api/admin/trash/route"
 import { BADGE_ADMIN_OPTIONS, normalizeBadgeDestacado } from "@/lib/accommodation-badges"
+import type { CancelacionPolicy, DistribucionCamaItem } from "@/lib/supabase-queries"
+import { serializeBedLayoutForCompare, serializeCancellationForCompare } from "@/lib/accommodation-i18n"
 
 type PendingRow = {
   id: string
@@ -25,6 +27,7 @@ type PendingRow = {
   nombre_complejo?: string | null
   propietario?: string | null
   descripcion?: string | null
+  descripcion_en?: string | null
   servicios?: unknown
   localidad?: string | null
   precio_desde?: unknown
@@ -41,12 +44,12 @@ type PendingRow = {
   google_maps?: string | null
   latitud?: number | null
   longitud?: number | null
-  distribucion_camas?: string | null
+  distribucion_camas?: DistribucionCamaItem[] | unknown
   distancia_termas?: string | null
   tipo_acceso?: string | null
   check_in?: string | null
   check_out?: string | null
-  cancelacion?: string | null
+  cancelacion?: CancelacionPolicy | unknown
   perfiles?: unknown
   rating_google?: unknown
   badge_destacado?: string | null
@@ -58,6 +61,7 @@ type ApprovedRow = {
   slug?: string | null
   nombre?: string | null
   descripcion?: string | null
+  descripcion_en?: string | null
   servicios?: unknown
   localidad?: string | null
   precio_base?: unknown
@@ -77,12 +81,12 @@ type ApprovedRow = {
   latitud?: number | null
   longitud?: number | null
   propietario?: string | null
-  distribucion_camas?: string | null
+  distribucion_camas?: DistribucionCamaItem[] | unknown
   distancia_termas?: string | null
   tipo_acceso?: string | null
   check_in?: string | null
   check_out?: string | null
-  cancelacion?: string | null
+  cancelacion?: CancelacionPolicy | unknown
   perfiles?: unknown
   created_at?: string | null
 }
@@ -101,6 +105,7 @@ export default function AdminDashboard() {
   const [trashItems, setTrashItems] = React.useState<TrashAlojamientoRow[]>([])
   const [loadingTrash, setLoadingTrash] = React.useState(false)
   const [restoringId, setRestoringId] = React.useState<string | null>(null)
+  const [purgingId, setPurgingId] = React.useState<string | null>(null)
   const [cleaningDuplicates, setCleaningDuplicates] = React.useState(false)
   const [searchTerm, setSearchTerm] = React.useState("")
   const [approvedSearchTerm, setApprovedSearchTerm] = React.useState("")
@@ -399,6 +404,43 @@ export default function AdminDashboard() {
     }
   }
 
+  const handlePurgeAprobado = async (item: TrashAlojamientoRow) => {
+    const nombre = item.nombre ?? "este alojamiento"
+    const confirmed = window.confirm(
+      `¿Estás seguro de que deseas eliminar permanentemente "${nombre}"?\n\nEsta acción no se puede deshacer y borrará todas las imágenes y datos asociados.`,
+    )
+    if (!confirmed) return
+
+    setPurgingId(item.id)
+    try {
+      const { data: sessionData } = await supabase.auth.getSession()
+      const token = sessionData?.session?.access_token
+      if (!token) {
+        throw new Error("Sesión inválida o expirada. Volvé a iniciar sesión en el panel de Admin.")
+      }
+
+      const res = await fetch("/api/admin/purge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ approvedId: item.id }),
+      })
+      const json = (await res.json()) as { ok?: boolean; error?: string; reason?: string }
+      if (json.reason === "missing_env") {
+        throw new Error("Falta SUPABASE_SERVICE_ROLE_KEY en el servidor para eliminar con privilegios.")
+      }
+      if (!res.ok || !json.ok) {
+        throw new Error(json.error || "Error al eliminar definitivamente")
+      }
+
+      setTrashItems((prev) => prev.filter((row) => row.id !== item.id))
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Error al eliminar definitivamente el alojamiento"
+      alert(message)
+    } finally {
+      setPurgingId(null)
+    }
+  }
+
   const handleDeleteAprobado = async (item: ApprovedRow) => {
     const confirmed = window.confirm(
       `¿Archivar "${item.nombre}" (slug: ${item.slug})?\n\nDesaparecerá de la web pública pero podrás restaurarlo desde la Papelera.`,
@@ -589,6 +631,7 @@ export default function AdminDashboard() {
         nombre: item.nombre_complejo || "",
         slug,
         descripcion: item.descripcion || "",
+        descripcion_en: item.descripcion_en || "",
         servicios,
         localidad: item.localidad || "",
         precio_base: item.precio_desde ? Number(item.precio_desde) : null,
@@ -670,6 +713,7 @@ export default function AdminDashboard() {
 
     // Descripción
     if (String(pending?.descripcion || "").trim() !== String(approved?.descripcion || "").trim()) return false
+    if (String(pending?.descripcion_en || "").trim() !== String(approved?.descripcion_en || "").trim()) return false
 
     // Localidad
     if (String(pending?.localidad || "").trim() !== String(approved?.localidad || "").trim()) return false
@@ -736,7 +780,7 @@ export default function AdminDashboard() {
     if (String(pending?.propietario || "").trim() !== String(approved?.propietario || "").trim()) return false
 
     // Distribucion Camas
-    if (String(pending?.distribucion_camas || "").trim() !== String(approved?.distribucion_camas || "").trim()) return false
+    if (serializeBedLayoutForCompare(pending?.distribucion_camas) !== serializeBedLayoutForCompare(approved?.distribucion_camas)) return false
 
     // Distancia Termas
     if (String(pending?.distancia_termas || "").trim() !== String(approved?.distancia_termas || "").trim()) return false
@@ -751,7 +795,7 @@ export default function AdminDashboard() {
     if (String(pending?.check_out || "").trim() !== String(approved?.check_out || "").trim()) return false
 
     // Cancelacion
-    if (String(pending?.cancelacion || "").trim() !== String(approved?.cancelacion || "").trim()) return false
+    if (serializeCancellationForCompare(pending?.cancelacion) !== serializeCancellationForCompare(approved?.cancelacion)) return false
 
     // Perfiles
     const pendingPerfiles = Array.isArray(pending?.perfiles) ? pending.perfiles : []
@@ -780,6 +824,8 @@ export default function AdminDashboard() {
     // Descripción
     if (String(pending?.descripcion || "").trim() !== String(approved?.descripcion || "").trim())
       changes.push("Descripción")
+    if (String(pending?.descripcion_en || "").trim() !== String(approved?.descripcion_en || "").trim())
+      changes.push("Descripción (EN)")
 
     // Localidad
     if (String(pending?.localidad || "").trim() !== String(approved?.localidad || "").trim())
@@ -856,7 +902,7 @@ export default function AdminDashboard() {
       changes.push("Propietario")
 
     // Distribucion Camas
-    if (String(pending?.distribucion_camas || "").trim() !== String(approved?.distribucion_camas || "").trim())
+    if (serializeBedLayoutForCompare(pending?.distribucion_camas) !== serializeBedLayoutForCompare(approved?.distribucion_camas))
       changes.push("Camas")
 
     // Distancia Termas
@@ -876,7 +922,7 @@ export default function AdminDashboard() {
       changes.push("Check-out")
 
     // Cancelacion
-    if (String(pending?.cancelacion || "").trim() !== String(approved?.cancelacion || "").trim())
+    if (serializeCancellationForCompare(pending?.cancelacion) !== serializeCancellationForCompare(approved?.cancelacion))
       changes.push("Cancelación")
 
     // Perfiles
@@ -1037,68 +1083,56 @@ export default function AdminDashboard() {
   return (
     <div className="bg-slate-50 pb-8">
       <div className="container mx-auto px-4">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-          <div className="space-y-2">
-            <h1 className="text-4xl font-black text-slate-900 flex items-center gap-3">
-              <ShieldCheck className="w-10 h-10 text-primary" />
-              Panel de Aprobación
+        <div className="flex flex-col gap-6 mb-8 md:mb-10 lg:flex-row lg:items-start lg:justify-between">
+          <div className="min-w-0 space-y-2">
+            <h1 className="flex items-center gap-2 text-2xl font-black text-slate-900 sm:gap-3 sm:text-3xl lg:text-4xl">
+              <ShieldCheck className="h-8 w-8 shrink-0 text-primary sm:h-10 sm:w-10" />
+              <span className="leading-tight">Panel de Aprobación</span>
             </h1>
-            <div className="flex items-center gap-3">
-              <p className="text-slate-500 font-medium">Gestiona los alojamientos que esperan ser publicados.</p>
+            <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+              <p className="text-sm font-medium text-slate-500 sm:text-base">
+                Gestiona los alojamientos que esperan ser publicados.
+              </p>
               <Badge variant="outline" className="bg-primary/5 text-primary border-primary/10 font-bold px-3">
                 Admin
               </Badge>
             </div>
           </div>
 
-          <div className="flex items-center gap-4 w-full md:w-auto">
-            <div className="relative flex-grow md:w-80">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap lg:max-w-2xl lg:justify-end">
+            <div className="relative min-w-0 flex-1 sm:min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <Input
                 placeholder="Buscar por nombre o dueño..."
-                className="pl-10 bg-white border-slate-200"
+                className="border-slate-200 bg-white pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Link href="/admin/analytics" className="flex-shrink-0">
-              <Button variant="outline" className="bg-white font-bold gap-2">
-                <BarChart3 className="w-4 h-4" />
-                Métricas
-              </Button>
-            </Link>
-            <Link href="/admin/invitar" className="flex-shrink-0">
-              <Button variant="outline" className="bg-white font-bold">
-                Invitar admin
-              </Button>
-            </Link>
-            <Link href="/admin/reviews" className="flex-shrink-0">
-              <Button variant="outline" className="bg-white font-bold gap-2">
-                <MessageSquareQuote className="w-4 h-4" />
-                Moderar reseñas
-              </Button>
-            </Link>
-            <Button variant="outline" onClick={fetchPendientes} disabled={loading} className="bg-white">
-              <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+            <div className="flex flex-wrap items-center gap-2">
+            <Button variant="outline" onClick={fetchPendientes} disabled={loading} className="bg-white" title="Actualizar">
+              <RefreshCcw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              <span className="sr-only">Actualizar</span>
             </Button>
             <Button
               variant="outline"
               onClick={handleCleanDuplicates}
               disabled={cleaningDuplicates || loading || loadingAprobados || duplicatePendingCount === 0}
-              className="bg-white font-bold"
+              className="bg-white text-xs font-bold sm:text-sm"
             >
               {cleaningDuplicates
                 ? "Limpiando..."
-                : `Limpiar duplicados${duplicatePendingCount > 0 ? ` (${duplicatePendingCount})` : ""}`}
+                : `Duplicados${duplicatePendingCount > 0 ? ` (${duplicatePendingCount})` : ""}`}
             </Button>
             <Button
               variant="ghost"
               onClick={handleLogout}
-              className="text-slate-400 hover:text-red-500 hover:bg-red-50 font-bold gap-2"
+              className="gap-2 font-bold text-slate-400 hover:bg-red-50 hover:text-red-500"
             >
-              <LogOut className="w-4 h-4" />
-              Salir
+              <LogOut className="h-4 w-4" />
+              <span className="hidden sm:inline">Salir</span>
             </Button>
+            </div>
           </div>
         </div>
 
@@ -1146,7 +1180,7 @@ export default function AdminDashboard() {
                   filteredAprobados.map((item) => (
                     <div
                       key={item.id}
-                      className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                      className="flex flex-col justify-between gap-4 p-4 sm:p-6 lg:flex-row lg:items-center"
                     >
                       <div className="space-y-1 flex-grow">
                         <p className="text-slate-900 font-black">{item.nombre}</p>
@@ -1173,7 +1207,7 @@ export default function AdminDashboard() {
                       </div>
                       <Button
                         variant="destructive"
-                        className="h-11 rounded-xl font-black gap-2"
+                        className="h-11 w-full shrink-0 rounded-xl font-black gap-2 lg:w-auto"
                         onClick={() => handleDeleteAprobado(item)}
                         disabled={deletingApprovedId === item.id}
                       >
@@ -1197,7 +1231,7 @@ export default function AdminDashboard() {
                   Papelera de alojamientos
                 </CardTitle>
                 <CardDescription className="font-medium text-slate-500">
-                  Alojamientos archivados (borrado lógico). Restaurá uno para volver a publicarlo.
+                  Alojamientos archivados (borrado lógico). Restaurá uno para volver a publicarlo o eliminálo definitivamente.
                 </CardDescription>
               </div>
               <Button variant="outline" onClick={fetchTrash} disabled={loadingTrash} className="bg-white">
@@ -1217,9 +1251,9 @@ export default function AdminDashboard() {
                 {trashItems.map((item) => (
                   <div
                     key={item.id}
-                    className="p-6 flex flex-col md:flex-row md:items-center justify-between gap-4"
+                    className="flex flex-col justify-between gap-4 p-4 sm:p-6 lg:flex-row lg:items-center"
                   >
-                    <div className="space-y-1">
+                    <div className="space-y-1 min-w-0">
                       <p className="text-slate-900 font-black">{item.nombre ?? "Sin nombre"}</p>
                       <p className="text-slate-500 font-medium text-sm">
                         {item.localidad ?? "—"} • <span className="font-mono text-xs">{item.slug}</span>
@@ -1230,15 +1264,26 @@ export default function AdminDashboard() {
                         </p>
                       ) : null}
                     </div>
-                    <Button
-                      variant="outline"
-                      className="h-11 rounded-xl font-bold gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
-                      onClick={() => handleRestoreAprobado(item)}
-                      disabled={restoringId === item.id}
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      {restoringId === item.id ? "Restaurando..." : "Restaurar"}
-                    </Button>
+                    <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap lg:shrink-0">
+                      <Button
+                        variant="outline"
+                        className="h-11 rounded-xl font-bold gap-2 border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                        onClick={() => handleRestoreAprobado(item)}
+                        disabled={restoringId === item.id || purgingId === item.id}
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        {restoringId === item.id ? "Restaurando..." : "Restaurar"}
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        className="h-11 rounded-xl font-black gap-2 bg-red-600 hover:bg-red-700"
+                        onClick={() => handlePurgeAprobado(item)}
+                        disabled={purgingId === item.id || restoringId === item.id}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        {purgingId === item.id ? "Eliminando..." : "Eliminar definitivamente"}
+                      </Button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1287,8 +1332,8 @@ export default function AdminDashboard() {
                           <div
                             className={`w-2 ${isUpdateRequest ? "bg-blue-500" : "bg-yellow-400"} group-hover:bg-primary transition-colors`}
                           />
-                          <CardContent className="p-8 flex-grow">
-                            <div className="flex flex-col md:flex-row justify-between gap-8">
+                          <CardContent className="flex-grow p-4 sm:p-6 lg:p-8">
+                            <div className="flex flex-col justify-between gap-6 lg:flex-row lg:gap-8">
                               <div className="space-y-4 flex-grow">
                                 <div className="flex flex-wrap items-center gap-3">
                                   <Badge
@@ -1425,6 +1470,11 @@ export default function AdminDashboard() {
                               <p className="text-sm text-slate-600 line-clamp-2 italic leading-relaxed">
                                 &quot;{item.descripcion}&quot;
                               </p>
+                              {String(item.descripcion_en || "").trim() ? (
+                                <p className="text-sm text-slate-500 line-clamp-2 italic leading-relaxed mt-2">
+                                  EN: &quot;{item.descripcion_en}&quot;
+                                </p>
+                              ) : null}
                             </div>
                           </CardContent>
                         </div>

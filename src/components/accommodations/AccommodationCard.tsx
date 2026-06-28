@@ -6,7 +6,7 @@ import { Card } from "@/components/ui/card"
 import CustomImage from "@/components/common/CustomImage"
 import { IK_TRANSFORMS, appendImageKitCacheVersion, imageKitCacheVersion } from "@/lib/imagekit.config"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
-import { slugify } from "@/lib/utils"
+import { cn, slugify } from "@/lib/utils"
 import { motion } from "framer-motion"
 import { MapPin, Share2, Star, Users, Wifi, PawPrint } from "lucide-react"
 import { resolveAccommodationBadge } from "@/lib/accommodation-badges"
@@ -59,10 +59,11 @@ export type AccommodationCardProps = {
   onShare: (e: React.MouseEvent<HTMLButtonElement>, slug: string, title: string) => void
 }
 
-export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUpdatedAt, onShare }: AccommodationCardProps) {
+export function AccommodationCard({ variant, item, portadaFile, imageKitFolder, portadaUpdatedAt, onShare }: AccommodationCardProps) {
   const { locale } = useLanguage()
   const copy = getSiteCopy(locale)
   const numberLocale = locale === "en" ? "en-US" : "es-AR"
+  const isListing = variant === "listing"
   const slug = item.slug || slugify(item.nombre)
   const mediaFolder = imageKitFolder || slug
   const portadaPath = portadaFile
@@ -99,7 +100,12 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUp
         transition={cardHoverTransition}
         className="w-full"
       >
-        <Card className="group w-full overflow-hidden border-0 ring-0 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer">
+        <Card
+          className={cn(
+            "group w-full overflow-hidden border-0 ring-0 shadow-[0_10px_40px_rgba(0,0,0,0.03)] hover:shadow-[0_30px_70px_rgba(0,0,0,0.1)] transition-all duration-700 flex flex-col rounded-[2rem] bg-white relative cursor-pointer",
+            isListing && "max-lg:h-full",
+          )}
+        >
           <div className="relative aspect-[4/3] overflow-hidden flex-shrink-0 rounded-t-[2rem] -mt-4 z-0">
             <motion.div variants={imageHoverVariants} transition={imageHoverTransition} className="relative w-full h-full">
               {portadaPath ? (
@@ -113,7 +119,14 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUp
                 />
               ) : (
                 <div className="w-full h-full bg-stone-100 flex items-center justify-center">
-                  <div className="px-6 text-center text-slate-600 font-black text-sm md:text-base leading-snug">{item.nombre}</div>
+                  <div
+                    className={cn(
+                      "px-6 text-center text-slate-600 font-black text-sm md:text-base leading-snug",
+                      isListing && "max-lg:px-4 max-lg:line-clamp-3",
+                    )}
+                  >
+                    {item.nombre}
+                  </div>
                 </div>
               )}
             </motion.div>
@@ -138,10 +151,20 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUp
             </motion.button>
           </div>
 
-          <div className="flex flex-col flex-grow p-5 pt-4 space-y-3 relative z-20">
+          <div
+            className={cn(
+              "flex flex-col flex-grow p-5 pt-4 space-y-3 relative z-20",
+              isListing && "max-lg:p-4 max-lg:space-y-2.5",
+            )}
+          >
             <div className="flex justify-between items-start gap-2">
-              <div className="space-y-0.5 flex-grow">
-                <h3 className="font-black text-[15px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors duration-300">
+              <div className="space-y-0.5 flex-grow min-w-0">
+                <h3
+                  className={cn(
+                    "font-black text-[15px] text-slate-900 leading-tight line-clamp-1 group-hover:text-primary transition-colors duration-300",
+                    isListing && "max-lg:text-base max-lg:leading-snug max-lg:line-clamp-2",
+                  )}
+                >
                   {item.nombre}
                 </h3>
                 <div className="flex items-center text-[#38bdf8] text-[10px] font-bold">
@@ -177,7 +200,12 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUp
               )}
             </div>
 
-            <div className="pt-4 flex items-center justify-between gap-2 mt-auto border-t border-slate-50">
+            <div
+              className={cn(
+                "pt-4 flex items-center justify-between gap-2 mt-auto border-t border-slate-50",
+                isListing && "max-lg:flex-col max-lg:items-stretch max-lg:gap-3 max-lg:pt-3",
+              )}
+            >
               <motion.div variants={priceHoverVariants} className="flex flex-col min-w-0">
                 {item.precio_base ? (
                   <div className="flex items-baseline flex-wrap gap-x-1">
@@ -194,7 +222,10 @@ export function AccommodationCard({ item, portadaFile, imageKitFolder, portadaUp
               <motion.div
                 variants={ctaHoverVariants}
                 transition={cardHoverTransition}
-                className="flex-shrink-0 h-9 sm:h-10 px-4 sm:px-5 rounded-full font-bold text-[11px] sm:text-[12px] bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center whitespace-nowrap"
+                className={cn(
+                  "flex-shrink-0 h-9 sm:h-10 px-4 sm:px-5 rounded-full font-bold text-[11px] sm:text-[12px] bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center whitespace-nowrap",
+                  isListing && "max-lg:w-full max-lg:h-10 max-lg:px-5 max-lg:text-[12px] sm:max-lg:w-auto sm:max-lg:self-end",
+                )}
               >
                 {ctaText}
               </motion.div>

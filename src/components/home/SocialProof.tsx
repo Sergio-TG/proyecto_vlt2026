@@ -73,7 +73,7 @@ export function SocialProof() {
                 alt={`${copy.socialProof.title} — ${item.name}`}
                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 text-white">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 text-white">
                 <div className="flex gap-1 mb-2 text-yellow-400">
                   {[...Array(item.rating)].map((_, i) => (
                     <Star key={i} className="w-4 h-4 fill-current" />

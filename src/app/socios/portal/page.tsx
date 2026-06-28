@@ -35,6 +35,15 @@ import {
 import { cn, slugify } from "@/lib/utils"
 import { supabase } from "@/lib/supabase"
 import { SOCIOS_HERO_IMAGE } from "@/lib/socios-hero"
+import type { CancelacionPoliticaKey, DistribucionCamaItem } from "@/lib/supabase-queries"
+import {
+  BED_TYPE_FORM_OPTIONS,
+  CANCELLATION_POLICY_FORM_OPTIONS,
+  bedRowsFromRaw,
+  buildCancelacionPayload,
+  cancellationFormFromRaw,
+  emptyBedRow,
+} from "@/lib/accommodation-i18n"
 
 const steps = [
   { id: 1, title: "Identidad", icon: User },
@@ -56,7 +65,7 @@ type SocioAccommodation = {
   localidad?: string
   tipo_alojamiento?: string
   capacidad_total?: unknown
-  distribucion_camas?: string
+  distribucion_camas?: DistribucionCamaItem[] | unknown
   unidades?: string
   precio_desde?: unknown
   estadia_minima?: unknown
@@ -71,10 +80,11 @@ type SocioAccommodation = {
   mascotas?: string
   check_in?: string
   check_out?: string
-  cancelacion?: string
+  cancelacion?: unknown
   acepta_ninos?: string
   link_drive?: string
   descripcion?: string
+  descripcion_en?: string
   __source?: "pendiente" | "aprobado"
   [key: string]: unknown
 }
@@ -99,7 +109,7 @@ export default function SociosPage() {
     localidad: "",
     tipoAlojamiento: "",
     capacidadTotal: "",
-    distribucionCamas: "",
+    distribucionCamas: [emptyBedRow()] as DistribucionCamaItem[],
     unidades: "",
     precio_desde: "",
     estadia_minima: "",
@@ -114,10 +124,12 @@ export default function SociosPage() {
     mascotas: "",
     checkIn: "",
     checkOut: "",
-    cancelacion: "",
+    cancelacionPolitica: "" as CancelacionPoliticaKey | "",
+    cancelacionDiasPreaviso: "",
     aceptaNinos: "",
     linkDrive: "",
     descripcion: "",
+    descripcionEn: "",
     aceptoTerminos: false,
     aceptoResponsabilidad: false,
     clausulaVeracidad: false
@@ -211,7 +223,7 @@ export default function SociosPage() {
         localidad: String(a.localidad || ""),
         tipo_alojamiento: String(a.tipo_alojamiento || ""),
         capacidad_total: a.capacidad_total ?? null,
-        distribucion_camas: String(a.distribucion_camas || ""),
+        distribucion_camas: Array.isArray(a.distribucion_camas) ? a.distribucion_camas : [],
         unidades: String(a.unidades || ""),
         precio_desde: a.precio_base ?? null,
         estadia_minima: a.noches_minimas ?? null,
@@ -226,10 +238,11 @@ export default function SociosPage() {
         mascotas: String(a.mascotas || ""),
         check_in: String(a.check_in || ""),
         check_out: String(a.check_out || ""),
-        cancelacion: String(a.cancelacion || ""),
+        cancelacion: a.cancelacion ?? null,
         acepta_ninos: String(a.acepta_ninos || ""),
         link_drive: String(a.link_drive || ""),
         descripcion: String(a.descripcion || ""),
+        descripcion_en: String(a.descripcion_en || ""),
         slug: approvedSlug,
         __source: "aprobado",
       })
@@ -337,7 +350,7 @@ export default function SociosPage() {
         localidad: editingAccommodation.localidad || "",
         tipoAlojamiento: editingAccommodation.tipo_alojamiento || "",
         capacidadTotal: String(editingAccommodation.capacidad_total || ""),
-        distribucionCamas: editingAccommodation.distribucion_camas || "",
+        distribucionCamas: bedRowsFromRaw(editingAccommodation.distribucion_camas),
         unidades: editingAccommodation.unidades || "",
         precio_desde: String(editingAccommodation.precio_desde || ""),
         estadia_minima: String(editingAccommodation.estadia_minima || ""),
@@ -365,10 +378,14 @@ export default function SociosPage() {
         mascotas: editingAccommodation.mascotas || "",
         checkIn: editingAccommodation.check_in || "",
         checkOut: editingAccommodation.check_out || "",
-        cancelacion: editingAccommodation.cancelacion || "",
+        ...(() => {
+          const c = cancellationFormFromRaw(editingAccommodation.cancelacion)
+          return { cancelacionPolitica: c.politicaKey, cancelacionDiasPreaviso: c.diasPreaviso }
+        })(),
         aceptaNinos: editingAccommodation.acepta_ninos || "",
         linkDrive: editingAccommodation.link_drive || "",
         descripcion: editingAccommodation.descripcion || "",
+        descripcionEn: editingAccommodation.descripcion_en || "",
         aceptoTerminos: Boolean(editingAccommodation.acepto_terminos || false),
         aceptoResponsabilidad: Boolean(editingAccommodation.acepto_responsabilidad || false),
         clausulaVeracidad: Boolean(editingAccommodation.clausula_veracidad || false),
@@ -377,6 +394,32 @@ export default function SociosPage() {
   }, [editingAccommodation])
 
   const isBlank = (v: unknown) => String(v ?? "").trim().length === 0
+
+  const updateBedRow = (index: number, patch: Partial<DistribucionCamaItem>) => {
+    setFormData((prev) => ({
+      ...prev,
+      distribucionCamas: prev.distribucionCamas.map((row, i) =>
+        i === index ? { ...row, ...patch } : row,
+      ),
+    }))
+  }
+
+  const addBedRow = () => {
+    setFormData((prev) => ({
+      ...prev,
+      distribucionCamas: [...prev.distribucionCamas, emptyBedRow()],
+    }))
+  }
+
+  const removeBedRow = (index: number) => {
+    setFormData((prev) => ({
+      ...prev,
+      distribucionCamas:
+        prev.distribucionCamas.length <= 1
+          ? prev.distribucionCamas
+          : prev.distribucionCamas.filter((_, i) => i !== index),
+    }))
+  }
 
   const validateCurrentStep = () => {
     const missing: string[] = []
@@ -426,7 +469,17 @@ export default function SociosPage() {
     if (currentStep === 4) {
       if (isBlank(formData.checkIn)) missing.push("Check-in")
       if (isBlank(formData.checkOut)) missing.push("Check-out")
-      if (isBlank(formData.cancelacion)) missing.push("Política de Cancelación")
+      const validBedRows = formData.distribucionCamas.filter(
+        (row) => row.tipoCamaKey && Number(row.cantidad) >= 1,
+      )
+      if (validBedRows.length === 0) missing.push("Distribución de camas (al menos una fila)")
+      if (isBlank(formData.cancelacionPolitica)) missing.push("Política de Cancelación")
+      if (
+        formData.cancelacionPolitica === "reembolso_dias_x" &&
+        isBlank(formData.cancelacionDiasPreaviso)
+      ) {
+        missing.push("Días de preaviso para la cancelación")
+      }
     }
 
     if (currentStep === 5) {
@@ -622,7 +675,9 @@ export default function SociosPage() {
         localidad: formData.localidad,
         tipo_alojamiento: formData.tipoAlojamiento,
         capacidad_total: toNumberOrNull(formData.capacidadTotal),
-        distribucion_camas: formData.distribucionCamas,
+        distribucion_camas: formData.distribucionCamas.filter(
+          (row) => row.tipoCamaKey && Number(row.cantidad) >= 1,
+        ),
         unidades: formData.unidades,
         precio_desde: toNumberOrNull(formData.precio_desde),
         estadia_minima: toNumberOrNull(formData.estadia_minima),
@@ -637,10 +692,14 @@ export default function SociosPage() {
         mascotas: formData.mascotas,
         check_in: formData.checkIn,
         check_out: formData.checkOut,
-        cancelacion: formData.cancelacion,
+        cancelacion: buildCancelacionPayload(
+          formData.cancelacionPolitica,
+          formData.cancelacionDiasPreaviso,
+        ),
         acepta_ninos: formData.aceptaNinos,
         link_drive: formData.linkDrive,
         descripcion: formData.descripcion,
+        descripcion_en: formData.descripcionEn,
         acepto_terminos: formData.aceptoTerminos,
         acepto_responsabilidad: formData.aceptoResponsabilidad,
         clausula_veracidad: formData.clausulaVeracidad
@@ -840,21 +899,34 @@ export default function SociosPage() {
                                   if (!pv && av) filled[key] = accRecord[key]
                                 }
 
+                                const fillJsonField = (key: string) => {
+                                  const pv = p?.[key]
+                                  const av = accRecord[key]
+                                  const isEmpty =
+                                    pv == null ||
+                                    (Array.isArray(pv) && pv.length === 0) ||
+                                    (typeof pv === "object" &&
+                                      !Array.isArray(pv) &&
+                                      !(pv as { politicaKey?: string }).politicaKey)
+                                  if (isEmpty && av) filled[key] = av
+                                }
+
                                 fillString("propietario")
                                 fillString("whatsapp")
                                 fillString("email")
                                 fillString("unidades")
-                                fillString("distribucion_camas")
+                                fillJsonField("distribucion_camas")
                                 fillString("direccion")
                                 fillString("google_maps")
                                 fillString("distancia_termas")
                                 fillString("tipo_acceso")
                                 fillString("check_in")
                                 fillString("check_out")
-                                fillString("cancelacion")
+                                fillJsonField("cancelacion")
                                 fillString("acepta_ninos")
                                 fillString("link_drive")
                                 fillString("descripcion")
+                                fillString("descripcion_en")
 
                                 const accPerfiles = accRecord["perfiles"]
                                 if (Array.isArray(p?.perfiles) && p.perfiles.length === 0 && Array.isArray(accPerfiles) && accPerfiles.length > 0) {
@@ -877,7 +949,9 @@ export default function SociosPage() {
                                   localidad: acc.localidad,
                                   tipo_alojamiento: acc.tipo_alojamiento,
                                   capacidad_total: toNumberOrNull(acc.capacidad_total),
-                                  distribucion_camas: acc.distribucion_camas || "",
+                                  distribucion_camas: Array.isArray(acc.distribucion_camas)
+                                    ? acc.distribucion_camas
+                                    : [],
                                   unidades: acc.unidades || "",
                                   precio_desde: toNumberOrNull(acc.precio_desde),
                                   estadia_minima: toNumberOrNull(acc.estadia_minima),
@@ -892,10 +966,11 @@ export default function SociosPage() {
                                   mascotas: acc.mascotas || "",
                                   check_in: acc.check_in || "",
                                   check_out: acc.check_out || "",
-                                  cancelacion: acc.cancelacion || "",
+                                  cancelacion: acc.cancelacion ?? null,
                                   acepta_ninos: acc.acepta_ninos || "",
                                   link_drive: acc.link_drive || "",
                                   descripcion: acc.descripcion || "",
+                                  descripcion_en: acc.descripcion_en || "",
                                   acepto_terminos: true,
                                   acepto_responsabilidad: true,
                                   clausula_veracidad: true,
@@ -970,7 +1045,7 @@ export default function SociosPage() {
                         localidad: "",
                         tipoAlojamiento: "",
                         capacidadTotal: "",
-                        distribucionCamas: "",
+                        distribucionCamas: [emptyBedRow()],
                         unidades: "",
                         precio_desde: "",
                         estadia_minima: "",
@@ -985,10 +1060,12 @@ export default function SociosPage() {
                         mascotas: "",
                         checkIn: "",
                         checkOut: "",
-                        cancelacion: "",
+                        cancelacionPolitica: "",
+                        cancelacionDiasPreaviso: "",
                         aceptaNinos: "",
                         linkDrive: "",
                         descripcion: "",
+                        descripcionEn: "",
                         aceptoTerminos: false,
                         aceptoResponsabilidad: false,
                         clausulaVeracidad: false,
@@ -1501,14 +1578,70 @@ export default function SociosPage() {
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <Label className="text-base text-white/80 font-bold">Distribución de camas</Label>
-                      <Textarea
-                        placeholder='Ej: "2 camas dobles, 1 cama individual"'
-                        className="h-24 bg-white/5 border-white/20 text-white placeholder:text-white/40 rounded-xl"
-                        value={formData.distribucionCamas}
-                        onChange={(e) => setFormData({ ...formData, distribucionCamas: e.target.value })}
-                      />
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between gap-4">
+                        <Label className="text-base text-white/80 font-bold">Distribución de camas</Label>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={addBedRow}
+                          className="border-white/20 bg-white/5 text-white hover:bg-white/10 rounded-xl"
+                        >
+                          Agregar fila
+                        </Button>
+                      </div>
+                      <div className="space-y-3">
+                        {formData.distribucionCamas.map((row, index) => (
+                          <div
+                            key={`bed-row-${index}`}
+                            className="grid grid-cols-1 md:grid-cols-[1fr_120px_auto] gap-3 items-end p-4 rounded-xl border border-white/10 bg-white/5"
+                          >
+                            <div className="space-y-2">
+                              <Label className="text-white/60 text-xs">Tipo de cama</Label>
+                              <select
+                                value={row.tipoCamaKey}
+                                onChange={(e) =>
+                                  updateBedRow(index, {
+                                    tipoCamaKey: e.target.value as DistribucionCamaItem["tipoCamaKey"],
+                                  })
+                                }
+                                className="w-full h-12 rounded-xl bg-white/5 border border-white/20 text-white px-3 text-sm"
+                              >
+                                {BED_TYPE_FORM_OPTIONS.map((option) => (
+                                  <option key={option.key} value={option.key} className="text-slate-900">
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div className="space-y-2">
+                              <Label className="text-white/60 text-xs">Cantidad</Label>
+                              <Input
+                                type="number"
+                                min={1}
+                                value={row.cantidad}
+                                onChange={(e) =>
+                                  updateBedRow(index, {
+                                    cantidad: Math.max(1, Number(e.target.value) || 1),
+                                  })
+                                }
+                                className="bg-white/5 border-white/20 text-white h-12 rounded-xl"
+                              />
+                            </div>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeBedRow(index)}
+                              disabled={formData.distribucionCamas.length <= 1}
+                              className="text-white/60 hover:text-white hover:bg-white/10 rounded-xl h-12"
+                            >
+                              Quitar
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
                     </div>
 
                     <div className="space-y-4 pt-4">
@@ -1588,14 +1721,46 @@ export default function SociosPage() {
                           className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
                         />
                       </div>
-                      <div className="space-y-2">
+                      <div className="space-y-2 md:col-span-2">
                         <Label className="text-white/80">Política de Cancelación</Label>
-                        <Input 
-                          placeholder="Ej: Reembolso 48hs antes" 
-                          value={formData.cancelacion}
-                          onChange={(e) => setFormData({...formData, cancelacion: e.target.value})}
-                          className="bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
-                        />
+                        <select
+                          value={formData.cancelacionPolitica}
+                          onChange={(e) =>
+                            setFormData({
+                              ...formData,
+                              cancelacionPolitica: e.target.value as CancelacionPoliticaKey | "",
+                              cancelacionDiasPreaviso:
+                                e.target.value === "reembolso_dias_x"
+                                  ? formData.cancelacionDiasPreaviso
+                                  : "",
+                            })
+                          }
+                          className="w-full h-12 rounded-xl bg-white/5 border border-white/20 text-white px-3 text-sm"
+                        >
+                          <option value="" className="text-slate-900">
+                            Seleccionar política...
+                          </option>
+                          {CANCELLATION_POLICY_FORM_OPTIONS.map((option) => (
+                            <option key={option.key} value={option.key} className="text-slate-900">
+                              {option.label}
+                            </option>
+                          ))}
+                        </select>
+                        {formData.cancelacionPolitica === "reembolso_dias_x" && (
+                          <div className="pt-2">
+                            <Label className="text-white/60 text-xs">Días de preaviso</Label>
+                            <Input
+                              type="number"
+                              min={1}
+                              placeholder="Ej: 20"
+                              value={formData.cancelacionDiasPreaviso}
+                              onChange={(e) =>
+                                setFormData({ ...formData, cancelacionDiasPreaviso: e.target.value })
+                              }
+                              className="mt-2 bg-white/5 border-white/20 text-white placeholder:text-white/40 h-12 rounded-xl"
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -1637,6 +1802,17 @@ export default function SociosPage() {
                           className="h-48 bg-white/5 border-white/20 text-white placeholder:text-white/40 rounded-2xl p-6 leading-relaxed"
                           value={formData.descripcion}
                           onChange={(e) => setFormData({...formData, descripcion: e.target.value})}
+                        />
+                      </div>
+
+                      <div className="space-y-3">
+                        <Label className="text-lg text-white/80 font-bold ml-1">Descripción en Inglés</Label>
+                        <p className="text-sm text-white/40 mb-3 italic ml-1">Opcional. Se mostrará a visitantes internacionales cuando el sitio esté en inglés.</p>
+                        <Textarea
+                          placeholder="Write here the story guests will see in English..."
+                          className="h-48 bg-white/5 border-white/20 text-white placeholder:text-white/40 rounded-2xl p-6 leading-relaxed"
+                          value={formData.descripcionEn}
+                          onChange={(e) => setFormData({ ...formData, descripcionEn: e.target.value })}
                         />
                       </div>
                     </div>
@@ -1740,7 +1916,7 @@ export default function SociosPage() {
                               localidad: "",
                               tipoAlojamiento: "",
                               capacidadTotal: "",
-                              distribucionCamas: "",
+                              distribucionCamas: [emptyBedRow()],
                               unidades: "",
                               precio_desde: "",
                               estadia_minima: "",
@@ -1755,10 +1931,12 @@ export default function SociosPage() {
                               mascotas: "",
                               checkIn: "",
                               checkOut: "",
-                              cancelacion: "",
+                              cancelacionPolitica: "",
+                              cancelacionDiasPreaviso: "",
                               aceptaNinos: "",
                               linkDrive: "",
                               descripcion: "",
+                              descripcionEn: "",
                               aceptoTerminos: false,
                               aceptoResponsabilidad: false,
                               clausulaVeracidad: false,
