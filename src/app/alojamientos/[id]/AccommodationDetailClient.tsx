@@ -422,9 +422,12 @@ export function AccommodationDetailClient({
 
   return (
     <div className="min-h-screen bg-white pb-20 overflow-hidden">
-      <section ref={containerRef} className="relative h-[60vh] md:h-[75vh] w-full overflow-hidden flex items-end">
+      <section
+        ref={containerRef}
+        className="relative flex h-[60vh] min-h-[28rem] w-full flex-col overflow-hidden md:h-[75vh] md:min-h-0 md:flex md:items-end"
+      >
         <motion.div style={{ y, scale, opacity }} className="absolute inset-0 z-0">
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+          <div className="absolute inset-0 z-10 bg-gradient-to-t from-black/80 via-black/30 to-black/20 md:via-black/20 md:to-transparent" />
           {heroPath ? (
             <CustomImage
               path={heroPath}
@@ -441,27 +444,37 @@ export function AccommodationDetailClient({
           )}
         </motion.div>
 
-        <div className="relative z-20 w-full p-8 pb-24 md:p-20 md:pb-32 text-white container mx-auto pointer-events-none">
+        <div className="relative z-20 container mx-auto flex min-h-0 w-full flex-1 flex-col px-4 pb-8 pt-20 text-white pointer-events-none md:block md:flex-none md:p-20 md:pb-32">
+          <Link
+            href="/alojamientos"
+            className="inline-flex shrink-0 items-center gap-2 py-1.5 text-white/90 drop-shadow-[0_1px_6px_rgba(0,0,0,0.65)] transition-colors hover:text-white pointer-events-auto md:hidden"
+          >
+            <ArrowLeft className="h-5 w-5 shrink-0" />
+            <span className="font-medium tracking-tight">{d.backCatalog}</span>
+          </Link>
+
+          <div className="min-h-2 flex-1 md:hidden" aria-hidden="true" />
+
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8 }}
-            className="flex flex-col md:flex-row md:items-end justify-between gap-8"
+            className="flex shrink-0 flex-col justify-between gap-8 md:flex-row md:items-end"
           >
-            <div>
+            <div className="min-w-0">
               <Link
                 href="/alojamientos"
-                className="inline-flex items-center text-white/80 hover:text-white mb-6 transition-all hover:-translate-x-1 pointer-events-auto"
+                className="mb-6 hidden items-center text-white/80 transition-all hover:-translate-x-1 hover:text-white pointer-events-auto md:inline-flex"
               >
                 <ArrowLeft className="w-5 h-5 mr-2" />
                 <span className="font-medium tracking-tight">{d.backCatalog}</span>
               </Link>
-              <div className="flex flex-wrap gap-3 mb-6">
+              <div className="mb-4 flex flex-wrap gap-3 md:mb-6">
                 <Badge className="bg-white/95 text-black hover:bg-white border-none text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full shadow-2xl backdrop-blur-xl">
                   {accommodation.tipo_alojamiento}
                 </Badge>
               </div>
-              <h1 className="text-4xl md:text-6xl font-black mb-4 tracking-tighter leading-none drop-shadow-2xl">
+              <h1 className="mb-4 text-[1.75rem] font-black leading-[1.1] tracking-tighter drop-shadow-2xl sm:text-4xl md:text-6xl md:leading-none">
                 {accommodation.nombre}
               </h1>
               <div className="flex flex-col gap-3 text-lg md:text-xl font-light">
