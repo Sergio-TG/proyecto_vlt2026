@@ -453,7 +453,7 @@ export const pagesEn: typeof pagesEs = {
     heroTitle: "Termas del Sol",
     heroSubtitle: "A relaxation oasis in the heart of El Durazno",
     introLine1: "Welcome to our",
-    introHighlight: "Heated Spa paradise",
+    introHighlight: "Heated Pools paradise",
     introHtml: `Immerse yourself in a setting where the water soothes, the body unwinds and the mind breathes. At <strong>Termas del Sol</strong>, every detail is designed for your wellbeing. Enjoy artificially heated waters up to 40°C, surrounded by the stunning nature of the Sierras Grandes.`,
     ctaReserve: "Book a day pass",
     features: [
@@ -816,14 +816,14 @@ export const pagesEn: typeof pagesEs = {
         slug: "guia-escapada-sierras-calculo",
         title: "Planning your Sierras de Córdoba getaway",
         excerpt:
-          "Seasons, recommended routes and practical tips for combining nature, rest and Heated Spa visits without fuss.",
+          "Seasons, recommended routes and practical tips for combining nature, rest and Heated Pools visits without fuss.",
         date: "Jan 2026",
         category: "Guides",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-exterior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
           "Choosing your season and arrival day often defines whether a trip feels paced or rushed. Spring and autumn bring mild weather and changing colours; summer adds more water-centric plans.",
-          "Pair verified accommodation with at least one Heated Spa visit and an easy walk around El Durazno or Villa Yacanto. Book early on long weekends and check road conditions before departing.",
+          "Pair verified accommodation with at least one Heated Pools visit and an easy walk around El Durazno or Villa Yacanto. Book early on long weekends and check road conditions before departing.",
         ],
       },
       {
@@ -844,9 +844,9 @@ export const pagesEn: typeof pagesEs = {
         slug: "termas-del-sol-que-esperar",
         title: "Termas del Sol: passes, tips and directions",
         excerpt:
-          "Opening hours essentials, packing tips and fitting the Heated Spa into your El Durazno day.",
+          "Opening hours essentials, packing tips and fitting the Heated Pools into your El Durazno day.",
         date: "Nov 2025",
-        category: "Heated Spa",
+        category: "Heated Pools",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-interior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -864,7 +864,7 @@ export const pagesEn: typeof pagesEs = {
         image:
           "https://ik.imagekit.io/vivilastermas/entorno/experiencias/actividades-yoga-rio.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
-          "The valley offers gentle trails, lookouts and wellness activities that harmonise beautifully with Heated Spa outings.",
+          "The valley offers gentle trails, lookouts and wellness activities that harmonise beautifully with Heated Pools outings.",
           "Book guided outings or massages in advance — seasonal weekends fill quickly. Reach out and we can sketch an itinerary tailored to your group.",
         ],
       },
