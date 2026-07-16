@@ -2,7 +2,6 @@
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import Link from "next/link"
 import dynamic from "next/dynamic"
 import { TermasGallery } from "@/components/termas/TermasGallery"
 import { Droplets, Sun, Coffee, Mountain, Sparkles, Clock, MapPin, Navigation } from "lucide-react"
@@ -105,11 +104,16 @@ export default function TermasPageClient({
             dangerouslySetInnerHTML={{ __html: p.introHtml }}
           />
           <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} className="inline-block">
-            <Link href="/contacto" onClick={() => trackEvent(ANALYTICS_EVENT_TYPES.CLIC_RESERVA_TERMAS)}>
+            <a
+              href="https://wa.me/5493546563187?text=%C2%A1Hola%21%20Quiero%20reservar%20un%20pase%20para%20%2ATermas%20del%20Sol%2A.%20Vengo%20del%20sitio%20web%20%2AViv%C3%AD%20las%20Termas%2A.%20%C2%BFMe%20podr%C3%ADan%20brindar%20informaci%C3%B3n%20sobre%20tarifas%20y%20disponibilidad%3F%20%C2%A1Muchas%20gracias%21"
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackEvent(ANALYTICS_EVENT_TYPES.CLIC_RESERVA_TERMAS)}
+            >
               <Button size="lg" className="text-xl px-12 py-8 rounded-full shadow-2xl hover:shadow-primary/20 transition-all font-bold">
                 {p.ctaReserve}
               </Button>
-            </Link>
+            </a>
           </motion.div>
         </motion.div>
 

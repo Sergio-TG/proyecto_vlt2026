@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
+import { getServerSupabase } from "@/lib/supabase-server"
 import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
 import { buildGaleriaUrls } from "@/lib/imagekit.config"
 import { resolveAlojamientoImageKitGaleria } from "@/lib/imagekit"
@@ -15,17 +16,35 @@ type AccommodationWithExtras = AlojamientoAprobado & {
   link_drive?: string | null
 }
 
+export const dynamic = "force-dynamic"
+
 export default async function AccommodationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const slug = String(id || "").trim()
   if (!slug) notFound()
 
+  const db = getServerSupabase() ?? supabase
   const { data, error } = await onlyActiveAlojamientos(
-    supabase.from("alojamientos_aprobados").select("*").eq("slug", slug),
+    db.from("alojamientos_aprobados").select("*").eq("slug", slug),
   ).single()
   if (error || !data) notFound()
 
   const accommodation = data as unknown as AccommodationWithExtras
+  if (!String(accommodation.descripcion_en ?? "").trim()) {
+    const { data: pendingRow } = await db
+      .from("alojamientos_pendientes")
+      .select("descripcion_en")
+      .eq("slug", slug)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    const pendingEn = String(pendingRow?.descripcion_en ?? "").trim()
+    if (pendingEn) {
+      accommodation.descripcion_en = pendingEn
+    }
+  }
+
   const folderSlug = String(accommodation.slug || slug).trim()
   const fallbackFolderByName = slugify(String(accommodation.nombre || ""))
 
