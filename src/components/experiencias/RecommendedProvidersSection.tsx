@@ -70,7 +70,7 @@ export function RecommendedProvidersSection({
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-40px" }}
                 transition={{ delay: 0.1 * index, duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
-                className={`group bg-white rounded-[2.5rem] overflow-hidden shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-shadow duration-700 border border-slate-100 flex flex-col ${
+                className={`group/provider bg-white rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.04)] hover:shadow-[0_24px_60px_rgba(0,0,0,0.08)] transition-shadow duration-700 border border-slate-100 flex flex-col ${
                   section.items.length === 1 ? "lg:col-span-2" : ""
                 }`}
               >
@@ -88,7 +88,7 @@ export function RecommendedProvidersSection({
                       ) : null}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 group-hover:text-primary transition-colors duration-300">
+                      <h3 className="text-2xl md:text-3xl font-bold tracking-tight text-slate-900 group-hover/provider:text-primary transition-colors duration-300">
                         {provider.name}
                       </h3>
                       <p className="mt-1 text-base md:text-lg text-slate-500 font-medium italic">

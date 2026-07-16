@@ -84,7 +84,7 @@ export const pagesEs = {
     prestadores: {
       sectionTitle: "Nuestros Prestadores Recomendados",
       sectionSubtitle:
-        "Los auspiciantes y prestadores que hacen posibles las actividades en El Durazno y las sierras.",
+        "La red de prestadores locales que hace posible vivir experiencias únicas en Villa Yacanto, El Durazno y el corazón de las sierras.",
       ctaWhatsapp: "Consultar Excursión",
       items: [
         {
@@ -561,7 +561,7 @@ export const pagesEn: typeof pagesEs = {
     prestadores: {
       sectionTitle: "Our Recommended Providers",
       sectionSubtitle:
-        "The partners and providers who make activities possible in El Durazno and the sierras.",
+        "The local provider network that makes unique experiences possible in Villa Yacanto, El Durazno, and the heart of the sierras.",
       ctaWhatsapp: "Ask about an excursion",
       items: [
         {
