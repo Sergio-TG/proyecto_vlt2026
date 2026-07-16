@@ -116,6 +116,7 @@ export function PanelTopbar({ panelTitle }: PanelTopbarProps) {
     }
     syncUserProfile(null)
     setIsAuthenticated(false)
+    router.replace("/login")
     router.refresh()
   }
 

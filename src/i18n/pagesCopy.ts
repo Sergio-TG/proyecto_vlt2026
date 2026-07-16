@@ -388,7 +388,10 @@ export const pagesEs = {
     latestSubtitle: "Explorá nuestras publicaciones sobre viajes y naturaleza.",
     readMore: "Leer más",
     backToBlog: "Volver al blog",
-    articleCta: "Consultar mi viaje",
+    articleCtaTitle: "¿Querés organizar tu escapada?",
+    articleCtaSubtitle:
+      "Reservá tu alojamiento con nosotros y consultá por los beneficios exclusivos para disfrutar de Termas del Sol.",
+    articleCta: "Reservá tu alojamiento",
     notFound: "Artículo no encontrado.",
     newsletterTitle: "Mantente informado sobre nuestras ofertas",
     newsletterSubtitle:
@@ -864,7 +867,10 @@ export const pagesEn: typeof pagesEs = {
     latestSubtitle: "Explore our stories about travel and nature.",
     readMore: "Read more",
     backToBlog: "Back to blog",
-    articleCta: "Plan my trip",
+    articleCtaTitle: "Ready to plan your getaway?",
+    articleCtaSubtitle:
+      "Book your stay with us and ask about exclusive benefits to enjoy Termas del Sol.",
+    articleCta: "Book your stay",
     notFound: "Article not found.",
     newsletterTitle: "Stay in the loop with our updates",
     newsletterSubtitle:

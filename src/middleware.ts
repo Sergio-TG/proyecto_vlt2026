@@ -1,38 +1,54 @@
-import { NextResponse } from "next/server"
-import type { NextRequest } from "next/server"
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const host = request.headers.get("host") || ""
+export async function middleware(request: NextRequest) {
+  let supabaseResponse = NextResponse.next({
+    request,
+  });
 
-  // === TEMPORAL: BORRAR PARA PRODUCCIÓN (Acceso para el Propietario ) ===
-  // Permite navegar el sitio completo en testing.vivilastermas.com sin redirigir a /en-construccion.
-  if (host.includes("testing.vivilastermas.com")) {
-    const response = NextResponse.next()
-    response.headers.set("X-Robots-Tag", "noindex, nofollow")
-    return response
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) => {
+            request.cookies.set(name, value);
+          });
+          supabaseResponse = NextResponse.next({
+            request,
+          });
+          cookiesToSet.forEach(({ name, value, options }) => {
+            supabaseResponse.cookies.set(name, value, options);
+          });
+        },
+      },
+    }
+  );
+
+  // Validar identidad en el servidor (no confiar solo en getSession del cliente).
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const pathname = request.nextUrl.pathname;
+  const isProtected =
+    pathname.startsWith("/admin") || pathname.startsWith("/socios/portal");
+
+  if (!user && isProtected) {
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/login";
+    loginUrl.search = "";
+    loginUrl.searchParams.set("next", pathname);
+    return NextResponse.redirect(loginUrl);
   }
-  // =====================================================================
 
-  // Modo desarrollo local: sin bloqueo de mantenimiento
-  if (process.env.NODE_ENV === "development") {
-    return NextResponse.next()
-  }
-
-  const { pathname } = request.nextUrl
-  const isAllowed =
-    pathname === "/blog" ||
-    pathname.startsWith("/blog/") ||
-    pathname.startsWith("/socios") ||
-    pathname.startsWith("/admin") ||
-    pathname.startsWith("/auth") ||
-    pathname === "/en-construccion" ||
-    pathname.startsWith("/_next") ||
-    pathname.startsWith("/api") ||
-    pathname === "/favicon.ico"
-
-  if (!isAllowed) {
-    return NextResponse.redirect(new URL("/en-construccion", request.url))
-  }
-
-  return NextResponse.next()
+  return supabaseResponse;
 }
+
+export const config = {
+  matcher: ["/admin/:path*", "/socios/portal/:path*"],
+};

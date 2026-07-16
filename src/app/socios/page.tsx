@@ -117,7 +117,7 @@ export default function SociosLandingPage() {
             </Link>
           </motion.div>
           <Link
-            href="/socios/portal"
+            href="/login?next=/socios/portal"
             className="text-sm text-slate-500 hover:text-primary transition-colors underline-offset-4 hover:underline"
           >
             {p.ctaPortal}

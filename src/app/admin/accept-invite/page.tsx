@@ -118,7 +118,7 @@ function AdminAcceptInviteInner() {
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-4 space-y-3">
-            <Link href="/admin" className="block">
+            <Link href="/login?next=/admin" className="block">
               <Button className="w-full h-12 bg-primary hover:bg-primary/90 text-white font-black rounded-xl">
                 Ir al login de Admin
               </Button>
