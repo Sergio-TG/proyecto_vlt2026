@@ -190,6 +190,7 @@ const messagesEs = {
       romantico: "ROMÁNTICO",
     },
     persons: "Personas",
+    fromPrice: "Desde",
     perNight: "por noche",
     inquire: "Consultar",
   },
@@ -199,7 +200,7 @@ const messagesEs = {
 const messagesEn: typeof messagesEs = {
   nav: [
     { name: "Home", href: "/" },
-    { name: "Heated Spa", href: "/termas" },
+    { name: "Heated Pools", href: "/termas" },
     { name: "Stays", href: "/alojamientos" },
     { name: "Experiences", href: "/experiencias" },
     { name: "Blog", href: "/blog" },
@@ -216,14 +217,14 @@ const messagesEn: typeof messagesEs = {
     badge: "Termas Night — Exclusive",
     titleLine1: "Your Perfect",
     titleLine2: "Getaway",
-    subtitleBefore: "Heated Spa • Vetted stays •",
+    subtitleBefore: "Heated Pools • Vetted stays •",
     subtitleAccent: "Authentic experiences",
     trust1: "In-person inspections",
     trust2: "Expert guidance",
     trust3: "No hidden fees",
     ctaStay: "Find your stay",
-    ctaTermas: "Discover our Heated Spa",
-    imageAlt: "Heated Spa in El Durazno, Córdoba",
+    ctaTermas: "Discover our Heated Pools",
+    imageAlt: "Heated Pools in El Durazno, Córdoba",
   },
   trustBuilders: {
     items: [
@@ -235,9 +236,9 @@ const messagesEn: typeof messagesEs = {
   },
   termasTeaser: {
     titleLine1: "The heart of your experience:",
-    titleLine2: "Our Heated Spa",
-    body: "At our Heated Spa, 38°C waters artificially heated and pristine nature come together. The perfect balance of relaxation and adventure.",
-    statThermal: "HEATED SPA",
+    titleLine2: "Our Heated Pools",
+    body: "At our Heated Pools, 38°C waters artificially heated and pristine nature come together. The perfect balance of relaxation and adventure.",
+    statThermal: "HEATED POOLS",
     statAdults: "ADULTS ONLY",
     statViews: "NATURAL VIEWS",
     ctaMore: "Learn more",
@@ -273,7 +274,7 @@ const messagesEn: typeof messagesEs = {
     experiences: {
       relax: {
         label: "WELLNESS & RELAXATION",
-        desc: "Full disconnect with massages and access to our Heated Spa to recharge",
+        desc: "Full disconnect with massages and access to our Heated Pools to recharge",
       },
       adventure: {
         label: "ADVENTURE & EXPLORATION",
@@ -305,7 +306,7 @@ const messagesEn: typeof messagesEs = {
     ctaInstagram: "More reviews on Instagram",
     testimonials: [
       {
-        quote: "Amazing experience. The cabin exceeded our expectations and the Heated Spa is a dream.",
+        quote: "Amazing experience. The cabin exceeded our expectations and the Heated Pools are a dream.",
       },
       {
         quote: "Celebrating our Anniversary and Father's Day 🫶🏼 A day as a couple ✨ We escaped the routine. Everything was beautiful 😍 10 out of 10, super super recommended 🔥",
@@ -333,7 +334,7 @@ const messagesEn: typeof messagesEs = {
   },
   whatsapp: {
     prefill:
-      "Hi, I’d like to know more about your Heated Spa and wellness experience at Viví las Termas. Could you advise me?",
+      "Hi, I’d like to know more about your Heated Pools and wellness experience at Viví las Termas. Could you advise me?",
     label: "Contact us on WhatsApp",
     chip: "Questions? Message us",
   },
@@ -347,12 +348,12 @@ const messagesEn: typeof messagesEs = {
   footer: {
     tagline: "Where rest becomes an experience",
     blurb:
-      "Discover the essence of the Sierras de Córdoba. Vetted stays, unique experiences and the full wellness of our Heated Spa.",
+      "Discover the essence of the Sierras de Córdoba. Vetted stays, unique experiences and the full wellness of our Heated Pools.",
     exploreTitle: "Explore",
     resourcesTitle: "Resources",
     exploreLinks: [
       { name: "Home", href: "/" },
-      { name: "Heated Spa", href: "/termas" },
+      { name: "Heated Pools", href: "/termas" },
       { name: "Stays", href: "/alojamientos" },
       { name: "Experiences", href: "/experiencias" },
     ],
@@ -385,6 +386,7 @@ const messagesEn: typeof messagesEs = {
       romantico: "ROMANTIC",
     },
     persons: "Guests",
+    fromPrice: "From",
     perNight: "per night",
     inquire: "Ask us",
   },

@@ -2,6 +2,7 @@ export const IMAGE_FOLDERS = {
   ALOJAMIENTOS: "alojamientos",
   ENTORNO: "entorno",
   GALERIA: "galeria",
+  PRESTADORES: "prestadores",
 } as const;
 
 export type ImageFolder = keyof typeof IMAGE_FOLDERS;
@@ -141,9 +142,33 @@ export function buildGaleriaUrls(
 
 /** URLs públicas para archivos en ImageKit `galeria/termas/` (listados vía API). */
 export function buildGaleriaTermasUrls(archivos: string[], transform: IKTransform = "galThumb"): string[] {
+  return buildFolderGaleriaUrls(`${IMAGE_FOLDERS.GALERIA}/termas`, archivos, transform);
+}
+
+/** URLs públicas para archivos en ImageKit `prestadores/{slug}/` (listados vía API). */
+export function buildGaleriaPrestadorUrls(
+  slug: string,
+  archivos: string[],
+  transform: IKTransform = "galThumb",
+): string[] {
+  const cleanSlug = String(slug || "")
+    .trim()
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
+  return buildFolderGaleriaUrls(`${IMAGE_FOLDERS.PRESTADORES}/${cleanSlug}`, archivos, transform);
+}
+
+function buildFolderGaleriaUrls(
+  folderPrefix: string,
+  archivos: string[],
+  transform: IKTransform = "galThumb",
+): string[] {
   const base = getResolvedImageKitBase().replace(/\/+$/, "");
   const tr = IK_TRANSFORMS[transform];
-  const prefix = `${IMAGE_FOLDERS.GALERIA}/termas`;
+  const prefix = String(folderPrefix || "")
+    .trim()
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "");
 
   return archivos.map((nombre) => {
     const clean = String(nombre || "")

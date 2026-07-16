@@ -9,6 +9,7 @@ const ADMIN_LINKS: { href: string; label: string; exact?: boolean }[] = [
   { href: "/admin/analytics", label: "Métricas" },
   { href: "/admin/invitar", label: "Invitar admin" },
   { href: "/admin/reviews", label: "Reseñas" },
+  { href: "/admin/blog", label: "Blog" },
   { href: "/admin/leads", label: "Leads" },
 ]
 

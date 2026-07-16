@@ -139,6 +139,10 @@ const LEGACY_CANCEL_EXACT_EN: Record<string, string> = {
   "no hay reembolso": "Non-refundable Policy",
   "consultar politicas de cancelacion": "Inquire about our cancellation policy",
   "sujeto a disponibilidad": "Subject to availability",
+  "la senas no se devuelven, se puede reprograma la fecha y se respeta la sena en %":
+    "Deposits are non-refundable. The stay date may be rescheduled, and the deposit is honored as a percentage credit.",
+  "las senas no se devuelven, se puede reprogramar la fecha y se respeta la sena en %":
+    "Deposits are non-refundable. The stay date may be rescheduled, and the deposit is honored as a percentage credit.",
 }
 
 const BED_PHRASE_TO_EN: Array<[RegExp, string]> = [
@@ -343,8 +347,19 @@ function translateLegacyCancellation(text: string): string {
     return "Cancel up to 72 hours before check-in for a full refund"
   }
 
+  if (/se[nñ]as?\s+no\s+se\s+devuelven/i.test(text)) {
+    if (/reprogram/i.test(text)) {
+      return "Deposits are non-refundable. The stay date may be rescheduled, and the deposit is honored as a percentage credit."
+    }
+    return "Deposits are non-refundable."
+  }
+
   return capitalizeFirst(
     text
+      .replace(/se[nñ]as?/gi, "deposit")
+      .replace(/no se devuelven/gi, "are non-refundable")
+      .replace(/reprograma(?:r)?/gi, "reschedule")
+      .replace(/se respeta/gi, "is honored")
       .replace(/reembolso/gi, "refund")
       .replace(/cancelaci[oó]n/gi, "cancellation")
       .replace(/d[ií]as?/gi, "days")
@@ -356,7 +371,7 @@ function translateLegacyCancellation(text: string): string {
 
 function detectStayInfoField(value: unknown): "beds" | "cancellation" {
   const text = typeof value === "string" ? value : JSON.stringify(value ?? "")
-  if (/reembolso|cancelaci[oó]n|reembolsable|whatsapp|ingreso|convenir|disponibilidad/i.test(text)) {
+  if (/reembolso|cancelaci[oó]n|reembolsable|whatsapp|ingreso|convenir|disponibilidad|se[nñ]a/i.test(text)) {
     return "cancellation"
   }
   return "beds"
