@@ -691,12 +691,21 @@ export function AccommodationDetailClient({
             >
               <Card className="border-none shadow-[0_40px_100px_rgba(0,0,0,0.12)] rounded-[2.5rem] overflow-hidden bg-white">
                 <CardHeader className="bg-slate-50 p-10 border-b border-slate-100">
-                  <CardTitle className="flex justify-between items-end">
-                    <span className="text-4xl font-black text-slate-900 tracking-tighter">
-                      {accommodation.precio_base ? `$${accommodation.precio_base.toLocaleString(numberLocale)}` : d.askPrice}
-                    </span>
-                    <span className="text-base text-slate-400 font-medium mb-1">{d.perNight}</span>
-                  </CardTitle>
+                  {accommodation.precio_base ? (
+                    <>
+                      <p className="text-sm font-medium text-slate-500 mb-1">{d.fromPrice}</p>
+                      <CardTitle className="flex items-baseline gap-2 flex-wrap">
+                        <span className="text-4xl font-black text-slate-900 tracking-tighter">
+                          {`$${accommodation.precio_base.toLocaleString(numberLocale)}`}
+                        </span>
+                        <span className="text-base text-slate-400 font-medium">{d.perNight}</span>
+                      </CardTitle>
+                    </>
+                  ) : (
+                    <CardTitle className="flex justify-between items-end">
+                      <span className="text-4xl font-black text-slate-900 tracking-tighter">{d.askPrice}</span>
+                    </CardTitle>
+                  )}
                   <CardDescription className="text-base font-medium text-slate-500 pt-2">
                     {d.minStay(Number(accommodation.noches_minimas) || 1)}
                   </CardDescription>

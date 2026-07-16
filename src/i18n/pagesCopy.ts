@@ -81,6 +81,34 @@ export const pagesEs = {
           "Viví la experiencia de observar uno de los cielos más limpios de Córdoba, con guiado nocturno, reconocimiento de constelaciones y fotografía básica del cielo.",
       },
     ],
+    prestadores: {
+      sectionTitle: "Nuestros Prestadores Recomendados",
+      sectionSubtitle:
+        "Los auspiciantes y prestadores que hacen posibles las actividades en El Durazno y las sierras.",
+      ctaWhatsapp: "Consultar Excursión",
+      items: [
+        {
+          id: "oscura-overa",
+          name: "Oscura Overa",
+          tagline: "Nuestra forma de vivir la montaña",
+          description:
+            "Somos una empresa dedicada al turismo de montaña, con más de 10 años de experiencia realizando excursiones al Cerro Champaquí y otros destinos de las sierras de Córdoba. Nos especializamos en brindar experiencias seguras, organizadas y accesibles para distintos niveles, acompañando tanto a quienes se inician en el trekking como a quienes buscan nuevos desafíos en la montaña. Trabajamos con grupos reducidos, ofreciendo un trato cercano y personalizado en cada salida. Nuestro objetivo es que cada excursión sea más que un recorrido: una experiencia única de conexión con la naturaleza.",
+          highlights: [
+            {
+              title: "Aventura y Trekking",
+              text: "Nuestras excursiones combinan traslados en vehículos 4x4 con tramos de trekking, permitiendo acceder a distintos sectores de la montaña de manera segura y disfrutar plenamente de cada recorrido.",
+            },
+            {
+              title: "Primero la seguridad",
+              text: "Queremos que solo te preocupes por disfrutar. Por eso, todas nuestras excursiones incluyen seguro al viajero, brindándote respaldo y tranquilidad en cada paso del camino.",
+            },
+          ],
+          logoAlt: "Logo de Oscura Overa",
+          whatsappPrefill:
+            "¡Hola! Quiero consultar por una excursión con el prestador *Oscura Overa*. Vengo del sitio web *Viví las Termas*. ¿Me podrían brindar información sobre salidas y disponibilidad? ¡Muchas gracias!",
+        },
+      ],
+    },
   },
   contacto: {
     heroAlt: "Paisaje - contacto",
@@ -168,6 +196,7 @@ export const pagesEs = {
     labelCheckOut: "Check-out",
     labelCancel: "Cancelación",
     askPrice: "Consultar",
+    fromPrice: "Desde",
     perNight: "/ noche",
     minStay: (n: number) => `Estadía mínima de ${n} noches`,
     ctaWhatsapp: "Consultar Disponibilidad",
@@ -529,6 +558,34 @@ export const pagesEn: typeof pagesEs = {
           "Experience one of Córdoba’s clearest night skies, with guided stargazing, constellation spotting and basic night-sky photography.",
       },
     ],
+    prestadores: {
+      sectionTitle: "Our Recommended Providers",
+      sectionSubtitle:
+        "The partners and providers who make activities possible in El Durazno and the sierras.",
+      ctaWhatsapp: "Ask about an excursion",
+      items: [
+        {
+          id: "oscura-overa",
+          name: "Oscura Overa",
+          tagline: "Our way of living the mountains",
+          description:
+            "We are a mountain tourism company with more than 10 years of experience running excursions to Cerro Champaquí and other destinations in the Córdoba sierras. We specialize in safe, well-organized and accessible experiences for all levels — from first-time trekkers to those seeking new mountain challenges. We work with small groups and offer a close, personalized approach on every outing. Our goal is for each excursion to be more than a route: a unique experience of connection with nature.",
+          highlights: [
+            {
+              title: "Adventure & Trekking",
+              text: "Our excursions combine 4x4 transfers with trekking segments, so you can reach different parts of the mountain safely and fully enjoy every stretch of the journey.",
+            },
+            {
+              title: "Safety first",
+              text: "We want you to focus only on enjoying the day. That’s why all our excursions include traveler insurance, giving you backup and peace of mind every step of the way.",
+            },
+          ],
+          logoAlt: "Oscura Overa logo",
+          whatsappPrefill:
+            "Hi! I’d like to enquire about an excursion with the provider *Oscura Overa*. I’m coming from the *Viví las Termas* website. Could you share details about trips and availability? Thank you!",
+        },
+      ],
+    },
   },
   contacto: {
     heroAlt: "Landscape — contact",
@@ -616,6 +673,7 @@ export const pagesEn: typeof pagesEs = {
     labelCheckOut: "Check-out",
     labelCancel: "Cancellation",
     askPrice: "Ask us",
+    fromPrice: "From",
     perNight: "/ night",
     minStay: (n: number) => `Minimum stay: ${n} night${n === 1 ? "" : "s"}`,
     ctaWhatsapp: "Check availability",

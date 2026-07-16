@@ -208,12 +208,17 @@ export function AccommodationCard({ variant, item, portadaFile, imageKitFolder, 
             >
               <motion.div variants={priceHoverVariants} className="flex flex-col min-w-0">
                 {item.precio_base ? (
-                  <div className="flex items-baseline flex-wrap gap-x-1">
-                    <span className="text-lg xl:text-xl font-black text-slate-900 leading-none">
-                      {`$${item.precio_base.toLocaleString(numberLocale)}`}
+                  <>
+                    <span className="text-[10px] text-slate-500 font-bold leading-none mb-1">
+                      {copy.accommodationCard.fromPrice}
                     </span>
-                    <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">{copy.accommodationCard.perNight}</span>
-                  </div>
+                    <div className="flex items-baseline flex-wrap gap-x-1">
+                      <span className="text-lg xl:text-xl font-black text-slate-900 leading-none">
+                        {`$${item.precio_base.toLocaleString(numberLocale)}`}
+                      </span>
+                      <span className="text-[10px] text-slate-500 font-bold whitespace-nowrap">{copy.accommodationCard.perNight}</span>
+                    </div>
+                  </>
                 ) : (
                   <span className="text-sm font-black text-slate-900 leading-none">{copy.accommodationCard.inquire}</span>
                 )}

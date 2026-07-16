@@ -27,11 +27,20 @@ const HOSTERIA_EL_DURAZNO_TOUR_VIDEO: AccommodationGalleryVideo = {
   variant: "presentation",
 }
 
+const VIDA_ABUNDANTE_EXTERIOR_VIDEO: AccommodationGalleryVideo = {
+  embedUrl:
+    "https://player.cloudinary.com/embed/?cloud_name=dxpy1zqj6&public_id=vista-exterior-001_kjt82f",
+  thumbUrl:
+    "https://res.cloudinary.com/dxpy1zqj6/video/upload/so_0,w_1200,h_800,c_fill,q_auto,f_jpg/vista-exterior-001_kjt82f",
+  variant: "presentation",
+}
+
 /** Videos embebidos en galería por slug de alojamiento (Cloudinary player). */
 const GALLERY_VIDEOS_BY_SLUG: Record<string, AccommodationGalleryVideo> = {
   "la-ensenada": LA_ENSENADA_DRON_VIDEO,
   "casablanca-hotel-spa": CASABLANCA_PRESENTATION_VIDEO,
   "hosteria-el-durazno": HOSTERIA_EL_DURAZNO_TOUR_VIDEO,
+  "cabana-vida-abundante": VIDA_ABUNDANTE_EXTERIOR_VIDEO,
 }
 
 export function getAccommodationGalleryVideo(

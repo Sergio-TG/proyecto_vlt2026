@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Playfair_Display } from "next/font/google"
@@ -9,6 +10,8 @@ import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 import { cn } from "@/lib/utils"
+import { fetchPublishedBlogPostBySlug, type BlogPostContent } from "@/lib/blog"
+import { BlogRichText } from "@/lib/blog-rich-text"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -20,7 +23,38 @@ export default function BlogArticlePage() {
   const { locale } = useLanguage()
   const copy = getSiteCopy(locale)
   const p = copy.pages.blog
-  const post = p.posts.find((item) => item.slug === slug)
+  const [post, setPost] = React.useState<BlogPostContent | null>(
+    () => p.posts.find((item) => item.slug === slug) ?? null,
+  )
+  const [loading, setLoading] = React.useState(true)
+
+  React.useEffect(() => {
+    let ignore = false
+    setLoading(true)
+
+    fetchPublishedBlogPostBySlug(slug, locale).then((next) => {
+      if (!ignore) {
+        setPost(next)
+        setLoading(false)
+      }
+    })
+
+    return () => {
+      ignore = true
+    }
+  }, [slug, locale])
+
+  if (loading && !post) {
+    return (
+      <div className="min-h-screen bg-white pt-28 pb-24">
+        <div className="container mx-auto max-w-3xl animate-pulse space-y-4 px-4">
+          <div className="h-8 w-40 rounded bg-slate-100" />
+          <div className="h-12 w-full rounded bg-slate-100" />
+          <div className="h-64 w-full rounded-2xl bg-slate-100" />
+        </div>
+      </div>
+    )
+  }
 
   if (!post) {
     return (
@@ -84,7 +118,7 @@ export default function BlogArticlePage() {
         >
           {post.paragraphs?.map((paragraph, i) => (
             <p key={i} className="mb-6 text-base leading-relaxed text-slate-600 last:mb-0 md:text-lg">
-              {paragraph}
+              <BlogRichText text={paragraph} />
             </p>
           ))}
         </motion.div>

@@ -153,12 +153,12 @@ export async function getArchivosAlojamientoWithCandidates(slug: string, extraCa
   return archivos
 }
 
-export async function getArchivosGaleriaTermas(): Promise<string[]> {
+async function listImageKitPath(path: string): Promise<string[]> {
   const privateKey = getImageKitPrivateKey()
   if (!privateKey) return []
 
   const url = new URL("https://api.imagekit.io/v1/files")
-  url.searchParams.set("path", "/galeria/termas")
+  url.searchParams.set("path", path)
   url.searchParams.set("fileType", "image")
 
   const res = await fetch(url.toString(), {
@@ -181,6 +181,25 @@ export async function getArchivosGaleriaTermas(): Promise<string[]> {
   if (unique.length === 0) return []
 
   return sortGaleriaFiles(unique)
+}
+
+export async function getArchivosGaleriaTermas(): Promise<string[]> {
+  return listImageKitPath("/galeria/termas")
+}
+
+/** Lista imágenes de `prestadores/{slug}/`, excluyendo logos. */
+export async function getArchivosGaleriaPrestador(slug: string): Promise<string[]> {
+  const cleanSlug = String(slug || "")
+    .trim()
+    .replace(/^\/+/, "")
+    .replace(/\/+$/, "")
+  if (!cleanSlug) return []
+
+  const names = await listImageKitPath(`/prestadores/${cleanSlug}`)
+  return names.filter((name) => {
+    const base = name.toLowerCase().replace(/\.[^.]+$/, "")
+    return !base.startsWith("logo")
+  })
 }
 
 export async function getPortadaAlojamiento(slug: string): Promise<string | null> {
