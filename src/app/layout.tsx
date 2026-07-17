@@ -1,20 +1,26 @@
 import { Inter } from "next/font/google";
+import type { Metadata } from "next";
 import "./globals.css";
 import AppLayout from "@/components/layout/AppLayout";
 import { AuthHashHandler } from "@/components/auth/AuthHashHandler";
+import { ContentProtection } from "@/components/security/ContentProtection";
 
 const inter = Inter({
   variable: "--font-inter",
   subsets: ["latin"],
 });
 
-// Bloqueo de indexación para buscadores
-export const metadata = {
-  title: 'Viví las Termas',
-  description: 'Portal de turismo y bienestar',
+export const metadata: Metadata = {
+  metadataBase: new URL("https://www.vivilastermas.com"),
+  title: "Viví las Termas | Turismo, Alojamientos y Aventuras en Calamuchita",
+  description:
+    "Descubrí El Durazno, Villa Yacanto y Santa Rosa de Calamuchita. Encontrá los mejores alojamientos, relajate en Termas del Sol y viví experiencias de aventura y bienestar en Córdoba.",
   robots: {
-    index: false,
-    follow: false,
+    index: true,
+    follow: true,
+  },
+  verification: {
+    google: "tjtauvDK55msL6idEB1JQDZbL8jmyL4nCloRk3V9LoY",
   },
 };
 
@@ -27,6 +33,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col w-full max-w-full overflow-x-hidden`} suppressHydrationWarning>
         <AuthHashHandler />
+        <ContentProtection />
         <AppLayout>
           {children}
         </AppLayout>

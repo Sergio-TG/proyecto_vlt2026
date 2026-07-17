@@ -5,7 +5,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { Playfair_Display } from "next/font/google"
 import { motion } from "framer-motion"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ArrowRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
@@ -123,11 +123,39 @@ export default function BlogArticlePage() {
           ))}
         </motion.div>
 
-        <div className="mx-auto max-w-2xl pb-8 text-center">
-          <Button size="lg" className="rounded-full px-10 font-bold shadow-lg" asChild>
-            <Link href="/contacto">{p.articleCta}</Link>
-          </Button>
-        </div>
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
+          className="mx-auto max-w-2xl border-t border-slate-100 pb-4 pt-4 md:pt-6"
+        >
+          <div className="rounded-[2rem] bg-gradient-to-b from-slate-50 to-white px-6 py-10 text-center md:px-10 md:py-12">
+            <h2
+              className={cn(
+                playfair.className,
+                "text-2xl font-semibold tracking-tight text-primary md:text-3xl",
+              )}
+            >
+              {p.articleCtaTitle}
+            </h2>
+            <p className="mx-auto mt-4 max-w-xl text-base font-light leading-relaxed text-slate-600 md:text-lg">
+              {p.articleCtaSubtitle}
+            </p>
+            <div className="mt-8">
+              <Button
+                size="lg"
+                className="h-14 gap-2 rounded-full px-10 text-base font-bold shadow-2xl transition-all hover:shadow-primary/20 md:h-16 md:px-12 md:text-lg"
+                asChild
+              >
+                <Link href="/alojamientos">
+                  {p.articleCta}
+                  <ArrowRight className="h-5 w-5" />
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </motion.div>
       </div>
     </motion.article>
   )

@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { Eye, ExternalLink, LogOut, User } from "lucide-react"
+import { Eye, ExternalLink, LogOut, ShieldCheck, User } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PanelProfileModal } from "@/components/panel/PanelProfileModal"
 import { supabase } from "@/lib/supabase"
@@ -28,6 +28,7 @@ export function PanelTopbar({ panelTitle }: PanelTopbarProps) {
   const menuRef = React.useRef<HTMLDivElement>(null)
 
   const profileHref = panelTitle === "Admin" ? "/admin" : "/socios/portal"
+  const securityHref = panelTitle === "Admin" ? "/admin/seguridad" : "/socios/portal/seguridad"
 
   const syncUserProfile = React.useCallback(
     (user: { email?: string | null; user_metadata?: Record<string, unknown> } | null | undefined) => {
@@ -116,6 +117,7 @@ export function PanelTopbar({ panelTitle }: PanelTopbarProps) {
     }
     syncUserProfile(null)
     setIsAuthenticated(false)
+    router.replace("/login")
     router.refresh()
   }
 
@@ -171,6 +173,17 @@ export function PanelTopbar({ panelTitle }: PanelTopbarProps) {
                   >
                     <User className="h-4 w-4 text-slate-400" />
                     Mi Perfil
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMenuOpen(false)
+                      router.push(securityHref)
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50"
+                  >
+                    <ShieldCheck className="h-4 w-4 text-slate-400" />
+                    Seguridad
                   </button>
                   <button
                     type="button"

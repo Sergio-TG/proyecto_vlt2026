@@ -11,6 +11,7 @@ const ADMIN_LINKS: { href: string; label: string; exact?: boolean }[] = [
   { href: "/admin/reviews", label: "Reseñas" },
   { href: "/admin/blog", label: "Blog" },
   { href: "/admin/leads", label: "Leads" },
+  { href: "/admin/seguridad", label: "Seguridad" },
 ]
 
 export function PanelAdminNav() {

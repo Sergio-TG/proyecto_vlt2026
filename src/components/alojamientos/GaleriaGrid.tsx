@@ -51,7 +51,7 @@ function VideoTile({
       type="button"
       onClick={onClick}
       aria-label={playLabel}
-      className={`relative w-full h-full overflow-hidden group cursor-pointer ${className}`}
+      className={`relative w-full h-full overflow-hidden group/tile cursor-pointer ${className}`}
     >
       <Image
         src={thumbUrl}
@@ -59,11 +59,11 @@ function VideoTile({
         fill
         sizes={sizes}
         priority={priority}
-        className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-105"
+        className="object-cover transition-transform duration-500 ease-in-out group-hover/tile:scale-105"
       />
-      <div className="absolute inset-0 bg-black/35 flex items-center justify-center transition-colors group-hover:bg-black/45">
+      <div className="absolute inset-0 bg-black/35 flex items-center justify-center transition-colors group-hover/tile:bg-black/45">
         <div className="flex flex-col items-center gap-2">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/95 shadow-xl backdrop-blur-sm transition-transform group-hover:scale-105">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/95 shadow-xl backdrop-blur-sm transition-transform group-hover/tile:scale-105">
             <Play className="ml-1 h-7 w-7 fill-slate-900 text-slate-900" />
           </div>
           {badgeLabel ? (
@@ -97,14 +97,14 @@ function Tile({
   overlay?: Overlay
 }) {
   return (
-    <button type="button" onClick={onClick} className={`relative w-full h-full overflow-hidden group cursor-pointer ${className}`}>
+    <button type="button" onClick={onClick} className={`relative w-full h-full overflow-hidden group/tile cursor-pointer ${className}`}>
       <Image
         src={src}
         alt={alt}
         fill
         sizes={sizes}
         priority={priority}
-        className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+        className="object-cover transition-transform duration-500 ease-in-out group-hover/tile:scale-110"
         onError={onError}
       />
       {overlay && (
@@ -243,7 +243,7 @@ export function GaleriaGrid({
           ) : main && mainSrc ? (
             <button
               type="button"
-              className="absolute inset-0 overflow-hidden group cursor-pointer"
+              className="absolute inset-0 overflow-hidden group/tile cursor-pointer"
               onClick={() => onFotoClick(main.index)}
             >
               <Image
@@ -252,7 +252,7 @@ export function GaleriaGrid({
                 fill
                 sizes="100vw"
                 priority
-                className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                className="object-cover transition-transform duration-500 ease-in-out group-hover/tile:scale-110"
                 onError={() => onImageError(main.index)}
               />
             </button>
@@ -269,7 +269,7 @@ export function GaleriaGrid({
                   <button
                     key={t.index}
                     type="button"
-                    className="relative h-20 w-28 flex-none overflow-hidden group cursor-pointer"
+                    className="relative h-20 w-28 flex-none overflow-hidden group/tile cursor-pointer"
                     onClick={isLast ? onVerTodas : () => onFotoClick(t.index)}
                   >
                     <Image
@@ -278,7 +278,7 @@ export function GaleriaGrid({
                       fill
                       sizes="112px"
                       loading="lazy"
-                      className="object-cover transition-transform duration-500 ease-in-out group-hover:scale-110"
+                      className="object-cover transition-transform duration-500 ease-in-out group-hover/tile:scale-110"
                       onError={() => onImageError(t.index)}
                     />
                     {isLast && (

@@ -84,7 +84,7 @@ export const pagesEs = {
     prestadores: {
       sectionTitle: "Nuestros Prestadores Recomendados",
       sectionSubtitle:
-        "Los auspiciantes y prestadores que hacen posibles las actividades en El Durazno y las sierras.",
+        "La red de prestadores locales que hace posible vivir experiencias únicas en Villa Yacanto, El Durazno y el corazón de las sierras.",
       ctaWhatsapp: "Consultar Excursión",
       items: [
         {
@@ -258,7 +258,7 @@ export const pagesEs = {
     },
   },
   mapListing: {
-    priceLabel: "Precio",
+    priceLabel: "Precio Desde",
     inquire: "Consultar",
     ctaInfo: "+ Info",
     ratingExceptional: "Excepcional",
@@ -314,7 +314,7 @@ export const pagesEs = {
       h3: "3. Seguridad",
       p3: "Utilizamos proveedores de infraestructura en la nube reconocidos y medidas de seguridad estándar de la industria para proteger su información.",
       h4: "4. Derechos",
-      p4: "Usted tiene derecho a solicitar el acceso, rectificación o eliminación de sus datos enviando un correo a hola@vivilastermas.com.ar.",
+      p4: "Usted tiene derecho a solicitar el acceso, rectificación o eliminación de sus datos enviando un correo a hola@vivilastermas.com.",
     },
     terminos: {
       title: "Términos y Condiciones de Uso - Viví Las Termas",
@@ -327,7 +327,7 @@ export const pagesEs = {
       h4: "4. Responsabilidad",
       p4: "No nos hacemos responsables por daños derivados del uso del sitio o de los servicios contratados con terceros.",
       h5: "5. Contacto",
-      p5: "Para consultas, escriba a hola@vivilastermas.com.ar o llame al +54 9 3546 525404. Dirección: Av. Marrero S/N, X5197, Villa Yacanto, Córdoba, Argentina.",
+      p5: "Para consultas, escriba a hola@vivilastermas.com o llame al +54 9 3546 525404. Dirección: Av. Marrero S/N, X5197, Villa Yacanto, Córdoba, Argentina.",
     },
   },
   faq: {
@@ -388,7 +388,10 @@ export const pagesEs = {
     latestSubtitle: "Explorá nuestras publicaciones sobre viajes y naturaleza.",
     readMore: "Leer más",
     backToBlog: "Volver al blog",
-    articleCta: "Consultar mi viaje",
+    articleCtaTitle: "¿Querés organizar tu escapada?",
+    articleCtaSubtitle:
+      "Reservá tu alojamiento con nosotros y consultá por los beneficios exclusivos para disfrutar de Termas del Sol.",
+    articleCta: "Reservá tu alojamiento",
     notFound: "Artículo no encontrado.",
     newsletterTitle: "Mantente informado sobre nuestras ofertas",
     newsletterSubtitle:
@@ -561,7 +564,7 @@ export const pagesEn: typeof pagesEs = {
     prestadores: {
       sectionTitle: "Our Recommended Providers",
       sectionSubtitle:
-        "The partners and providers who make activities possible in El Durazno and the sierras.",
+        "The local provider network that makes unique experiences possible in Villa Yacanto, El Durazno, and the heart of the sierras.",
       ctaWhatsapp: "Ask about an excursion",
       items: [
         {
@@ -735,7 +738,7 @@ export const pagesEn: typeof pagesEs = {
     },
   },
   mapListing: {
-    priceLabel: "Price",
+    priceLabel: "Price from",
     inquire: "Ask us",
     ctaInfo: "+ Info",
     ratingExceptional: "Exceptional",
@@ -790,7 +793,7 @@ export const pagesEn: typeof pagesEs = {
       h3: "3. Security",
       p3: "We use reputable cloud infrastructure and industry-standard measures to protect your information.",
       h4: "4. Your rights",
-      p4: "You may request access, correction or deletion of your data by emailing hola@vivilastermas.com.ar.",
+      p4: "You may request access, correction or deletion of your data by emailing hola@vivilastermas.com.",
     },
     terminos: {
       title: "Terms of use — Viví las Termas",
@@ -803,7 +806,7 @@ export const pagesEn: typeof pagesEs = {
       h4: "4. Liability",
       p4: "We are not liable for damages arising from use of the site or services contracted with third parties.",
       h5: "5. Contact",
-      p5: "For enquiries, email hola@vivilastermas.com.ar or call +54 9 3546 525404. Address: Av. Marrero S/N, X5197, Villa Yacanto, Córdoba, Argentina.",
+      p5: "For enquiries, email hola@vivilastermas.com or call +54 9 3546 525404. Address: Av. Marrero S/N, X5197, Villa Yacanto, Córdoba, Argentina.",
     },
   },
   faq: {
@@ -864,7 +867,10 @@ export const pagesEn: typeof pagesEs = {
     latestSubtitle: "Explore our stories about travel and nature.",
     readMore: "Read more",
     backToBlog: "Back to blog",
-    articleCta: "Plan my trip",
+    articleCtaTitle: "Ready to plan your getaway?",
+    articleCtaSubtitle:
+      "Book your stay with us and ask about exclusive benefits to enjoy Termas del Sol.",
+    articleCta: "Book your stay",
     notFound: "Article not found.",
     newsletterTitle: "Stay in the loop with our updates",
     newsletterSubtitle:
