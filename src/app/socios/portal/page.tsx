@@ -10,6 +10,8 @@ import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import {
   User,
   Home,
@@ -26,9 +28,6 @@ import {
   Instagram,
   Globe,
   MessageCircle,
-  Lock,
-  Mail,
-  Key,
   Dog,
   Baby,
 } from "lucide-react"
@@ -90,9 +89,9 @@ type SocioAccommodation = {
 }
 
 export default function SociosPage() {
+  const router = useRouter()
   const didCheckSessionRef = React.useRef(false)
-  const [view, setView] = React.useState<"auth" | "form" | "success" | "dashboard">("auth")
-  const [authMode, setAuthMode] = React.useState<"login" | "register">("login")
+  const [view, setView] = React.useState<"loading" | "form" | "success" | "dashboard">("loading")
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [geoMessage, setGeoMessage] = React.useState<string | null>(null)
@@ -136,22 +135,6 @@ export default function SociosPage() {
   })
 
   const [userAccommodations, setUserAccommodations] = React.useState<SocioAccommodation[]>([])
-
-  const getSafeOrigin = () => {
-    if (typeof window === "undefined") return ""
-
-    const { protocol, port } = window.location
-    let host = window.location.hostname
-
-    // Evita URLs inválidas en links de confirmación (0.0.0.0 / ::)
-    if (host === "0.0.0.0" || host === "::" || host === "[::]") {
-      host = "localhost"
-    }
-
-    const isDefaultPort = (protocol === "http:" && port === "80") || (protocol === "https:" && port === "443")
-    const portSuffix = port && !isDefaultPort ? `:${port}` : ""
-    return `${protocol}//${host}${portSuffix}`
-  }
 
   // ✅ FIX 1: Ordenar por created_at descendente para obtener siempre el más reciente
   const checkUserAccommodations = async (userId: string) => {
@@ -295,50 +278,47 @@ export default function SociosPage() {
       if (didCheckSessionRef.current) return
       didCheckSessionRef.current = true
       console.log("Verificando sesión inicial...")
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-      if (sessionError) {
-        console.error("Error al obtener la sesión:", sessionError)
-        setView("auth")
+      const {
+        data: { user },
+        error: userError,
+      } = await supabase.auth.getUser()
+      if (userError || !user) {
+        console.error("Error al obtener el usuario:", userError)
+        router.replace("/login?next=/socios/portal")
         return
       }
 
-      if (session) {
-        console.log("Sesión encontrada para:", session.user.id)
-        const email = session.user.email ?? null
-        setUserEmail(email)
-        setUserId(session.user.id)
-        const pendientes = await checkUserAccommodations(session.user.id)
-        const aprobados = await checkUserApprovedAccommodations(session.user.id, email)
-        const merged = mergeUserAccommodations(pendientes, aprobados)
-        console.log("Alojamientos encontrados en checkSession:", merged)
-        setUserAccommodations(merged)
-        if (merged.length > 0) {
-          setEditingAccommodation(null)
-          setCurrentStep(1)
-          setView("dashboard")
-        } else {
-          setView("form")
-        }
+      console.log("Sesión encontrada para:", user.id)
+      const email = user.email ?? null
+      setUserEmail(email)
+      setUserId(user.id)
+      const pendientes = await checkUserAccommodations(user.id)
+      const aprobados = await checkUserApprovedAccommodations(user.id, email)
+      const merged = mergeUserAccommodations(pendientes, aprobados)
+      console.log("Alojamientos encontrados en checkSession:", merged)
+      setUserAccommodations(merged)
+      if (merged.length > 0) {
+        setEditingAccommodation(null)
+        setCurrentStep(1)
+        setView("dashboard")
       } else {
-        console.log("No se encontró sesión activa.")
-        setView("auth")
+        setView("form")
       }
     }
-    checkSession()
-  }, [])
+    void checkSession()
+  }, [router])
 
   React.useEffect(() => {
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         setUserEmail(null)
         setUserId(null)
-        setView("auth")
-        setAuthMode("login")
+        router.replace("/login?next=/socios/portal")
       }
     })
 
     return () => subscription.subscription.unsubscribe()
-  }, [])
+  }, [router])
 
   React.useEffect(() => {
     if (editingAccommodation) {
@@ -561,61 +541,6 @@ export default function SociosPage() {
     }))
   }
 
-  const handleAuth = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    const form = e.target as HTMLFormElement
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value
-
-    console.log("Intentando autenticación...", { authMode, email })
-
-    try {
-      if (authMode === "register") {
-        const { data, error } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            emailRedirectTo: `${getSafeOrigin()}/auth/callback?next=/socios/portal`,
-          }
-        })
-        console.log("Resultado signUp:", { data, error })
-        if (error) throw error
-        alert("¡Cuenta creada! Revisa tu email para confirmar el registro.")
-        setAuthMode("login")
-      } else {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password })
-        console.log("Resultado signIn:", { data, error })
-        if (error) throw error
-        
-        setUserEmail(data.user.email ?? null)
-        setUserId(data.user.id)
-        await new Promise(resolve => setTimeout(resolve, 500))
-        
-        const pendientes = await checkUserAccommodations(data.user.id)
-        const aprobados = await checkUserApprovedAccommodations(data.user.id, data.user.email ?? null)
-        const merged = mergeUserAccommodations(pendientes, aprobados)
-        console.log("Alojamientos encontrados post-login:", merged.length)
-        setUserAccommodations(merged)
-
-        if (merged.length > 0) {
-          setView("dashboard")
-        } else {
-          setView("form")
-        }
-      }
-    } catch (err: unknown) {
-      console.error("Error en handleAuth:", err)
-      const message = err instanceof Error ? err.message : "Ocurrió un error en la autenticación"
-      setError(message)
-    } finally {
-      setLoading(false)
-      window.scrollTo({ top: 0, behavior: 'smooth' })
-    }
-  }
-
   const handleSignOut = async () => {
     try {
       await supabase.auth.signOut()
@@ -624,8 +549,7 @@ export default function SociosPage() {
     } catch (err) {
       console.error("Error al cerrar sesión:", err)
     }
-    setView("auth")
-    setAuthMode("login")
+    router.replace("/login")
   }
 
   const handleSubmitForm = async () => {
@@ -1080,6 +1004,13 @@ export default function SociosPage() {
                   </div>
                   Registrar Nuevo Alojamiento
                 </Button>
+                <Link
+                  href="/socios/portal/seguridad"
+                  className="w-full h-12 text-sm font-bold bg-white/5 hover:bg-white/10 text-white border border-white/15 shadow-lg rounded-2xl transition-all flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4 text-primary" />
+                  Seguridad (2FA opcional)
+                </Link>
                 <div className="text-center">
                   <button 
                     onClick={handleSignOut}
@@ -1095,94 +1026,11 @@ export default function SociosPage() {
       )
     }
 
-    if (view === "auth") {
+    if (view === "loading") {
       return (
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-sm mx-auto"
-        >
-          <div className="text-center mb-6 space-y-2">
-            <h1 className="text-3xl md:text-4xl font-black text-white tracking-tighter drop-shadow-2xl">Portal de Socios</h1>
-            <p className="text-white/70 text-base font-light">Gestiona la información de tu alojamiento</p>
-          </div>
-
-          <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl overflow-hidden">
-            <CardHeader className="space-y-1 pb-4 pt-8">
-              <div className="flex justify-center mb-4">
-                <div className="bg-primary/20 p-3 rounded-2xl border border-primary/30 shadow-inner">
-                  <Lock className="w-6 h-6 text-white" />
-                </div>
-              </div>
-              <CardTitle className="text-2xl font-black text-center text-white tracking-tight">
-                {authMode === "login" ? "Iniciar Sesión" : "Crear Cuenta"}
-              </CardTitle>
-              <CardDescription className="text-center text-white/60 text-sm font-medium">
-                {authMode === "login" 
-                  ? "Ingresa tus credenciales para continuar" 
-                  : "Regístrate para dar de alta tu alojamiento"}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="p-6 space-y-4">
-              {error && (
-                <div className="bg-red-500/20 border border-red-500/30 text-red-200 px-4 py-3 rounded-xl text-xs flex items-center gap-2 animate-shake">
-                  <AlertTriangle className="w-4 h-4 flex-shrink-0" />
-                  {error}
-                </div>
-              )}
-              <form onSubmit={handleAuth} className="space-y-4">
-                <div className="space-y-1.5">
-                  <Label htmlFor="email" className="text-white/80 font-bold ml-1 text-xs">Email</Label>
-                  <div className="relative group">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors" />
-                    <Input id="email" type="email" placeholder="nombre@ejemplo.com" className="pl-10 h-11 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl focus:ring-primary focus:border-primary transition-all text-sm" required />
-                  </div>
-                </div>
-                <div className="space-y-1.5">
-                  <Label htmlFor="password" className="text-white/80 font-bold ml-1 text-xs">Contraseña</Label>
-                  <div className="relative group">
-                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-primary transition-colors" />
-                    <Input id="password" type="password" placeholder="••••••••" className="pl-10 h-11 bg-white/5 border-white/10 text-white placeholder:text-white/30 rounded-xl focus:ring-primary focus:border-primary transition-all text-sm" required />
-                  </div>
-                </div>
-                {authMode === "login" && (
-                  <div className="text-right">
-                    <button type="button" className="text-[10px] font-bold text-white/40 hover:text-white transition-colors">
-                      ¿Olvidaste tu contraseña?
-                    </button>
-                  </div>
-                )}
-                <Button type="submit" className="w-full h-12 text-base font-black bg-primary hover:bg-primary/90 text-white shadow-2xl rounded-xl mt-2 transition-all hover:scale-[1.02] active:scale-[0.98]" disabled={loading}>
-                  {loading ? "Procesando..." : (authMode === "login" ? "Entrar al Portal" : "Registrarse como Socio")}
-                </Button>
-              </form>
-
-              <div className="relative py-2">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-black">
-                  <span className="bg-[#1a1f2c]/50 backdrop-blur-xl px-4 text-white/30">O también</span>
-                </div>
-              </div>
-
-              <div className="text-center">
-                <button 
-                  onClick={() => setAuthMode(authMode === "login" ? "register" : "login")}
-                  className="text-sm text-white/60 hover:text-white transition-all font-bold"
-                >
-                  {authMode === "login" 
-                    ? "¿No tienes cuenta? Regístrate gratis" 
-                    : "¿Ya tienes cuenta? Inicia sesión"}
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <p className="mt-6 text-center text-[10px] text-white/30 leading-relaxed font-medium px-8">
-            Al continuar, aceptas formar parte de la red de Viví las Termas y cumplir con los estándares de calidad establecidos.
-          </p>
-        </motion.div>
+        <div className="flex min-h-[40vh] items-center justify-center">
+          <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-white" />
+        </div>
       )
     }
 
@@ -1198,6 +1046,12 @@ export default function SociosPage() {
             >
               <ArrowLeft className="w-3 h-3" /> Cerrar Sesión
             </button>
+            <Link
+              href="/socios/portal/seguridad"
+              className="text-xs font-bold text-white/80 hover:text-primary flex items-center gap-1 transition-colors"
+            >
+              <ShieldCheck className="w-3 h-3" /> Seguridad
+            </Link>
             {userId && (
               <button 
                 onClick={goToDashboard}

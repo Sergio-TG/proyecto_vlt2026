@@ -5,8 +5,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
-
-type CookiesConsent = "granted" | "denied"
+import { readCookiesConsent, writeCookiesConsent, type CookiesConsent } from "@/lib/cookies-consent"
 
 export function CookieBanner({ onConsentChange }: { onConsentChange?: (value: CookiesConsent) => void }) {
   const [isVisible, setIsVisible] = React.useState(false)
@@ -14,14 +13,13 @@ export function CookieBanner({ onConsentChange }: { onConsentChange?: (value: Co
   const copy = getSiteCopy(locale)
 
   React.useEffect(() => {
-    const stored = window.localStorage.getItem("cookies_consent")
-    if (stored === "granted" || stored === "denied") return
+    if (readCookiesConsent()) return
     setIsVisible(true)
   }, [])
 
   const setConsent = React.useCallback(
     (value: CookiesConsent) => {
-      window.localStorage.setItem("cookies_consent", value)
+      writeCookiesConsent(value)
       setIsVisible(false)
       onConsentChange?.(value)
     },

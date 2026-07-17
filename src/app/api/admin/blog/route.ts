@@ -11,12 +11,17 @@ import { slugify } from "@/lib/utils"
 
 function parseParagraphs(value: unknown): string[] {
   if (Array.isArray(value)) {
-    return value.map((item) => String(item ?? "").trim()).filter(Boolean)
+    return value
+      .map((item) => String(item ?? "").replace(/\r\n/g, "\n").trim())
+      .filter(Boolean)
   }
   if (typeof value === "string") {
+    // Doble Enter (línea en blanco) = nuevo párrafo.
+    // Enter simple = salto de línea dentro del párrafo (se conserva).
     return value
+      .replace(/\r\n/g, "\n")
       .split(/\n\s*\n/)
-      .map((block) => block.replace(/\s*\n\s*/g, " ").trim())
+      .map((block) => block.replace(/^\n+|\n+$/g, "").trim())
       .filter(Boolean)
   }
   return []

@@ -121,6 +121,28 @@
   --color-ring: hsl(var(--ring));
 }
 
+/* Protección disuasoria de copyright (no afecta al crawl/SEO de Google).
+   Se activa solo cuando <html> tiene la clase .content-protection
+   (omitida en localhost y para sesiones admin). */
+html.content-protection body {
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+html.content-protection input,
+html.content-protection textarea,
+html.content-protection select,
+html.content-protection [contenteditable="true"] {
+  -webkit-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+html.content-protection img {
+  -webkit-user-drag: none;
+}
+
 .map-popup .leaflet-popup-content-wrapper {
   border-radius: 1rem;
   box-shadow: 0 10px 30px rgba(2, 6, 23, 0.16);

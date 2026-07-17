@@ -1,8 +1,9 @@
+import type { Metadata } from "next"
 import { notFound } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { getServerSupabase } from "@/lib/supabase-server"
 import { onlyActiveAlojamientos } from "@/lib/alojamientos-active"
-import { buildGaleriaUrls } from "@/lib/imagekit.config"
+import { buildGaleriaUrls, getAlojamientoPortada } from "@/lib/imagekit.config"
 import { resolveAlojamientoImageKitGaleria } from "@/lib/imagekit"
 import { AccommodationDetailClient } from "./AccommodationDetailClient"
 import type { AlojamientoAprobado } from "@/lib/supabase-queries"
@@ -17,6 +18,84 @@ type AccommodationWithExtras = AlojamientoAprobado & {
 }
 
 export const dynamic = "force-dynamic"
+
+const SITE_URL = "https://www.vivilastermas.com"
+
+function truncateMetaDescription(text: string, max = 155): string {
+  const cleaned = text.replace(/\s+/g, " ").trim()
+  if (!cleaned) return ""
+  if (cleaned.length <= max) return cleaned
+  return `${cleaned.slice(0, max - 1).trimEnd()}…`
+}
+
+function buildAlojamientoDescription(row: {
+  descripcion?: string | null
+  localidad?: string | null
+  tipo_alojamiento?: string | null
+  mascotas?: string | null
+  nombre?: string | null
+}): string {
+  const fromDb = truncateMetaDescription(String(row.descripcion || ""))
+  if (fromDb) return fromDb
+
+  const nombre = String(row.nombre || "Alojamiento").trim()
+  const localidad = String(row.localidad || "Villa Yacanto").trim()
+  const tipo = String(row.tipo_alojamiento || "cabañas").trim().toLowerCase()
+  const mascotasNorm = String(row.mascotas || "").trim().toLowerCase()
+  const petFriendly = mascotasNorm === "sí" || mascotasNorm === "si"
+
+  const petPhrase = petFriendly ? " alojamiento pet friendly" : ""
+  return truncateMetaDescription(
+    `${nombre}: ${tipo} en ${localidad}${petPhrase}. Alquiler en Villa Yacanto y El Durazno — Viví las Termas.`,
+  )
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ id: string }>
+}): Promise<Metadata> {
+  const { id } = await params
+  const slug = String(id || "").trim()
+  if (!slug) return { title: "Alojamiento | Viví las Termas" }
+
+  const db = getServerSupabase() ?? supabase
+  const { data } = await onlyActiveAlojamientos(
+    db
+      .from("alojamientos_aprobados")
+      .select("nombre, slug, descripcion, localidad, tipo_alojamiento, mascotas")
+      .eq("slug", slug),
+  ).maybeSingle()
+
+  if (!data) {
+    return { title: "Alojamiento | Viví las Termas", robots: { index: false, follow: false } }
+  }
+
+  const nombre = String(data.nombre || "Alojamiento").trim()
+  const title = `${nombre} | Alquiler en Villa Yacanto - Viví las Termas`
+  const description = buildAlojamientoDescription(data)
+  const imageUrl = getAlojamientoPortada(String(data.slug || slug), "galFull")
+  const canonical = `${SITE_URL}/alojamientos/${slug}`
+
+  return {
+    title,
+    description,
+    alternates: { canonical },
+    openGraph: {
+      title,
+      description,
+      url: canonical,
+      type: "website",
+      images: [{ url: imageUrl, alt: nombre }],
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+  }
+}
 
 export default async function AccommodationPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params

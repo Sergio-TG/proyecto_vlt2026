@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useRouter } from "next/navigation"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
@@ -8,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { 
   CheckCircle2, Clock, AlertTriangle, Eye, 
   ExternalLink, ShieldCheck, 
-  Search, RefreshCcw, Lock, LogOut, Key, Mail, MapPin, Archive, RotateCcw, Trash2
+  Search, RefreshCcw, LogOut, MapPin, Archive, RotateCcw, Trash2
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
@@ -92,6 +93,7 @@ type ApprovedRow = {
 }
 
 export default function AdminDashboard() {
+  const router = useRouter()
   const [isAdmin, setIsAdmin] = React.useState(false)
   const [authLoading, setAuthLoading] = React.useState(true)
   const [pendientes, setPendientes] = React.useState<PendingRow[]>([])
@@ -174,86 +176,62 @@ export default function AdminDashboard() {
 
   const checkAdminSession = async () => {
     setAuthLoading(true)
-    const { data: { session } } = await supabase.auth.getSession()
-    const token = session?.access_token
-    if (token) {
-      const res = await fetch("/api/admin/verify", {
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => null)
-      const json = (await res?.json().catch(() => null)) as unknown
-      const ok = Boolean(res?.ok) && Boolean((json as { ok?: boolean } | null)?.ok)
-      if (ok) {
-        setIsAdmin(true)
-        fetchPendientes()
-        fetchAprobados()
-        fetchTrash()
-      } else {
-        setIsAdmin(false)
-      }
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) {
+      setIsAdmin(false)
+      setAuthLoading(false)
+      router.replace("/login?next=/admin")
+      return
+    }
+
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData?.session?.access_token
+    if (!token) {
+      setIsAdmin(false)
+      setAuthLoading(false)
+      router.replace("/login?next=/admin")
+      return
+    }
+
+    const res = await fetch("/api/admin/verify", {
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => null)
+    const json = (await res?.json().catch(() => null)) as unknown
+    const ok = Boolean(res?.ok) && Boolean((json as { ok?: boolean } | null)?.ok)
+    if (ok) {
+      setIsAdmin(true)
+      fetchPendientes()
+      fetchAprobados()
+      fetchTrash()
     } else {
       setIsAdmin(false)
+      router.replace("/no-autorizado")
     }
     setAuthLoading(false)
   }
 
   React.useEffect(() => {
     checkAdminSession()
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- bootstrap de sesión al montar
   }, [])
 
   React.useEffect(() => {
     const { data: subscription } = supabase.auth.onAuthStateChange((_event, session) => {
       if (!session) {
         setIsAdmin(false)
+        router.replace("/login?next=/admin")
       }
     })
 
     return () => subscription.subscription.unsubscribe()
-  }, [])
-
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setAuthLoading(true)
-    setError(null)
-
-    const form = e.target as HTMLFormElement
-    const email = (form.elements.namedItem("email") as HTMLInputElement).value
-    const password = (form.elements.namedItem("password") as HTMLInputElement).value
-
-    try {
-      const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
-      if (signInError) throw signInError
-
-      const { data: sessionData } = await supabase.auth.getSession()
-      const token = sessionData?.session?.access_token
-      if (!token) {
-        throw new Error("Sesión inválida o expirada.")
-      }
-
-      const res = await fetch("/api/admin/verify", {
-        headers: { Authorization: `Bearer ${token}` },
-      }).catch(() => null)
-      const json = (await res?.json().catch(() => null)) as unknown
-      const ok = Boolean(res?.ok) && Boolean((json as { ok?: boolean } | null)?.ok)
-      if (!ok) {
-        await supabase.auth.signOut()
-        throw new Error("No tienes permisos para acceder a este panel.")
-      }
-
-      setIsAdmin(true)
-      fetchPendientes()
-      fetchAprobados()
-      fetchTrash()
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error al iniciar sesión"
-      setError(message)
-    } finally {
-      setAuthLoading(false)
-    }
-  }
+  }, [router])
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
     setIsAdmin(false)
+    router.replace("/login")
   }
 
   const fetchPendientes = async () => {
@@ -1035,66 +1013,25 @@ export default function AdminDashboard() {
   if (!isAdmin) {
     return (
       <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="w-full max-w-md"
-        >
-          <div className="text-center mb-10">
-            <div className="bg-primary/10 w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-primary/20">
-              <Lock className="w-10 h-10 text-primary" />
-            </div>
-            <h1 className="text-3xl font-black text-white tracking-tight">Acceso Admin</h1>
-            <p className="text-slate-400 mt-2 font-medium">Solo personal autorizado</p>
+        <div className="w-full max-w-md space-y-6 text-center">
+          <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10">
+            <AlertTriangle className="h-8 w-8 text-amber-400" />
           </div>
-
-          <Card className="border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
-            <form onSubmit={handleLogin} className="space-y-6">
-              <div className="space-y-2">
-                <Label className="text-white/70 text-xs font-bold uppercase tracking-widest">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                  <Input
-                    name="email"
-                    type="email"
-                    required
-                    placeholder="admin@vivilastermas.com"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 h-12 pl-10 rounded-xl focus:ring-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="text-white/70 text-xs font-bold uppercase tracking-widest">Contraseña</Label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-white/30" />
-                  <Input
-                    name="password"
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    className="bg-white/5 border-white/10 text-white placeholder:text-white/20 h-12 pl-10 rounded-xl focus:ring-primary"
-                  />
-                </div>
-              </div>
-
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-4 rounded-xl text-sm font-medium flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 flex-shrink-0" />
-                  {error}
-                </div>
-              )}
-
-              <Button
-                type="submit"
-                disabled={authLoading}
-                className="w-full h-14 bg-primary hover:bg-primary/90 text-white font-black text-lg rounded-xl shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
-              >
-                {authLoading ? "Verificando..." : "Ingresar al Panel"}
-              </Button>
-            </form>
-          </Card>
-        </motion.div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-black tracking-tight text-white">Sin permisos de Admin</h1>
+            <p className="text-sm font-medium text-slate-400">
+              Tu sesión está activa, pero no tenés acceso a este panel.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:justify-center">
+            <Button asChild variant="secondary" className="font-bold">
+              <Link href="/socios/portal">Ir al portal de socios</Link>
+            </Button>
+            <Button onClick={handleLogout} variant="outline" className="border-white/20 bg-transparent text-white hover:bg-white/10 font-bold">
+              Cerrar sesión
+            </Button>
+          </div>
+        </div>
       </div>
     )
   }

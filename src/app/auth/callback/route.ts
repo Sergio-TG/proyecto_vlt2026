@@ -26,7 +26,10 @@ export async function GET(request: NextRequest) {
   const origin = getSafeOrigin(request);
   const code = searchParams.get('code');
   // Redirige al portal de socios tras confirmar
-  const next = searchParams.get('next') ?? '/socios/portal';
+  const rawNext = searchParams.get('next') ?? '/socios/portal';
+  // Evitar open-redirect: solo rutas relativas internas.
+  const next =
+    rawNext.startsWith('/') && !rawNext.startsWith('//') ? rawNext : '/socios/portal';
 
   if (code) {
     const cookieStore = await cookies(); // <--- Crucial en Next 15

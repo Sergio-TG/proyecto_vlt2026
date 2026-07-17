@@ -7,8 +7,8 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 
 const FOOTER_SOCIAL = {
-  instagram: "https://www.instagram.com/termasdelsoleldurazno/",
-  facebook: "https://www.facebook.com/termasdelsoleldurazno2",
+  instagram: "https://www.instagram.com/vivilastermas/",
+  facebook: "https://www.facebook.com/vivilastermas",
 } as const
 
 const WHATSAPP_PHONE = "5493546525404"
@@ -83,10 +83,10 @@ export function Footer() {
                 <li className="flex items-start gap-3">
                   <span className="text-primary font-semibold">{copy.footer.email}</span>
                   <a
-                    href="mailto:hola@vivilastermas.com.ar?subject=Consulta%20Viv%C3%AD%20Las%20Termas"
+                    href="mailto:hola@vivilastermas.com?subject=Consulta%20Viv%C3%AD%20Las%20Termas"
                     className="no-underline transition-colors duration-300 hover:text-primary"
                   >
-                    hola@vivilastermas.com.ar
+                    hola@vivilastermas.com
                   </a>
                 </li>
                 <li className="flex items-start gap-3">
