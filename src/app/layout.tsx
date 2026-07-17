@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import AppLayout from "@/components/layout/AppLayout";
 import { AuthHashHandler } from "@/components/auth/AuthHashHandler";
+import { ContentProtection } from "@/components/security/ContentProtection";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -32,6 +33,7 @@ export default function RootLayout({
     <html lang="es" suppressHydrationWarning>
       <body className={`${inter.variable} font-sans antialiased min-h-screen flex flex-col w-full max-w-full overflow-x-hidden`} suppressHydrationWarning>
         <AuthHashHandler />
+        <ContentProtection />
         <AppLayout>
           {children}
         </AppLayout>

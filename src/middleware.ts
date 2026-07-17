@@ -2,8 +2,15 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-pathname", pathname);
+
   let supabaseResponse = NextResponse.next({
-    request,
+    request: {
+      headers: requestHeaders,
+    },
   });
 
   const supabase = createServerClient(
@@ -19,7 +26,9 @@ export async function middleware(request: NextRequest) {
             request.cookies.set(name, value);
           });
           supabaseResponse = NextResponse.next({
-            request,
+            request: {
+              headers: requestHeaders,
+            },
           });
           cookiesToSet.forEach(({ name, value, options }) => {
             supabaseResponse.cookies.set(name, value, options);
@@ -34,9 +43,12 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const pathname = request.nextUrl.pathname;
+  // Flujo de invitación admin: público (aún no hay rol admin).
+  const isAcceptInvite = pathname.startsWith("/admin/accept-invite");
+
   const isProtected =
-    pathname.startsWith("/admin") || pathname.startsWith("/socios/portal");
+    !isAcceptInvite &&
+    (pathname.startsWith("/admin") || pathname.startsWith("/socios/portal"));
 
   if (!user && isProtected) {
     const loginUrl = request.nextUrl.clone();

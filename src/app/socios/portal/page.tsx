@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { useRouter } from "next/navigation"
+import Link from "next/link"
 import {
   User,
   Home,
@@ -1003,6 +1004,13 @@ export default function SociosPage() {
                   </div>
                   Registrar Nuevo Alojamiento
                 </Button>
+                <Link
+                  href="/socios/portal/seguridad"
+                  className="w-full h-12 text-sm font-bold bg-white/5 hover:bg-white/10 text-white border border-white/15 shadow-lg rounded-2xl transition-all flex items-center justify-center gap-2"
+                >
+                  <ShieldCheck className="w-4 h-4 text-primary" />
+                  Seguridad (2FA opcional)
+                </Link>
                 <div className="text-center">
                   <button 
                     onClick={handleSignOut}
@@ -1038,6 +1046,12 @@ export default function SociosPage() {
             >
               <ArrowLeft className="w-3 h-3" /> Cerrar Sesión
             </button>
+            <Link
+              href="/socios/portal/seguridad"
+              className="text-xs font-bold text-white/80 hover:text-primary flex items-center gap-1 transition-colors"
+            >
+              <ShieldCheck className="w-3 h-3" /> Seguridad
+            </Link>
             {userId && (
               <button 
                 onClick={goToDashboard}

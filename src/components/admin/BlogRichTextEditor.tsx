@@ -72,9 +72,9 @@ export function BlogRichTextEditor({
         ref={ref}
         rows={rows}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value.replace(/\r\n/g, "\n"))}
         placeholder={placeholder}
-        className="font-mono text-[13px] leading-relaxed"
+        className="whitespace-pre-wrap font-mono text-[13px] leading-relaxed"
       />
       <p className="text-[11px] text-slate-400">
         Seleccioná texto y usá la barra, o escribí{" "}
@@ -82,8 +82,10 @@ export function BlogRichTextEditor({
         <code className="rounded bg-slate-100 px-1">*cursiva*</code>,{" "}
         <code className="rounded bg-slate-100 px-1">++subrayado++</code>,{" "}
         <code className="rounded bg-slate-100 px-1">~~tachado~~</code>,{" "}
-        <code className="rounded bg-slate-100 px-1">[texto](url)</code>. Separá párrafos con una línea
-        en blanco.
+        <code className="rounded bg-slate-100 px-1">[texto](url)</code>.{" "}
+        <strong className="font-semibold text-slate-500">Enter</strong> = salto de línea;{" "}
+        <strong className="font-semibold text-slate-500">Enter dos veces</strong> = nuevo párrafo. Al
+        pegar traducciones se conservan los saltos.
       </p>
     </div>
   )

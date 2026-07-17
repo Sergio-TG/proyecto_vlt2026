@@ -78,10 +78,26 @@ function sanitizeHref(href: string): string | null {
   return null
 }
 
+function renderTextWithBreaks(value: string, keyPrefix: string): React.ReactNode[] {
+  const parts = value.split("\n")
+  const nodes: React.ReactNode[] = []
+
+  parts.forEach((part, i) => {
+    nodes.push(<React.Fragment key={`${keyPrefix}-t-${i}`}>{part}</React.Fragment>)
+    if (i < parts.length - 1) {
+      nodes.push(<br key={`${keyPrefix}-br-${i}`} />)
+    }
+  })
+
+  return nodes
+}
+
 function renderTokens(tokens: Token[], keyPrefix: string): React.ReactNode[] {
   return tokens.map((token, i) => {
     const key = `${keyPrefix}-${i}`
-    if (token.type === "text") return <React.Fragment key={key}>{token.value}</React.Fragment>
+    if (token.type === "text") {
+      return <React.Fragment key={key}>{renderTextWithBreaks(token.value, key)}</React.Fragment>
+    }
     if (token.type === "bold") return <strong key={key}>{renderTokens(token.children, key)}</strong>
     if (token.type === "italic") return <em key={key}>{renderTokens(token.children, key)}</em>
     if (token.type === "strike") return <s key={key}>{renderTokens(token.children, key)}</s>

@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
-    "export-textos": "npx tsx scripts/export-textos-revision.ts"
+    "lint": "eslint"
   },
   "dependencies": {
     "@imagekit/next": "^2.1.5",

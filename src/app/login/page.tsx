@@ -3,12 +3,15 @@
 import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
-import { AlertTriangle, Key, Lock, Mail } from "lucide-react"
+import { AlertTriangle, Key, Lock, Mail, ShieldCheck } from "lucide-react"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+
+const GENERIC_AUTH_ERROR = "Email o contraseña incorrectos."
+const GENERIC_MFA_ERROR = "Código incorrecto. Intentá de nuevo."
 
 function getSafeNextPath(raw: string | null): string | null {
   if (!raw) return null
@@ -34,7 +37,16 @@ function getSafeOrigin() {
 }
 
 async function resolveDefaultRedirect(accessToken: string, userId: string): Promise<string> {
-  // Fuente de verdad de admin: admin_users vía API con service role.
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", userId)
+    .maybeSingle()
+
+  const profileRole = typeof profile?.role === "string" ? profile.role.toLowerCase() : ""
+  if (profileRole === "admin") return "/admin"
+  if (profileRole === "socio") return "/socios/portal"
+
   const verifyRes = await fetch("/api/admin/verify", {
     headers: { Authorization: `Bearer ${accessToken}` },
   }).catch(() => null)
@@ -42,22 +54,6 @@ async function resolveDefaultRedirect(accessToken: string, userId: string): Prom
   if (verifyRes?.ok) {
     const json = (await verifyRes.json().catch(() => null)) as { ok?: boolean } | null
     if (json?.ok) return "/admin"
-  }
-
-  // Perfil / rol en admin_users (si RLS lo permite en el cliente).
-  const { data: adminRow } = await supabase
-    .from("admin_users")
-    .select("role, active")
-    .eq("user_id", userId)
-    .maybeSingle()
-
-  const role = typeof adminRow?.role === "string" ? adminRow.role.toLowerCase() : ""
-  if (adminRow?.active === true || role === "admin") {
-    return "/admin"
-  }
-
-  if (role === "socio") {
-    return "/socios/portal"
   }
 
   return "/socios/portal"
@@ -68,9 +64,18 @@ function LoginForm() {
   const searchParams = useSearchParams()
   const nextPath = getSafeNextPath(searchParams.get("next"))
 
+  const loginSubtitle = nextPath?.startsWith("/admin")
+    ? "Accedé al panel de admin"
+    : nextPath?.startsWith("/socios")
+      ? "Accedé al portal de socios"
+      : "Ingresá con tu cuenta para continuar"
+
   const [mode, setMode] = React.useState<"login" | "register">("login")
   const [email, setEmail] = React.useState("")
   const [password, setPassword] = React.useState("")
+  const [mfaCode, setMfaCode] = React.useState("")
+  const [mfaFactorId, setMfaFactorId] = React.useState<string | null>(null)
+  const [needsMfa, setNeedsMfa] = React.useState(false)
   const [loading, setLoading] = React.useState(false)
   const [checkingSession, setCheckingSession] = React.useState(true)
   const [error, setError] = React.useState<string | null>(null)
@@ -86,6 +91,12 @@ function LoginForm() {
   )
 
   React.useEffect(() => {
+    if (searchParams.get("reset") === "1") {
+      setInfo("Tu contraseña se actualizó correctamente. Ya podés iniciar sesión.")
+    }
+  }, [searchParams])
+
+  React.useEffect(() => {
     let cancelled = false
 
     const checkExistingSession = async () => {
@@ -98,6 +109,18 @@ function LoginForm() {
       if (!user) {
         setCheckingSession(false)
         return
+      }
+
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+        const { data: factors } = await supabase.auth.mfa.listFactors()
+        const totp = factors?.totp?.find((f) => f.status === "verified")
+        if (totp) {
+          setMfaFactorId(totp.id)
+          setNeedsMfa(true)
+          setCheckingSession(false)
+          return
+        }
       }
 
       const {
@@ -118,6 +141,54 @@ function LoginForm() {
     }
   }, [redirectAfterAuth])
 
+  const completeLogin = async () => {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+    if (!user) throw new Error("no_user")
+
+    const {
+      data: { session },
+    } = await supabase.auth.getSession()
+    const token = session?.access_token
+    if (!token) throw new Error("no_session")
+
+    await redirectAfterAuth(token, user.id)
+  }
+
+  const handleMfaVerify = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!mfaFactorId) return
+
+    const trimmed = mfaCode.replace(/\s/g, "")
+    if (!/^\d{6}$/.test(trimmed)) {
+      setError(GENERIC_MFA_ERROR)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    try {
+      const { data: challenge, error: challengeError } = await supabase.auth.mfa.challenge({
+        factorId: mfaFactorId,
+      })
+      if (challengeError || !challenge?.id) throw new Error("mfa")
+
+      const { error: verifyError } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId,
+        challengeId: challenge.id,
+        code: trimmed,
+      })
+      if (verifyError) throw new Error("mfa")
+
+      await completeLogin()
+    } catch {
+      setError(GENERIC_MFA_ERROR)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -133,9 +204,13 @@ function LoginForm() {
             emailRedirectTo: `${getSafeOrigin()}/auth/callback?next=/socios/portal`,
           },
         })
-        if (signUpError) throw signUpError
-
-        setInfo("Cuenta creada. Revisá tu email para confirmar el registro y luego iniciá sesión.")
+        // Anti-enumeración en registro: mensaje genérico de éxito
+        if (signUpError) {
+          console.error("signUp:", signUpError.message)
+        }
+        setInfo(
+          "Si el email es válido, vas a recibir un correo para confirmar tu cuenta. Después podés iniciar sesión.",
+        )
         setMode("login")
         setPassword("")
         return
@@ -145,19 +220,25 @@ function LoginForm() {
         email,
         password,
       })
-      if (signInError) throw signInError
-      if (!data.user) throw new Error("No se pudo obtener el usuario autenticado.")
+      if (signInError || !data.user) {
+        throw new Error("auth")
+      }
 
-      const {
-        data: { session },
-      } = await supabase.auth.getSession()
-      const token = session?.access_token
-      if (!token) throw new Error("Sesión inválida o expirada.")
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+      if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") {
+        const { data: factors } = await supabase.auth.mfa.listFactors()
+        const totp = factors?.totp?.find((f) => f.status === "verified")
+        if (totp) {
+          setMfaFactorId(totp.id)
+          setNeedsMfa(true)
+          setPassword("")
+          return
+        }
+      }
 
-      await redirectAfterAuth(token, data.user.id)
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Error al autenticar"
-      setError(message)
+      await completeLogin()
+    } catch {
+      setError(GENERIC_AUTH_ERROR)
     } finally {
       setLoading(false)
     }
@@ -181,23 +262,37 @@ function LoginForm() {
       <div className="relative z-10 w-full max-w-md">
         <div className="mb-8 text-center">
           <div className="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10">
-            <Lock className="h-8 w-8 text-primary" />
+            {needsMfa ? (
+              <ShieldCheck className="h-8 w-8 text-primary" />
+            ) : (
+              <Lock className="h-8 w-8 text-primary" />
+            )}
           </div>
-          <h1 className="text-3xl font-black tracking-tight text-white">Iniciar sesión</h1>
+          <h1 className="text-3xl font-black tracking-tight text-white">
+            {needsMfa ? "Verificación en dos pasos" : "Iniciar sesión"}
+          </h1>
           <p className="mt-2 text-sm font-medium text-slate-300">
-            Accedé al panel de admin o al portal de socios
+            {needsMfa
+              ? "Ingresá el código de tu app autenticadora"
+              : loginSubtitle}
           </p>
         </div>
 
         <Card className="border-white/10 bg-white/5 p-2 shadow-2xl backdrop-blur-xl">
           <CardHeader className="space-y-1 pb-2 pt-6">
             <CardTitle className="text-center text-xl font-black tracking-tight text-white">
-              {mode === "login" ? "Bienvenido" : "Crear cuenta de socio"}
+              {needsMfa
+                ? "Código TOTP"
+                : mode === "login"
+                  ? "Bienvenido"
+                  : "Crear cuenta de socio"}
             </CardTitle>
             <CardDescription className="text-center text-sm font-medium text-white/60">
-              {mode === "login"
-                ? "Ingresá tu email y contraseña para continuar"
-                : "Registrate para gestionar tu alojamiento en Viví las Termas"}
+              {needsMfa
+                ? "Google Authenticator, Authy u otra app TOTP"
+                : mode === "login"
+                  ? "Ingresá tu email y contraseña para continuar"
+                  : "Registrate para gestionar tu alojamiento en Viví las Termas"}
             </CardDescription>
           </CardHeader>
 
@@ -215,79 +310,138 @@ function LoginForm() {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="email" className="text-xs font-bold uppercase tracking-widest text-white/70">
-                  Email
-                </Label>
-                <div className="relative">
-                  <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/30" />
+            {needsMfa ? (
+              <form onSubmit={handleMfaVerify} className="space-y-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="mfa"
+                    className="text-xs font-bold uppercase tracking-widest text-white/70"
+                  >
+                    Código de 6 dígitos
+                  </Label>
                   <Input
-                    id="email"
-                    name="email"
-                    type="email"
+                    id="mfa"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    value={mfaCode}
+                    onChange={(e) => setMfaCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    className="h-12 rounded-xl border-white/10 bg-white/5 text-center text-lg tracking-[0.35em] font-bold text-white placeholder:text-white/25 focus-visible:ring-primary"
                     required
-                    autoComplete="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="nombre@ejemplo.com"
-                    className="h-12 rounded-xl border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/25 focus-visible:ring-primary"
                   />
                 </div>
-              </div>
-
-              <div className="space-y-2">
-                <Label
-                  htmlFor="password"
-                  className="text-xs font-bold uppercase tracking-widest text-white/70"
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="h-12 w-full rounded-xl text-base font-black shadow-xl shadow-primary/20"
                 >
-                  Contraseña
-                </Label>
-                <div className="relative">
-                  <Key className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/30" />
-                  <Input
-                    id="password"
-                    name="password"
-                    type="password"
-                    required
-                    minLength={6}
-                    autoComplete={mode === "login" ? "current-password" : "new-password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="h-12 rounded-xl border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/25 focus-visible:ring-primary"
-                  />
+                  {loading ? "Verificando..." : "Continuar"}
+                </Button>
+                <button
+                  type="button"
+                  className="w-full text-center text-sm font-bold text-white/50 hover:text-white"
+                  onClick={async () => {
+                    await supabase.auth.signOut()
+                    setNeedsMfa(false)
+                    setMfaFactorId(null)
+                    setMfaCode("")
+                    setError(null)
+                  }}
+                >
+                  Cancelar y volver
+                </button>
+              </form>
+            ) : (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="email"
+                      className="text-xs font-bold uppercase tracking-widest text-white/70"
+                    >
+                      Email
+                    </Label>
+                    <div className="relative">
+                      <Mail className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/30" />
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        required
+                        autoComplete="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="nombre@ejemplo.com"
+                        className="h-12 rounded-xl border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/25 focus-visible:ring-primary"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="password"
+                      className="text-xs font-bold uppercase tracking-widest text-white/70"
+                    >
+                      Contraseña
+                    </Label>
+                    <div className="relative">
+                      <Key className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-white/30" />
+                      <Input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        minLength={6}
+                        autoComplete={mode === "login" ? "current-password" : "new-password"}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="••••••••"
+                        className="h-12 rounded-xl border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/25 focus-visible:ring-primary"
+                      />
+                    </div>
+                    {mode === "login" && (
+                      <div className="text-right">
+                        <Link
+                          href="/recuperar-clave"
+                          className="text-[11px] font-bold text-white/40 transition-colors hover:text-white"
+                        >
+                          ¿Olvidaste tu contraseña?
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={loading}
+                    className="h-12 w-full rounded-xl text-base font-black shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
+                  >
+                    {loading
+                      ? "Procesando..."
+                      : mode === "login"
+                        ? "Entrar"
+                        : "Registrarme como socio"}
+                  </Button>
+                </form>
+
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode(mode === "login" ? "register" : "login")
+                      setError(null)
+                      setInfo(null)
+                    }}
+                    className="text-sm font-bold text-white/60 transition-colors hover:text-white"
+                  >
+                    {mode === "login"
+                      ? "¿No tenés cuenta? Registrate gratis"
+                      : "¿Ya tenés cuenta? Iniciá sesión"}
+                  </button>
                 </div>
-              </div>
-
-              <Button
-                type="submit"
-                disabled={loading}
-                className="h-12 w-full rounded-xl text-base font-black shadow-xl shadow-primary/20 transition-all active:scale-[0.98]"
-              >
-                {loading
-                  ? "Procesando..."
-                  : mode === "login"
-                    ? "Entrar"
-                    : "Registrarme como socio"}
-              </Button>
-            </form>
-
-            <div className="text-center">
-              <button
-                type="button"
-                onClick={() => {
-                  setMode(mode === "login" ? "register" : "login")
-                  setError(null)
-                  setInfo(null)
-                }}
-                className="text-sm font-bold text-white/60 transition-colors hover:text-white"
-              >
-                {mode === "login"
-                  ? "¿No tenés cuenta? Registrate gratis"
-                  : "¿Ya tenés cuenta? Iniciá sesión"}
-              </button>
-            </div>
+              </>
+            )}
 
             <p className="text-center text-xs text-white/35">
               <Link href="/" className="underline-offset-4 hover:text-white/60 hover:underline">

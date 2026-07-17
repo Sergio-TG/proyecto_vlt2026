@@ -16,7 +16,10 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const hideLayout =
     pathname.startsWith("/socios/portal") ||
     pathname.startsWith("/admin") ||
-    pathname.startsWith("/login");
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/recuperar-clave") ||
+    pathname.startsWith("/actualizar-clave") ||
+    pathname.startsWith("/no-autorizado");
 
   return (
     <ImageKitProviderWrapper>

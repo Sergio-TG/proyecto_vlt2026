@@ -123,6 +123,20 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Registration failed" }, { status: 500 })
     }
 
+    // RBAC: marcar rol admin en profiles (si la tabla ya fue creada con db/profiles_and_rls.sql)
+    const { error: profileErr } = await supabase.from("profiles").upsert(
+      {
+        id: createdUserId,
+        email,
+        role: "admin",
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "id" },
+    )
+    if (profileErr) {
+      console.error("No se pudo upsert profiles.role=admin:", profileErr.message)
+    }
+
     const usedAt = new Date().toISOString()
     const { data: markRows, error: markErr } = await supabase
       .from("admin_invitations")

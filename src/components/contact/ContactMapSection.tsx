@@ -46,8 +46,8 @@ export function ContactMapSection() {
                 <div>
                   <h3 className="font-semibold text-lg text-slate-900">{p.emailTitle}</h3>
                   <p className="text-slate-500 mb-1">{p.emailHint}</p>
-                  <a href="mailto:hola@vivilastermas.com.ar" className="text-blue-600 font-medium hover:underline">
-                    hola@vivilastermas.com.ar
+                  <a href="mailto:hola@vivilastermas.com" className="text-blue-600 font-medium hover:underline">
+                    hola@vivilastermas.com
                   </a>
                 </div>
               </div>

@@ -207,6 +207,7 @@ export default function AdminDashboard() {
       fetchTrash()
     } else {
       setIsAdmin(false)
+      router.replace("/no-autorizado")
     }
     setAuthLoading(false)
   }
