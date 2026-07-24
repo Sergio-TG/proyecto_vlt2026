@@ -52,6 +52,7 @@ import {
 import type { DistribucionCamaItem, CancelacionPolicy } from "@/lib/supabase-queries"
 import type { ApprovedReview } from "@/lib/reviews"
 import type { ReviewStats } from "@/lib/review-stats"
+import { trackPageView } from "@/services/analytics"
 
 const AlojamientoDetailLocationMap = dynamic(
   () =>
@@ -127,6 +128,8 @@ export function AccommodationDetailClient({
     let cancelled = false
     const slug = String(accommodation.slug || "").trim()
     if (!slug) return
+
+    trackPageView(slug)
 
     void (async () => {
       const { data } = await supabase

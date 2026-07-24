@@ -12,7 +12,7 @@ import { HOME_VIDEOS } from "@/lib/constants"
 import { HomeVideoSection } from "@/components/home/HomeVideoSection"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
-import { ANALYTICS_EVENT_TYPES, trackEvent } from "@/services/analytics"
+import { ANALYTICS_EVENT_TYPES, trackEvent, trackServiceInterest } from "@/services/analytics"
 
 const MapaTermas = dynamic(
   () => import("@/components/termas/MapaTermas").then((mod) => ({ default: mod.MapaTermas })),
@@ -108,7 +108,10 @@ export default function TermasPageClient({
               href="https://wa.me/5493546563187?text=%C2%A1Hola%21%20Quiero%20reservar%20un%20pase%20para%20%2ATermas%20del%20Sol%2A.%20Vengo%20del%20sitio%20web%20%2AViv%C3%AD%20las%20Termas%2A.%20%C2%BFMe%20podr%C3%ADan%20brindar%20informaci%C3%B3n%20sobre%20tarifas%20y%20disponibilidad%3F%20%C2%A1Muchas%20gracias%21"
               target="_blank"
               rel="noopener noreferrer"
-              onClick={() => trackEvent(ANALYTICS_EVENT_TYPES.CLIC_RESERVA_TERMAS)}
+              onClick={() => {
+                trackEvent(ANALYTICS_EVENT_TYPES.CLIC_RESERVA_TERMAS)
+                trackServiceInterest("Termas del Sol")
+              }}
             >
               <Button size="lg" className="text-xl px-12 py-8 rounded-full shadow-2xl hover:shadow-primary/20 transition-all font-bold">
                 {p.ctaReserve}

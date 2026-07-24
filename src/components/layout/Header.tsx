@@ -19,6 +19,9 @@ export function Header() {
   const copy = getSiteCopy(locale)
   const pathname = usePathname()
 
+  // Solo páginas con hero oscuro a full-bleed. Los posts (/blog/[slug]) tienen
+  // fondo blanco desde el primer viewport: si van en modo transparente, logo y
+  // links quedan en blanco sobre blanco y "desaparecen" (solo se ve el CTA).
   const isTransparentPage =
     pathname === "/" ||
     pathname === "/termas" ||
@@ -26,7 +29,6 @@ export function Header() {
     pathname === "/alojamientos" ||
     pathname === "/contacto" ||
     pathname === "/blog" ||
-    pathname.startsWith("/blog/") ||
     pathname === "/socios" ||
     (pathname.startsWith("/alojamientos/") && pathname !== "/alojamientos")
 
