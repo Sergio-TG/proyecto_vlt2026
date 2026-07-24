@@ -396,6 +396,14 @@ export const pagesEs = {
     newsletterTitle: "Mantente informado sobre nuestras ofertas",
     newsletterSubtitle:
       "Suscribite a nuestro boletín y descubrí lo mejor de Villa Yacanto y El Durazno.",
+    searchPlaceholder: "Buscar artículo...",
+    searchSubmit: "Buscar",
+    clearSearch: "Limpiar búsqueda",
+    categoriesTitle: "Categorías",
+    allPosts: "Todas las publicaciones",
+    emptyResults: "No se encontraron artículos que coincidan con tu búsqueda",
+    resetFilters: "Restablecer filtros",
+    postsCount: (n: number) => (n === 1 ? "1 artículo" : `${n} artículos`),
     posts: [
       {
         slug: "guia-escapada-sierras-calculo",
@@ -403,7 +411,7 @@ export const pagesEs = {
         excerpt:
           "Temporadas, rutas recomendadas y consejos prácticos para combinar naturaleza, descanso y una visita a las termas sin estrés.",
         date: "May 2026",
-        category: "Guías",
+        category: "Guías & Escapadas",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-exterior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -417,7 +425,7 @@ export const pagesEs = {
         excerpt:
           "Transparencia, fotos reales y asesoramiento local para que sepas exactamente qué esperar antes de reservar.",
         date: "Feb 2026",
-        category: "Turismo responsable",
+        category: "Alojamientos & Turismo Responsable",
         image:
           "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-alojamientos.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -431,7 +439,7 @@ export const pagesEs = {
         excerpt:
           "Horarios útiles, qué llevar en la mochila y cómo encajar las termas con tu día en El Durazno.",
         date: "Nov 2025",
-        category: "Termas",
+        category: "Bienestar & Termas",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-interior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -445,7 +453,7 @@ export const pagesEs = {
         excerpt:
           "Desde trekking suave hasta sound healing al atardecer — ideas para quien quiere vivir algo más que el descanso en cabaña.",
         date: "Oct 2025",
-        category: "Experiencias",
+        category: "Experiencias & Naturaleza",
         image:
           "https://ik.imagekit.io/vivilastermas/entorno/experiencias/actividades-yoga-rio.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -875,6 +883,14 @@ export const pagesEn: typeof pagesEs = {
     newsletterTitle: "Stay in the loop with our updates",
     newsletterSubtitle:
       "Subscribe to our newsletter and discover the best of Villa Yacanto & El Durazno.",
+    searchPlaceholder: "Search article...",
+    searchSubmit: "Search",
+    clearSearch: "Clear search",
+    categoriesTitle: "Categories",
+    allPosts: "All posts",
+    emptyResults: "No articles matched your search",
+    resetFilters: "Reset filters",
+    postsCount: (n: number) => (n === 1 ? "1 article" : `${n} articles`),
     posts: [
       {
         slug: "guia-escapada-sierras-calculo",
@@ -882,7 +898,7 @@ export const pagesEn: typeof pagesEs = {
         excerpt:
           "Seasons, recommended routes and practical tips for combining nature, rest and Heated Pools visits without fuss.",
         date: "Jan 2026",
-        category: "Guides",
+        category: "Guides & Getaways",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-exterior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -896,7 +912,7 @@ export const pagesEn: typeof pagesEs = {
         excerpt:
           "Transparency, real photos and local guidance so you know exactly what to expect before you book.",
         date: "Feb 2026",
-        category: "Responsible travel",
+        category: "Stays & Responsible Travel",
         image:
           "https://ik.imagekit.io/vivilastermas/entorno/bg-paginas/hero-alojamientos.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -910,7 +926,7 @@ export const pagesEn: typeof pagesEs = {
         excerpt:
           "Opening hours essentials, packing tips and fitting the Heated Pools into your El Durazno day.",
         date: "Nov 2025",
-        category: "Heated Pools",
+        category: "Wellness & Heated Pools",
         image:
           "https://ik.imagekit.io/vivilastermas/galeria/termas/pileta-interior001.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [
@@ -924,7 +940,7 @@ export const pagesEn: typeof pagesEs = {
         excerpt:
           "From gentle hikes to sunset sound healing — ideas for guests who want more than a quiet cabin stay.",
         date: "Oct 2025",
-        category: "Experiences",
+        category: "Experiences & Nature",
         image:
           "https://ik.imagekit.io/vivilastermas/entorno/experiencias/actividades-yoga-rio.webp?q=80&w=900&auto=format&fit=crop",
         paragraphs: [

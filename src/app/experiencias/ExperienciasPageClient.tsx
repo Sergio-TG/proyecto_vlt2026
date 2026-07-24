@@ -11,6 +11,7 @@ import {
   RecommendedProvidersSection,
   type ProviderGalleryUrls,
 } from "@/components/experiencias/RecommendedProvidersSection"
+import { trackServiceInterest } from "@/services/analytics"
 
 const IMAGE_META = [
   {
@@ -126,7 +127,7 @@ export default function ExperienciasPageClient({
               <div className="p-10 flex flex-col flex-grow space-y-4">
                 <h3 className="text-3xl font-bold group-hover:text-primary transition-colors duration-300 tracking-tight">{exp.title}</h3>
                 <p className="text-slate-500 mb-6 flex-grow leading-relaxed text-lg font-light">{exp.description}</p>
-                <Link href="/contacto">
+                <Link href="/contacto" onClick={() => trackServiceInterest(exp.title)}>
                   <Button
                     size="lg"
                     variant="outline"

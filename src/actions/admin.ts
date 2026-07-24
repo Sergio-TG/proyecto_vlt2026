@@ -110,40 +110,25 @@ export async function adminGetAnalytics(token: string): Promise<ActionResult<Adm
   const supabase = getServerSupabase()
   if (!supabase) return { success: false, message: "Configuración del servidor incompleta." }
 
-  const [{ data: views, error: viewsErr }, { data: interests, error: interestsErr }, { data: events, error: eventsErr }] =
-    await Promise.all([
-      supabase.from("page_views").select("slug").order("created_at", { ascending: false }).limit(5000),
-      supabase.from("service_interests").select("service").order("created_at", { ascending: false }).limit(5000),
-      supabase.from("analytics_events").select("event_type, target_id").order("created_at", { ascending: false }).limit(10000),
-    ])
+  const { data: events, error: eventsErr } = await supabase
+    .from("analytics_events")
+    .select("event_type, target_id")
+    .order("created_at", { ascending: false })
+    .limit(10000)
 
-  if (viewsErr || !views) return { success: false, message: "No se pudieron cargar las métricas de vistas." }
-  if (interestsErr || !interests) return { success: false, message: "No se pudieron cargar las métricas de servicios." }
-  if (eventsErr || !events) return { success: false, message: "No se pudieron cargar las métricas de interacción." }
+  if (eventsErr || !events) {
+    console.error("adminGetAnalytics analytics_events error:", eventsErr)
+    return {
+      success: false,
+      message: eventsErr?.message
+        ? `No se pudieron cargar las métricas: ${eventsErr.message}`
+        : "No se pudieron cargar las métricas de interacción.",
+    }
+  }
 
+  // Vistas de ficha + clics en tarjeta (ambos miden interés por alojamiento).
   const viewCounts = new Map<string, number>()
-  for (const row of views as unknown as Array<{ slug?: unknown }>) {
-    const slug = typeof row?.slug === "string" ? row.slug.trim() : ""
-    if (!slug) continue
-    viewCounts.set(slug, (viewCounts.get(slug) || 0) + 1)
-  }
-
   const serviceCounts = new Map<string, number>()
-  for (const row of interests as unknown as Array<{ service?: unknown }>) {
-    const service = typeof row?.service === "string" ? row.service.trim() : ""
-    if (!service) continue
-    serviceCounts.set(service, (serviceCounts.get(service) || 0) + 1)
-  }
-
-  const topViewed = Array.from(viewCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 5)
-    .map(([key, count]) => ({ key, count }))
-
-  const topServices = Array.from(serviceCounts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 12)
-    .map(([key, count]) => ({ key, count }))
 
   let totalAlojamientos = 0
   let totalContacto = 0
@@ -154,15 +139,34 @@ export async function adminGetAnalytics(token: string): Promise<ActionResult<Adm
     const eventType = typeof row?.event_type === "string" ? row.event_type.trim() : ""
     const targetId = typeof row?.target_id === "string" ? row.target_id.trim() : ""
 
-    if (eventType === "clic_alojamiento") {
+    if (eventType === "page_view" && targetId) {
+      viewCounts.set(targetId, (viewCounts.get(targetId) || 0) + 1)
+    } else if (eventType === "service_interest" && targetId) {
+      serviceCounts.set(targetId, (serviceCounts.get(targetId) || 0) + 1)
+    } else if (eventType === "clic_alojamiento") {
       totalAlojamientos += 1
-      if (targetId) alojamientoCounts.set(targetId, (alojamientoCounts.get(targetId) || 0) + 1)
+      if (targetId) {
+        alojamientoCounts.set(targetId, (alojamientoCounts.get(targetId) || 0) + 1)
+        // Suma al ranking de "más vistas" para no depender solo de page_view.
+        viewCounts.set(targetId, (viewCounts.get(targetId) || 0) + 1)
+      }
     } else if (eventType === "clic_contacto") {
       totalContacto += 1
     } else if (eventType === "clic_reserva_termas") {
       totalReservaTermas += 1
     }
   }
+
+  const topViewed = Array.from(viewCounts.entries())
+    .filter(([key]) => !key.startsWith("test-"))
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([key, count]) => ({ key, count }))
+
+  const topServices = Array.from(serviceCounts.entries())
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 12)
+    .map(([key, count]) => ({ key, count }))
 
   const topAlojamientos = Array.from(alojamientoCounts.entries())
     .sort((a, b) => b[1] - a[1])

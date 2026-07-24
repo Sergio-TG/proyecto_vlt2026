@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { GaleriaAlojamiento } from "@/components/alojamientos/GaleriaAlojamiento"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+import { trackServiceInterest } from "@/services/analytics"
 
 const WHATSAPP_PHONE = "5493546525404"
 
@@ -139,7 +140,13 @@ export function RecommendedProvidersSection({
                   </div>
 
                   <div className="mt-auto pt-2">
-                    <a href={whatsappHref} target="_blank" rel="noopener noreferrer" className="block">
+                    <a
+                      href={whatsappHref}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block"
+                      onClick={() => trackServiceInterest(provider.name)}
+                    >
                       <Button
                         size="lg"
                         className="w-full sm:w-auto h-14 px-8 rounded-full text-base md:text-lg font-bold gap-2.5 shadow-lg shadow-primary/15 hover:shadow-xl hover:shadow-primary/25 transition-all duration-500"

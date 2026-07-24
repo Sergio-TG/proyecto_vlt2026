@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { BlogRichTextEditor } from "@/components/admin/BlogRichTextEditor"
+import { BlogAudioUploader } from "@/components/admin/BlogAudioUploader"
+import { BlogGalleryEditor } from "@/components/admin/BlogGalleryEditor"
 import {
   Archive,
   CheckCircle2,
@@ -26,7 +28,8 @@ import {
   X,
 } from "lucide-react"
 import { slugify } from "@/lib/utils"
-import type { BlogPostRow, BlogPostStatus } from "@/lib/blog"
+import type { BlogGalleryItem, BlogPostRow, BlogPostStatus } from "@/lib/blog"
+import { BLOG_CATEGORIES, type BlogCategorySlug } from "@/lib/blog-categories"
 
 type FormState = {
   id: string | null
@@ -39,7 +42,11 @@ type FormState = {
   paragraphs_en: string
   category_es: string
   category_en: string
+  category_slug: string
   image: string
+  audio_url: string
+  audio_title: string
+  gallery: BlogGalleryItem[]
   status: BlogPostStatus
   published_at: string
 }
@@ -55,7 +62,11 @@ const EMPTY_FORM: FormState = {
   paragraphs_en: "",
   category_es: "",
   category_en: "",
+  category_slug: "",
   image: "",
+  audio_url: "",
+  audio_title: "",
+  gallery: [],
   status: "draft",
   published_at: "",
 }
@@ -88,7 +99,11 @@ function rowToForm(row: BlogPostRow): FormState {
     paragraphs_en: row.paragraphs_en.join("\n\n"),
     category_es: row.category_es,
     category_en: row.category_en,
+    category_slug: row.category_slug,
     image: row.image,
+    audio_url: row.audio_url,
+    audio_title: row.audio_title,
+    gallery: row.gallery,
     status: row.status,
     published_at: toDatetimeLocal(row.published_at),
   }
@@ -242,7 +257,11 @@ export default function AdminBlogPage() {
           paragraphs_en: form.paragraphs_en,
           category_es: form.category_es,
           category_en: form.category_en,
+          category_slug: form.category_slug,
           image: form.image,
+          audio_url: form.audio_url,
+          audio_title: form.audio_title,
+          gallery: form.gallery,
           status: form.status,
           published_at: fromDatetimeLocal(form.published_at),
         }),
@@ -479,19 +498,32 @@ export default function AdminBlogPage() {
                       <option value="archived">Archivado</option>
                     </select>
                   </div>
-                  <div className="space-y-2">
-                    <Label>Categoría (ES)</Label>
-                    <Input
-                      value={form.category_es}
-                      onChange={(e) => setForm((prev) => ({ ...prev, category_es: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Categoría (EN)</Label>
-                    <Input
-                      value={form.category_en}
-                      onChange={(e) => setForm((prev) => ({ ...prev, category_en: e.target.value }))}
-                    />
+                  <div className="space-y-2 md:col-span-2">
+                    <Label>Categoría</Label>
+                    <select
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      value={form.category_slug}
+                      onChange={(e) => {
+                        const category_slug = e.target.value as BlogCategorySlug | ""
+                        const selected = BLOG_CATEGORIES.find((c) => c.slug === category_slug)
+                        setForm((prev) => ({
+                          ...prev,
+                          category_slug,
+                          category_es: selected?.name_es ?? "",
+                          category_en: selected?.name_en ?? "",
+                        }))
+                      }}
+                    >
+                      <option value="">Sin categoría</option>
+                      {BLOG_CATEGORIES.map((cat) => (
+                        <option key={cat.slug} value={cat.slug}>
+                          {cat.name_es}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-[11px] text-slate-400">
+                      El label en inglés se sincroniza automáticamente con el catálogo.
+                    </p>
                   </div>
                   <div className="space-y-2 md:col-span-2">
                     <Label>URL de imagen</Label>
@@ -544,6 +576,24 @@ export default function AdminBlogPage() {
                     rows={8}
                     value={form.paragraphs_en}
                     onChange={(paragraphs_en) => setForm((prev) => ({ ...prev, paragraphs_en }))}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <BlogAudioUploader
+                    audioUrl={form.audio_url}
+                    audioTitle={form.audio_title}
+                    slug={form.slug || slugify(form.title_es)}
+                    token={token}
+                    onChange={({ audio_url, audio_title }) =>
+                      setForm((prev) => ({ ...prev, audio_url, audio_title }))
+                    }
+                  />
+                  <BlogGalleryEditor
+                    items={form.gallery}
+                    slug={form.slug || slugify(form.title_es)}
+                    token={token}
+                    onChange={(gallery) => setForm((prev) => ({ ...prev, gallery }))}
                   />
                 </div>
 

@@ -1,10 +1,13 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@supabase/supabase-js"
+import { getServerSupabase } from "@/lib/supabase-server"
 
 const ALLOWED_EVENT_TYPES = new Set([
   "clic_alojamiento",
   "clic_contacto",
   "clic_reserva_termas",
+  "page_view",
+  "service_interest",
 ])
 
 type TrackBody = {
@@ -12,7 +15,7 @@ type TrackBody = {
   target_id?: unknown
 }
 
-function getRlsSupabase() {
+function getAnonSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL
   const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
   if (!url || !anonKey) return null
@@ -27,11 +30,6 @@ function clamp(value: string, max: number) {
 
 export async function POST(req: Request) {
   try {
-    const supabase = getRlsSupabase()
-    if (!supabase) {
-      return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 })
-    }
-
     const body = (await req.json().catch(() => null)) as TrackBody | null
     const eventType =
       typeof body?.event_type === "string" ? clamp(body.event_type.trim(), 80) : ""
@@ -42,15 +40,31 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Evento inválido" }, { status: 400 })
     }
 
-    const { error } = await supabase.from("analytics_events").insert([
-      {
-        event_type: eventType,
-        target_id: targetId,
-      },
-    ])
+    if ((eventType === "page_view" || eventType === "service_interest") && !targetId) {
+      return NextResponse.json({ ok: false, error: "target_id requerido" }, { status: 400 })
+    }
 
+    const row = { event_type: eventType, target_id: targetId }
+
+    // Preferimos service role (evita fallos si falta la policy de INSERT en RLS).
+    const service = getServerSupabase()
+    if (service) {
+      const { error } = await service.from("analytics_events").insert([row])
+      if (error) {
+        console.error("analytics_events insert error (service):", error)
+        return NextResponse.json({ ok: false, error: "No se pudo registrar el evento" }, { status: 500 })
+      }
+      return NextResponse.json({ ok: true })
+    }
+
+    const anon = getAnonSupabase()
+    if (!anon) {
+      return NextResponse.json({ ok: false, error: "Server error" }, { status: 500 })
+    }
+
+    const { error } = await anon.from("analytics_events").insert([row])
     if (error) {
-      console.error("analytics_events insert error:", error)
+      console.error("analytics_events insert error (anon):", error)
       return NextResponse.json({ ok: false, error: "No se pudo registrar el evento" }, { status: 500 })
     }
 
