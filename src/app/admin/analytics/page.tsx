@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, BarChart3, Building2, Lock, Mail, RefreshCcw, Ticket } from "lucide-react"
+import { ArrowLeft, BarChart3, Building2, Download, Lock, Mail, RefreshCcw, Ticket } from "lucide-react"
 import { adminGetAnalytics, type AdminAnalytics } from "@/actions/admin"
 
 function maxCount(items: Array<{ count: number }>) {
@@ -15,12 +15,19 @@ function maxCount(items: Array<{ count: number }>) {
   return m
 }
 
+function filenameFromDisposition(header: string | null, fallback: string) {
+  if (!header) return fallback
+  const match = /filename="([^"]+)"/i.exec(header)
+  return match?.[1]?.trim() || fallback
+}
+
 export default function AdminAnalyticsPage() {
   const [authLoading, setAuthLoading] = React.useState(true)
   const [isAdmin, setIsAdmin] = React.useState(false)
   const [token, setToken] = React.useState<string | null>(null)
 
   const [loading, setLoading] = React.useState(false)
+  const [exporting, setExporting] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
   const [data, setData] = React.useState<AdminAnalytics | null>(null)
 
@@ -83,6 +90,42 @@ export default function AdminAnalyticsPage() {
     }
   }, [isAdmin, token, load])
 
+  const exportCsv = React.useCallback(async () => {
+    if (!token) return
+    setExporting(true)
+    setError(null)
+    try {
+      const res = await fetch("/api/admin/analytics/export", {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+
+      if (!res.ok) {
+        const json = (await res.json().catch(() => null)) as { error?: string } | null
+        throw new Error(json?.error || "No se pudo exportar las métricas.")
+      }
+
+      const blob = await res.blob()
+      const stamp = new Date().toISOString().slice(0, 10)
+      const filename = filenameFromDisposition(
+        res.headers.get("Content-Disposition"),
+        `analytics-vivi-las-termas-${stamp}.csv`,
+      )
+
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement("a")
+      a.href = url
+      a.download = filename
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "No se pudo exportar las métricas.")
+    } finally {
+      setExporting(false)
+    }
+  }, [token])
+
   if (authLoading) {
     return (
       <div className="-mx-4 -mt-4 md:-mx-6 md:-mt-6 flex min-h-[calc(100dvh-7.5rem)] flex-col items-center justify-center bg-slate-900 p-4">
@@ -139,7 +182,16 @@ export default function AdminAnalyticsPage() {
             </h1>
             <p className="text-slate-500 font-medium">Métricas internas del sitio.</p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={exportCsv}
+              disabled={exporting || loading || !token}
+              className="bg-white font-bold gap-2"
+            >
+              <Download className={`w-4 h-4 ${exporting ? "animate-pulse" : ""}`} />
+              {exporting ? "Exportando..." : "Exportar CSV"}
+            </Button>
             <Button variant="outline" onClick={load} disabled={loading} className="bg-white font-bold gap-2">
               <RefreshCcw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
               Actualizar
@@ -256,7 +308,7 @@ export default function AdminAnalyticsPage() {
           <Card className="border-slate-200 bg-white overflow-hidden">
             <CardHeader className="border-b border-slate-100 bg-slate-50/50">
               <CardTitle className="text-slate-900 font-black">Top 5 cabañas más vistas</CardTitle>
-              <CardDescription className="font-medium text-slate-500">Basado en page_views.</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Vistas de ficha + clics en tarjetas de alojamiento.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               {topViewed.length === 0 ? (
@@ -287,7 +339,7 @@ export default function AdminAnalyticsPage() {
           <Card className="border-slate-200 bg-white overflow-hidden">
             <CardHeader className="border-b border-slate-100 bg-slate-50/50">
               <CardTitle className="text-slate-900 font-black">Servicios más consultados</CardTitle>
-              <CardDescription className="font-medium text-slate-500">Basado en service_interests.</CardDescription>
+              <CardDescription className="font-medium text-slate-500">Basado en consultas de experiencias y servicios.</CardDescription>
             </CardHeader>
             <CardContent className="p-6">
               {topServices.length === 0 ? (

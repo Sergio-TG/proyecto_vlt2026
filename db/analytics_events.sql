@@ -1,5 +1,9 @@
 -- Tabla de eventos de interacción del sitio público
 -- Ejecutar en Supabase SQL Editor
+--
+-- event_type admitidos por la API:
+--   clic_alojamiento, clic_contacto, clic_reserva_termas,
+--   page_view (target_id = slug), service_interest (target_id = nombre del servicio)
 
 CREATE TABLE IF NOT EXISTS analytics_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

@@ -3,10 +3,18 @@ import { getServerSupabase } from "@/lib/supabase-server"
 import { requireAdmin } from "@/lib/requireAdmin"
 import {
   BLOG_SELECT,
+  asGalleryItems,
   normalizeBlogPostRow,
+  type BlogGalleryItem,
   type BlogPostRow,
   type BlogPostStatus,
 } from "@/lib/blog"
+import { MAX_GALLERY_ITEMS } from "@/lib/blog-media.config"
+import {
+  categoryLabelsForSlug,
+  resolveBlogCategorySlug,
+  type BlogCategorySlug,
+} from "@/lib/blog-categories"
 import { slugify } from "@/lib/utils"
 
 function parseParagraphs(value: unknown): string[] {
@@ -44,21 +52,55 @@ export type BlogPostPayload = {
   paragraphs_en?: unknown
   category_es?: string
   category_en?: string
+  category_slug?: string
   image?: string
+  audio_url?: string
+  audio_title?: string
+  gallery?: unknown
   status?: string
   published_at?: string | null
 }
 
-function buildUpsertFromBody(body: BlogPostPayload) {
+function sanitizeGallery(value: unknown): { items?: BlogGalleryItem[]; error?: string } {
+  const items = asGalleryItems(value)
+  if (items.length > MAX_GALLERY_ITEMS) {
+    return { error: `La galería admite como máximo ${MAX_GALLERY_ITEMS} elementos` }
+  }
+  return { items }
+}
+
+function resolveCategoryFields(body: BlogPostPayload): {
+  category_slug: string
+  category_es: string
+  category_en: string
+} {
+  const fromSlug = resolveBlogCategorySlug(body.category_slug)
+  const fromEs = resolveBlogCategorySlug(body.category_es)
+  const fromEn = resolveBlogCategorySlug(body.category_en)
+  const slug = (fromSlug || fromEs || fromEn || "") as BlogCategorySlug | ""
+
+  if (slug) {
+    const labels = categoryLabelsForSlug(slug)
+    return { category_slug: slug, ...labels }
+  }
+
+  return {
+    category_slug: String(body.category_slug || "").trim(),
+    category_es: String(body.category_es || "").trim(),
+    category_en: String(body.category_en || "").trim(),
+  }
+}
+
+function buildUpsertFromBody(body: BlogPostPayload): { error: string } | { data: Record<string, unknown> } {
   const titleEs = String(body.title_es || "").trim()
   if (!titleEs) {
-    return { error: "title_es es obligatorio" as const }
+    return { error: "title_es es obligatorio" }
   }
 
   const slugRaw = String(body.slug || "").trim()
   const slug = slugify(slugRaw || titleEs)
   if (!slug) {
-    return { error: "slug inválido" as const }
+    return { error: "slug inválido" }
   }
 
   const status = parseStatus(body.status) || "draft"
@@ -71,6 +113,13 @@ function buildUpsertFromBody(body: BlogPostPayload) {
     publishedAt = new Date().toISOString()
   }
 
+  const galleryResult = sanitizeGallery(body.gallery)
+  if (galleryResult.error) {
+    return { error: galleryResult.error }
+  }
+
+  const categories = resolveCategoryFields(body)
+
   return {
     data: {
       slug,
@@ -80,9 +129,13 @@ function buildUpsertFromBody(body: BlogPostPayload) {
       excerpt_en: String(body.excerpt_en || "").trim(),
       paragraphs_es: parseParagraphs(body.paragraphs_es),
       paragraphs_en: parseParagraphs(body.paragraphs_en),
-      category_es: String(body.category_es || "").trim(),
-      category_en: String(body.category_en || "").trim(),
+      category_es: categories.category_es,
+      category_en: categories.category_en,
+      category_slug: categories.category_slug,
       image: String(body.image || "").trim(),
+      audio_url: String(body.audio_url || "").trim(),
+      audio_title: String(body.audio_title || "").trim(),
+      gallery: galleryResult.items ?? [],
       status,
       published_at: publishedAt,
       updated_at: new Date().toISOString(),

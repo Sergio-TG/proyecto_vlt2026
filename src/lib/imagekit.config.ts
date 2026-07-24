@@ -26,6 +26,8 @@ export const IK_TRANSFORMS = {
   galFull: "tr=w-1400,f-auto,q-90",
   reviewThumb: "tr=w-150,h-150,fo-auto",
   reviewFull: "tr=w-1400,f-auto,q-85",
+  blogCover: "tr=w-1920,f-auto,q-90",
+  blogCard: "tr=w-1200,f-auto,q-85",
 } as const;
 
 export type IKTransform = keyof typeof IK_TRANSFORMS;
@@ -219,5 +221,29 @@ export function withImageKitTransform(url: string, transform: IKTransform): stri
   const base = String(url || "").trim().split("?")[0]
   if (!base) return ""
   return `${base}?${IK_TRANSFORMS[transform]}`
+}
+
+/**
+ * Reescribe URLs de ImageKit del blog quitando transforms viejos (p.ej. w=900)
+ * y aplicando una variante de alta calidad. Otras URLs se devuelven tal cual.
+ */
+export function resolveBlogImageUrl(
+  url: string,
+  variant: "blogCover" | "blogCard" = "blogCover",
+): string {
+  const raw = String(url || "").trim()
+  if (!raw) return ""
+
+  try {
+    const parsed = new URL(raw)
+    if (!parsed.hostname.includes("imagekit.io")) return raw
+
+    const updatedAt = parsed.searchParams.get("updatedAt")
+    const base = `${parsed.origin}${parsed.pathname}`
+    const tr = IK_TRANSFORMS[variant]
+    return updatedAt ? `${base}?${tr}&updatedAt=${encodeURIComponent(updatedAt)}` : `${base}?${tr}`
+  } catch {
+    return withImageKitTransform(raw, variant) || raw
+  }
 }
 

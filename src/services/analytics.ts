@@ -2,6 +2,8 @@ export const ANALYTICS_EVENT_TYPES = {
   CLIC_ALOJAMIENTO: "clic_alojamiento",
   CLIC_CONTACTO: "clic_contacto",
   CLIC_RESERVA_TERMAS: "clic_reserva_termas",
+  PAGE_VIEW: "page_view",
+  SERVICE_INTEREST: "service_interest",
 } as const
 
 export type AnalyticsEventType = (typeof ANALYTICS_EVENT_TYPES)[keyof typeof ANALYTICS_EVENT_TYPES]
@@ -36,4 +38,18 @@ export function trackEvent(eventType: AnalyticsEventType, targetId?: string | nu
   }).catch(() => {
     // noop
   })
+}
+
+/** Vista de ficha de alojamiento (slug en target_id). */
+export function trackPageView(slug: string): void {
+  const value = slug.trim()
+  if (!value) return
+  trackEvent(ANALYTICS_EVENT_TYPES.PAGE_VIEW, value)
+}
+
+/** Consulta de interés por un servicio/experiencia. */
+export function trackServiceInterest(service: string): void {
+  const value = service.trim()
+  if (!value) return
+  trackEvent(ANALYTICS_EVENT_TYPES.SERVICE_INTEREST, value)
 }
