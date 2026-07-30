@@ -19,8 +19,8 @@ const messagesEs = {
   },
   hero: {
     badge: "Termas Night - Exclusivo",
-    titleLine1: "Tu Escapada",
-    titleLine2: "Perfecta",
+    titleLine1: "Tu Escapada de Relax",
+    titleLine2: "y Naturaleza en Calamuchita",
     subtitleBefore: "Termas • Alojamientos Verificados •",
     subtitleAccent: "Experiencias Auténticas",
     trust1: "Inspección personal",
@@ -102,6 +102,37 @@ const messagesEs = {
       mountain_view: "Vista a la Montaña",
       river: "Cerca de Río",
       accessibility: "Accesibilidad",
+    },
+  },
+  homeSeo: {
+    intro: {
+      title: "Descubrí el encanto de Villa Yacanto, El Durazno y las Sierras de Córdoba",
+      brand: "Viví Las Termas",
+      bodyBefore: " es el portal de turismo y alojamientos diseñado para conectar a viajeros con la serenidad y la belleza natural del Valle de Calamuchita. Con información actualizada sobre ",
+      highlight: "Termas del Sol",
+      bodyAfter:
+        ", alojamientos y paseos imperdibles, nuestro espacio te permite planificar tu viaje de manera simple, rápida y transparente.",
+      imageAlt:
+        "Vista panorámica del río El Durazno serpenteando entre las sierras de Córdoba",
+    },
+    stays: {
+      title: "Cabañas y Alojamientos Verificados en Calamuchita",
+      bodyBefore: "Ya sea que busques una cabaña con vista a las sierras en ",
+      highlight1: "Villa Yacanto de Calamuchita",
+      bodyMid: ", un hospedaje tranquilo a orillas del río en ",
+      highlight2: "El Durazno",
+      bodyAfter:
+        ", o un complejo con spa, en nuestro portal encontrás opciones directas con los dueños, sin intermediarios ni comisiones ocultas.",
+      imageAlt: "Cabañas y hospedajes en Villa Yacanto de Calamuchita",
+    },
+    relax: {
+      title: "Relax en Termas del Sol y Aventura en el Cerro Champaquí",
+      bodyBefore:
+        "Disfrutá de circuitos de piscinas climatizadas en un entorno de pino y tranquilidad absoluta, o animate a recorrer las rutas de trekking y senderismo que conducen al legendario ",
+      highlight: "Cerro Champaquí",
+      bodyAfter:
+        ". Calamuchita ofrece la combinación ideal entre desconexión, turismo bienestar y paisajes inolvidables.",
+      imageAlt: "Piscina con vista panorámica a las sierras de Calamuchita, Córdoba",
     },
   },
   socialProof: {
@@ -215,8 +246,8 @@ const messagesEn: typeof messagesEs = {
   },
   hero: {
     badge: "Termas Night — Exclusive",
-    titleLine1: "Your Perfect",
-    titleLine2: "Getaway",
+    titleLine1: "Your Relaxing Escape",
+    titleLine2: "into Calamuchita Nature",
     subtitleBefore: "Heated Pools • Vetted stays •",
     subtitleAccent: "Authentic experiences",
     trust1: "In-person inspections",
@@ -298,6 +329,38 @@ const messagesEn: typeof messagesEs = {
       mountain_view: "Mountain view",
       river: "Near river",
       accessibility: "Accessibility",
+    },
+  },
+  homeSeo: {
+    intro: {
+      title: "Discover the charm of Villa Yacanto, El Durazno and the Sierras of Córdoba",
+      brand: "Viví Las Termas",
+      bodyBefore:
+        " is the tourism and lodging portal designed to connect travelers with the serenity and natural beauty of the Calamuchita Valley. With up-to-date information on ",
+      highlight: "Termas del Sol",
+      bodyAfter:
+        ", accommodations and must-see outings, our space lets you plan your trip simply, quickly and transparently.",
+      imageAlt:
+        "Panoramic view of the El Durazno river winding through the Sierras of Córdoba",
+    },
+    stays: {
+      title: "Verified Cabins and Stays in Calamuchita",
+      bodyBefore: "Whether you're looking for a cabin with mountain views in ",
+      highlight1: "Villa Yacanto de Calamuchita",
+      bodyMid: ", a quiet riverside stay in ",
+      highlight2: "El Durazno",
+      bodyAfter:
+        ", or a complex with a spa, on our portal you'll find direct options with owners—no middlemen or hidden fees.",
+      imageAlt: "Cabins and lodging in Villa Yacanto de Calamuchita",
+    },
+    relax: {
+      title: "Relax at Termas del Sol and Adventure on Cerro Champaquí",
+      bodyBefore:
+        "Enjoy heated pool circuits in a pine setting of absolute calm, or take on the trekking and hiking routes that lead to legendary ",
+      highlight: "Cerro Champaquí",
+      bodyAfter:
+        ". Calamuchita offers the ideal mix of disconnection, wellness tourism and unforgettable landscapes.",
+      imageAlt: "Swimming pool with panoramic views of the Calamuchita mountains, Córdoba",
     },
   },
   socialProof: {

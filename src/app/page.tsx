@@ -6,13 +6,17 @@ import { TermasTeaser } from "@/components/home/TermasTeaser";
 import { FeaturedAccommodations } from "@/components/home/FeaturedAccommodations";
 import { HomeVideoSection } from "@/components/home/HomeVideoSection";
 import { SocialProof } from "@/components/home/SocialProof";
+import { HomeSeoContent } from "@/components/home/HomeSeoContent";
 import { NewsletterSignup as Newsletter } from "@/components/newsletter/NewsletterSignup";
 import { HOME_VIDEOS } from "@/lib/constants";
 
 export const metadata: Metadata = {
-  title: "Viví las Termas | Turismo, Alojamientos y Aventuras en Calamuchita",
+  title: "Viví las Termas | Cabañas y Turismo en Calamuchita",
   description:
-    "Descubrí El Durazno, Villa Yacanto y Santa Rosa de Calamuchita. Encontrá los mejores alojamientos, relajate en Termas del Sol y viví experiencias de aventura y bienestar en Córdoba.",
+    "Descubrí alojamientos en Villa Yacanto, El Durazno y Calamuchita. Disfrutá de Termas del Sol, relax y aventura en Córdoba. Reservá directo.",
+  alternates: {
+    canonical: "https://www.vivilastermas.com",
+  },
 };
 
 export default function Home() {
@@ -29,6 +33,7 @@ export default function Home() {
       <HomeVideoSection src={HOME_VIDEOS.PILETA} />
       <SocialProof />
       <Newsletter variant="home" />
+      <HomeSeoContent />
     </div>
   );
 }
