@@ -33,8 +33,8 @@ export function Hero() {
         style={{ y, scale }}
         className="absolute inset-0 z-0"
       >
-        {/* Overlay gradiente oscuro para legibilidad superior e inferior */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/70 z-10" />
+        {/* Overlay gradiente oscuro para legibilidad del texto sobre la vegetación */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/70 z-10" />
         <CustomImage
           path="/bg-paginas/hero-termas.webp"
           folder="ENTORNO"
@@ -67,8 +67,10 @@ export function Hero() {
             <span className="text-sm font-bold tracking-wide uppercase text-white">{copy.hero.badge}</span>
           </motion.div>
 
-          <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white leading-[1.1] drop-shadow-2xl">
-            {copy.hero.titleLine1} <br /> <span className="text-transparent bg-clip-text bg-gradient-to-r from-white via-white to-white/60">{copy.hero.titleLine2}</span>
+          <h1 className="mx-auto max-w-4xl text-3xl font-bold leading-[1.15] tracking-tight text-white drop-shadow-lg text-balance [text-wrap:balance] [text-shadow:_0_2px_10px_rgb(0_0_0_/_70%)] sm:text-5xl md:text-6xl lg:text-7xl">
+            {copy.hero.titleLine1}
+            <br className="hidden md:block" />{" "}
+            {copy.hero.titleLine2}
           </h1>
 
           <motion.h2

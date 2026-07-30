@@ -12,9 +12,9 @@ const inter = Inter({
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://www.vivilastermas.com"),
-  title: "Viví las Termas | Turismo, Alojamientos y Aventuras en Calamuchita",
+  title: "Viví las Termas | Cabañas y Turismo en Calamuchita",
   description:
-    "Descubrí El Durazno, Villa Yacanto y Santa Rosa de Calamuchita. Encontrá los mejores alojamientos, relajate en Termas del Sol y viví experiencias de aventura y bienestar en Córdoba.",
+    "Descubrí alojamientos en Villa Yacanto, El Durazno y Calamuchita. Disfrutá de Termas del Sol, relax y aventura en Córdoba. Reservá directo.",
   robots: {
     index: true,
     follow: true,
