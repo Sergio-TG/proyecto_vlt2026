@@ -3,7 +3,8 @@
 --
 -- event_type admitidos por la API:
 --   clic_alojamiento, clic_contacto, clic_reserva_termas,
---   page_view (target_id = slug), service_interest (target_id = nombre del servicio)
+--   page_view (target_id = slug), service_interest (target_id = nombre del servicio),
+--   consult_agency (target_id = provider id), direct_provider (target_id = provider id)
 
 CREATE TABLE IF NOT EXISTS analytics_events (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
