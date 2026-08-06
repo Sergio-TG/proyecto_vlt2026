@@ -18,12 +18,11 @@ import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 import {
   AGENCY_WHATSAPP_PHONE,
-  PROVIDER_WHATSAPP_PHONE,
   RETIRO_DETOX_PROVIDER_ID,
   RETIRO_DETOX_SLUG,
   waMeHref,
 } from "@/lib/retiro-detox-vida-abundante"
-import { trackConsultAgency, trackDirectProvider, trackServiceInterest } from "@/services/analytics"
+import { trackConsultAgency, trackServiceInterest } from "@/services/analytics"
 
 const pillarIcons = [Moon, Salad, Sparkles] as const
 
@@ -36,7 +35,6 @@ export default function RetiroDetoxPageClient() {
     process.env.NEXT_PUBLIC_WHATSAPP_PHONE || AGENCY_WHATSAPP_PHONE
   ).replace(/[^\d]/g, "")
   const agencyHref = waMeHref(agencyPhone, p.whatsappPrefillAgency)
-  const providerHref = waMeHref(PROVIDER_WHATSAPP_PHONE, p.whatsappPrefillDirect)
   const pdfHref = `/experiencias/${RETIRO_DETOX_SLUG}/programa`
 
   return (
@@ -154,11 +152,11 @@ export default function RetiroDetoxPageClient() {
             <p className="text-lg text-slate-500 font-light max-w-2xl mx-auto">{p.ctaSubtitle}</p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4">
+          <div className="flex flex-col items-center gap-4">
             <Button
               asChild
               size="lg"
-              className="h-12 sm:h-14 rounded-full px-7 text-base font-bold shadow-lg shadow-primary/20"
+              className="min-h-12 h-12 sm:h-14 w-full max-w-md rounded-full px-8 text-base font-bold shadow-lg shadow-primary/20"
             >
               <a
                 href={agencyHref}
@@ -170,34 +168,18 @@ export default function RetiroDetoxPageClient() {
                 }}
               >
                 <MessageCircle className="h-5 w-5" />
-                {p.ctaAgency}
+                {p.ctaPrimary}
               </a>
             </Button>
 
-            <Button
-              asChild
-              size="lg"
-              variant="outline"
-              className="h-12 sm:h-14 rounded-full px-7 text-base font-bold border-2"
+            <Link
+              href={pdfHref}
+              className="inline-flex items-center justify-center gap-2 text-sm font-medium text-slate-500 underline-offset-4 hover:text-primary hover:underline transition-colors"
             >
-              <a
-                href={providerHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackDirectProvider(RETIRO_DETOX_PROVIDER_ID)}
-              >
-                {p.ctaProvider}
-              </a>
-            </Button>
+              <FileText className="h-4 w-4" />
+              {p.pdfLabel}
+            </Link>
           </div>
-
-          <Link
-            href={pdfHref}
-            className="inline-flex items-center gap-2 text-sm font-medium text-slate-500 underline-offset-4 hover:text-primary hover:underline transition-colors"
-          >
-            <FileText className="h-4 w-4" />
-            {p.pdfLabel}
-          </Link>
         </motion.div>
       </section>
     </div>
