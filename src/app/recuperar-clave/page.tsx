@@ -24,8 +24,9 @@ export default function RecuperarClavePage() {
     setError(null)
 
     try {
+      // PKCE: el enlace debe pasar por /auth/callback y luego a /actualizar-clave.
       const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim(), {
-        redirectTo: `${window.location.origin}/actualizar-clave`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/actualizar-clave&type=recovery`,
       })
       // Anti-enumeración: no revelar si el email existe.
       if (resetError) {

@@ -1,4 +1,6 @@
+import { Suspense } from "react"
 import { PanelAuthSync } from "@/components/panel/PanelAuthSync"
+import { PanelFlashToast } from "@/components/panel/PanelFlashToast"
 import { PanelFooter } from "@/components/panel/PanelFooter"
 import { PanelTopbar } from "@/components/panel/PanelTopbar"
 
@@ -21,6 +23,9 @@ export function PanelShell({
       <PanelTopbar panelTitle={panelTitle} />
       <main className={mainClassName ?? "flex-1 w-full p-4 md:p-6"}>{children}</main>
       <PanelFooter variant={footerVariant} />
+      <Suspense fallback={null}>
+        <PanelFlashToast />
+      </Suspense>
     </div>
   )
 }

@@ -4,6 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { AlertTriangle, Key, Lock, Mail, ShieldCheck } from "lucide-react"
+import { resolvePanelRedirect } from "@/lib/auth-redirect"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -36,29 +37,6 @@ function getSafeOrigin() {
   return `${protocol}//${host}${portSuffix}`
 }
 
-async function resolveDefaultRedirect(accessToken: string, userId: string): Promise<string> {
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("role")
-    .eq("id", userId)
-    .maybeSingle()
-
-  const profileRole = typeof profile?.role === "string" ? profile.role.toLowerCase() : ""
-  if (profileRole === "admin") return "/admin"
-  if (profileRole === "socio") return "/socios/portal"
-
-  const verifyRes = await fetch("/api/admin/verify", {
-    headers: { Authorization: `Bearer ${accessToken}` },
-  }).catch(() => null)
-
-  if (verifyRes?.ok) {
-    const json = (await verifyRes.json().catch(() => null)) as { ok?: boolean } | null
-    if (json?.ok) return "/admin"
-  }
-
-  return "/socios/portal"
-}
-
 function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -83,7 +61,7 @@ function LoginForm() {
 
   const redirectAfterAuth = React.useCallback(
     async (accessToken: string, userId: string) => {
-      const destination = nextPath ?? (await resolveDefaultRedirect(accessToken, userId))
+      const destination = nextPath ?? (await resolvePanelRedirect(accessToken, userId))
       router.replace(destination)
       router.refresh()
     },

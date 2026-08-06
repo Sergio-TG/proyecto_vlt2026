@@ -2,35 +2,81 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { AlertTriangle, Key, Lock } from "lucide-react"
+import { useRouter, useSearchParams } from "next/navigation"
+import { AlertTriangle, CheckCircle2, Key, Lock } from "lucide-react"
+import { resolvePanelRedirect } from "@/lib/auth-redirect"
 import { supabase } from "@/lib/supabase"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 
-export default function ActualizarClavePage() {
+async function notifyPasswordChanged(accessToken: string) {
+  try {
+    await fetch("/api/auth/password-changed", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+    })
+  } catch {
+    // El cambio de clave ya fue exitoso; el aviso por email no debe bloquear.
+  }
+}
+
+function ActualizarClaveForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [ready, setReady] = React.useState(false)
   const [checking, setChecking] = React.useState(true)
   const [password, setPassword] = React.useState("")
   const [confirm, setConfirm] = React.useState("")
   const [loading, setLoading] = React.useState(false)
+  const [success, setSuccess] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
 
   React.useEffect(() => {
+    if (searchParams.get("error") === "recovery-failed") {
+      setError("El enlace de recuperación no es válido o expiró. Solicitá uno nuevo.")
+      setChecking(false)
+      setReady(false)
+    }
+  }, [searchParams])
+
+  React.useEffect(() => {
     let cancelled = false
+
+    // PKCE: si el correo dejó un ?code= en esta ruta, intercambiar vía callback.
+    const code = searchParams.get("code")
+    if (code) {
+      const params = new URLSearchParams({
+        code,
+        next: "/actualizar-clave",
+        type: "recovery",
+      })
+      window.location.replace(`/auth/callback?${params.toString()}`)
+      return
+    }
+
+    const markReady = () => {
+      if (!cancelled) {
+        setReady(true)
+        setChecking(false)
+        setError(null)
+      }
+    }
 
     const init = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession()
 
-      if (!cancelled && session) {
-        setReady(true)
-        setChecking(false)
-      } else if (!cancelled) {
+      if (cancelled) return
+
+      if (session) {
+        markReady()
+      } else {
         setChecking(false)
       }
     }
@@ -38,9 +84,12 @@ export default function ActualizarClavePage() {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" || (session && event === "SIGNED_IN")) {
-        setReady(true)
-        setChecking(false)
+      if (event === "PASSWORD_RECOVERY") {
+        markReady()
+        return
+      }
+      if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
+        markReady()
       }
     })
 
@@ -50,7 +99,7 @@ export default function ActualizarClavePage() {
       cancelled = true
       subscription.unsubscribe()
     }
-  }, [])
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -67,10 +116,29 @@ export default function ActualizarClavePage() {
 
     setLoading(true)
     try {
-      const { error: updateError } = await supabase.auth.updateUser({ password })
+      const { data: userData, error: updateError } = await supabase.auth.updateUser({ password })
       if (updateError) throw updateError
 
-      await supabase.auth.signOut()
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+      const token = session?.access_token
+      const userId = userData.user?.id || session?.user?.id
+
+      if (token) {
+        await notifyPasswordChanged(token)
+      }
+
+      setSuccess(true)
+
+      if (token && userId) {
+        const destination = await resolvePanelRedirect(token, userId)
+        const sep = destination.includes("?") ? "&" : "?"
+        router.replace(`${destination}${sep}password_updated=1`)
+        router.refresh()
+        return
+      }
+
       router.replace("/login?reset=1")
       router.refresh()
     } catch {
@@ -126,12 +194,19 @@ export default function ActualizarClavePage() {
               </div>
             )}
 
+            {success && (
+              <div className="flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-4 text-sm font-medium text-emerald-200">
+                <CheckCircle2 className="h-5 w-5 shrink-0" />
+                Contraseña actualizada. Redirigiendo a tu panel...
+              </div>
+            )}
+
             {!ready ? (
               <div className="space-y-4">
                 <p className="text-center text-sm text-white/50">
                   Pedí un nuevo enlace desde la página de recuperación.
                 </p>
-                <Button asChild className="h-12 w-full rounded-xl font-black">
+                <Button asChild className="h-12 w-full rounded-xl font-black" disabled={loading}>
                   <Link href="/recuperar-clave">Solicitar nuevo enlace</Link>
                 </Button>
               </div>
@@ -155,6 +230,7 @@ export default function ActualizarClavePage() {
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Mínimo 8 caracteres"
+                      disabled={loading || success}
                       className="h-12 rounded-xl border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/25 focus-visible:ring-primary"
                     />
                   </div>
@@ -178,6 +254,7 @@ export default function ActualizarClavePage() {
                       value={confirm}
                       onChange={(e) => setConfirm(e.target.value)}
                       placeholder="Repetí la contraseña"
+                      disabled={loading || success}
                       className="h-12 rounded-xl border-white/10 bg-white/5 pl-10 text-white placeholder:text-white/25 focus-visible:ring-primary"
                     />
                   </div>
@@ -185,10 +262,10 @@ export default function ActualizarClavePage() {
 
                 <Button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || success}
                   className="h-12 w-full rounded-xl text-base font-black shadow-xl shadow-primary/20"
                 >
-                  {loading ? "Guardando..." : "Guardar nueva contraseña"}
+                  {loading ? "Guardando..." : success ? "Listo" : "Guardar nueva contraseña"}
                 </Button>
               </form>
             )}
@@ -202,5 +279,19 @@ export default function ActualizarClavePage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function ActualizarClavePage() {
+  return (
+    <React.Suspense
+      fallback={
+        <div className="flex min-h-dvh items-center justify-center bg-slate-900 px-4 py-16">
+          <div className="h-12 w-12 animate-spin rounded-full border-t-2 border-b-2 border-primary" />
+        </div>
+      }
+    >
+      <ActualizarClaveForm />
+    </React.Suspense>
   )
 }
