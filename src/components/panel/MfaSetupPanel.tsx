@@ -161,7 +161,7 @@ export function MfaSetupPanel({ emphasize = false }: MfaSetupPanelProps) {
   const hasMfa = factors.length > 0
 
   return (
-    <div className="mx-auto max-w-xl space-y-6">
+    <div className="space-y-6">
       {!emphasize && !hasMfa && !enroll && (
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm font-medium text-slate-600">
           No es obligatorio. Tu acceso actual con email y contraseña sigue funcionando igual.

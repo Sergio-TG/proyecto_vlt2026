@@ -1,5 +1,6 @@
 "use client"
 
+import { ChangePasswordForm } from "@/components/panel/ChangePasswordForm"
 import { MfaSetupPanel } from "@/components/panel/MfaSetupPanel"
 
 export default function AdminSeguridadPage() {
@@ -8,10 +9,13 @@ export default function AdminSeguridadPage() {
       <div className="mb-8 space-y-2">
         <h1 className="text-2xl font-black tracking-tight text-slate-900 sm:text-3xl">Seguridad</h1>
         <p className="text-sm font-medium text-slate-500 sm:text-base">
-          Protegé tu cuenta de administrador con verificación en dos pasos.
+          Cambiá tu contraseña y protegé la cuenta de administrador con verificación en dos pasos.
         </p>
       </div>
-      <MfaSetupPanel emphasize />
+      <div className="mx-auto max-w-xl space-y-6">
+        <ChangePasswordForm />
+        <MfaSetupPanel emphasize />
+      </div>
     </div>
   )
 }
