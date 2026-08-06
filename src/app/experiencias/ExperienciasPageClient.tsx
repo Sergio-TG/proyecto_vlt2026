@@ -26,7 +26,7 @@ const IMAGE_META = [
     delay: 0.2,
   },
   {
-    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/sound-healing002.JPG?q=80&w=2070&auto=format&fit=crop",
+    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/sound-healing002.webp?updatedAt=1784166431956",
     icon: <Sun className="w-6 h-6" />,
     delay: 0.3,
   },
@@ -115,21 +115,21 @@ export default function ExperienciasPageClient({
             onClick={() => trackServiceInterest(p.featuredRetreat.title)}
             className="group relative block overflow-hidden rounded-[2rem] border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
           >
-            <div className="relative h-64 sm:h-72 md:h-80">
+            <div className="relative h-[22rem] sm:h-[26rem] md:h-[30rem] lg:h-[34rem]">
               <img
                 src={buildRetiroHeroImageUrl("vista-exterior-lavandas.webp")}
                 alt={p.featuredRetreat.title}
                 className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/10" />
-              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-10 text-white">
-                <span className="mb-2 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/15" />
+              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-12 text-white">
+                <span className="mb-3 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
                   {p.featuredRetreat.eyebrow} · {p.featuredRetreat.dates}
                 </span>
-                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2">
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 max-w-3xl">
                   {p.featuredRetreat.title}
                 </h2>
-                <p className="max-w-2xl text-sm sm:text-base text-white/85 font-light leading-relaxed mb-4">
+                <p className="max-w-2xl text-base sm:text-lg text-white/90 font-light leading-relaxed mb-5">
                   {p.featuredRetreat.subtitle}
                 </p>
                 <span className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold text-white">

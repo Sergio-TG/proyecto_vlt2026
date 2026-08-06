@@ -45,7 +45,7 @@ export function RetiroDetoxHero({ title, subtitle, badges, heroAlt }: RetiroDeto
 
   return (
     <section
-      className="relative h-[min(92vh,820px)] min-h-[560px] w-full overflow-hidden"
+      className="relative h-[min(92vh,900px)] min-h-[640px] w-full overflow-hidden"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onTouchStart={() => setPaused(true)}

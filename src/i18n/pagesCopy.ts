@@ -209,13 +209,10 @@ export const pagesEs = {
     },
     ctaTitle: "¿Listo para depurar y recuperar tu vitalidad?",
     ctaSubtitle: "Escribinos y te ayudamos a elegir la modalidad ideal para vos.",
-    ctaAgency: "Consultar con un Asesor",
-    ctaProvider: "Contratar con Centro Vida Abundante",
+    ctaPrimary: "Contratar Retiro Detox",
     pdfLabel: "Descargar Programa Completo (PDF)",
     whatsappPrefillAgency:
-      "¡Hola! Quisiera asesoramiento sobre el *Programa Depuración y Vitalidad* de *Centro Vida Abundante* (29 Nov – 1 Dic). Vengo del sitio web *Viví las Termas*. ¿Me ayudan a elegir la mejor modalidad?",
-    whatsappPrefillDirect:
-      "¡Hola! Vi el *Programa Depuración y Vitalidad* en Viví Las Termas y me gustaría consultar disponibilidad y modalidades. ¡Gracias!",
+      "Hola Viví Las Termas! Quiero consultar disponibilidad y reservar mi lugar para el Programa Depuración y Vitalidad de Centro Vida Abundante.",
   },
   contacto: {
     heroAlt: "Paisaje - contacto",
@@ -804,13 +801,10 @@ export const pagesEn: typeof pagesEs = {
     },
     ctaTitle: "Ready to detox and reclaim your vitality?",
     ctaSubtitle: "Write to us and we’ll help you choose the ideal modality.",
-    ctaAgency: "Talk to an advisor",
-    ctaProvider: "Book with Centro Vida Abundante",
+    ctaPrimary: "Book Detox Retreat",
     pdfLabel: "Download full program (PDF)",
     whatsappPrefillAgency:
-      "Hi! I’d like advice about the *Detox & Vitality Program* at *Centro Vida Abundante* (Nov 29 – Dec 1). I’m coming from the *Viví las Termas* website. Can you help me choose the best modality?",
-    whatsappPrefillDirect:
-      "Hi! I saw the *Detox & Vitality Program* on Viví Las Termas and I’d like to check availability and modalities. Thank you!",
+      "Hi Viví Las Termas! I’d like to check availability and reserve my spot for the Detox & Vitality Program at Centro Vida Abundante.",
   },
   contacto: {
     heroAlt: "Landscape — contact",
