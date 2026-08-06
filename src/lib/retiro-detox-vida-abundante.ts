@@ -5,8 +5,6 @@ export const RETIRO_DETOX_PROVIDER_ID = "centro-vida-abundante"
 export const RETIRO_DETOX_IMAGEKIT_FOLDER = "cabana-vida-abundante"
 
 export const AGENCY_WHATSAPP_PHONE = "5493546525404"
-/** WhatsApp del prestador (Cabaña / Centro Vida Abundante). */
-export const PROVIDER_WHATSAPP_PHONE = "5493546418881"
 
 /** Ruta esperada del PDF en ImageKit (subir el archivo a esta ubicación). */
 export const RETIRO_DETOX_PDF_PATH =
