@@ -4,6 +4,8 @@ export const ANALYTICS_EVENT_TYPES = {
   CLIC_RESERVA_TERMAS: "clic_reserva_termas",
   PAGE_VIEW: "page_view",
   SERVICE_INTEREST: "service_interest",
+  CONSULT_AGENCY: "consult_agency",
+  DIRECT_PROVIDER: "direct_provider",
 } as const
 
 export type AnalyticsEventType = (typeof ANALYTICS_EVENT_TYPES)[keyof typeof ANALYTICS_EVENT_TYPES]
@@ -52,4 +54,18 @@ export function trackServiceInterest(service: string): void {
   const value = service.trim()
   if (!value) return
   trackEvent(ANALYTICS_EVENT_TYPES.SERVICE_INTEREST, value)
+}
+
+/** CTA primario: consultar con un asesor de Viví Las Termas. */
+export function trackConsultAgency(providerId: string): void {
+  const value = providerId.trim()
+  if (!value) return
+  trackEvent(ANALYTICS_EVENT_TYPES.CONSULT_AGENCY, value)
+}
+
+/** CTA secundario: contacto directo con el prestador. */
+export function trackDirectProvider(providerId: string): void {
+  const value = providerId.trim()
+  if (!value) return
+  trackEvent(ANALYTICS_EVENT_TYPES.DIRECT_PROVIDER, value)
 }

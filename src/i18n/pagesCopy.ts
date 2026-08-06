@@ -109,6 +109,113 @@ export const pagesEs = {
         },
       ],
     },
+    featuredRetreat: {
+      eyebrow: "Retiro de bienestar",
+      title: "Programa Depuración y Vitalidad",
+      subtitle:
+        "Retiro Detox integral con alimentación viva, hidroterapia y salud consciente en Centro Vida Abundante.",
+      dates: "29 Nov – 1 Dic",
+      cta: "Ver programa completo",
+    },
+  },
+  retiroDetox: {
+    heroAlt: "Centro Vida Abundante — Programa Depuración y Vitalidad",
+    heroTitle: "Programa Depuración y Vitalidad",
+    heroSubtitle:
+      "Retiro Detox integral con alimentación viva, hidroterapia y salud consciente.",
+    badges: [
+      "Del 29 de Noviembre al 1 de Diciembre",
+      "Centro Vida Abundante",
+      "Acompañamiento Profesional",
+    ],
+    pillarsTitle: "Pilares del programa",
+    pillarsSubtitle: "Tres ejes para renovar cuerpo, mente y hábitos cotidianos.",
+    pillars: [
+      {
+        title: "Descansar",
+        description:
+          "Sueño reparador, hidroterapia, relajación profunda y reconexión con la naturaleza serrana.",
+      },
+      {
+        title: "Depurar",
+        description:
+          "Alimentación 100% vegetal y cruda, jugos naturales y movimiento suave para activar la vitalidad.",
+      },
+      {
+        title: "Aprender",
+        description:
+          "Talleres psicoeducativos, educación nutricional y estrategias simples para llevar a casa.",
+      },
+    ],
+    foodTitle: "Cocina viva y equipo acompañante",
+    foodSubtitle:
+      "Una propuesta de alimentación consciente, guiada por profesionales de la salud y el bienestar.",
+    foodBody:
+      "La cocina del programa es 100% basada en plantas y sin cocción: preparaciones vivas, jugos naturales y menús pensados para acompañar la depuración con energía ligera y sabores frescos.",
+    teamTitle: "Equipo profesional",
+    teamRoles: ["Nutricionista", "Fisioterapeuta", "Masajista", "Entrenador"],
+    modalitiesTitle: "Modalidades y costos",
+    modalitiesSubtitle: "Elegí la opción que mejor se adapte a tu experiencia: local o residencial.",
+    tabLocal: "Modalidades Locales",
+    tabResidential: "Modalidades Residenciales",
+    includesLabel: "Incluye",
+    perPersonNote: "Valores por persona",
+    modalities: {
+      "local-esencial": {
+        name: "Local Esencial",
+        includes: [
+          "Acceso completo a las actividades del programa",
+          "Alimentación viva durante la jornada",
+          "Talleres psicoeducativos y educación nutricional",
+          "Uso de espacios comunes del centro",
+        ],
+      },
+      "local-integral": {
+        name: "Local Integral",
+        includes: [
+          "Todo lo de Local Esencial",
+          "Sesiones de hidroterapia",
+          "Acompañamiento nutricional personalizado",
+          "Prácticas de movimiento guiado",
+        ],
+      },
+      "local-premium": {
+        name: "Local Premium",
+        includes: [
+          "Todo lo de Local Integral",
+          "Sesión de masajes",
+          "Entrenamiento orientado a vitalidad",
+          "Materiales y seguimiento prioritario",
+        ],
+      },
+      "residencial-integral": {
+        name: "Residencial Integral",
+        includes: [
+          "Programa integral con alojamiento (2 noches)",
+          "Alimentación viva completa del retiro",
+          "Hidroterapia y acompañamiento profesional",
+          "Talleres y espacios de descanso en el centro",
+        ],
+      },
+      "residencial-premium": {
+        name: "Residencial Premium",
+        includes: [
+          "Todo lo de Residencial Integral",
+          "Preferencia de habitación / mayor confort",
+          "Masajes y sesiones premium del programa",
+          "Acompañamiento prioritario del equipo",
+        ],
+      },
+    },
+    ctaTitle: "¿Listo para depurar y recuperar tu vitalidad?",
+    ctaSubtitle: "Escribinos y te ayudamos a elegir la modalidad ideal para vos.",
+    ctaAgency: "Consultar con un Asesor",
+    ctaProvider: "Contratar con Centro Vida Abundante",
+    pdfLabel: "Descargar Programa Completo (PDF)",
+    whatsappPrefillAgency:
+      "¡Hola! Quisiera asesoramiento sobre el *Programa Depuración y Vitalidad* de *Centro Vida Abundante* (29 Nov – 1 Dic). Vengo del sitio web *Viví las Termas*. ¿Me ayudan a elegir la mejor modalidad?",
+    whatsappPrefillDirect:
+      "¡Hola! Vi el *Programa Depuración y Vitalidad* en Viví Las Termas y me gustaría consultar disponibilidad y modalidades. ¡Gracias!",
   },
   contacto: {
     heroAlt: "Paisaje - contacto",
@@ -597,6 +704,113 @@ export const pagesEn: typeof pagesEs = {
         },
       ],
     },
+    featuredRetreat: {
+      eyebrow: "Wellness retreat",
+      title: "Detox & Vitality Program",
+      subtitle:
+        "An integral detox retreat with living foods, hydrotherapy and conscious health at Centro Vida Abundante.",
+      dates: "Nov 29 – Dec 1",
+      cta: "View full program",
+    },
+  },
+  retiroDetox: {
+    heroAlt: "Centro Vida Abundante — Detox & Vitality Program",
+    heroTitle: "Detox & Vitality Program",
+    heroSubtitle:
+      "An integral detox retreat with living foods, hydrotherapy and conscious health.",
+    badges: [
+      "November 29 to December 1",
+      "Centro Vida Abundante",
+      "Professional guidance",
+    ],
+    pillarsTitle: "Program pillars",
+    pillarsSubtitle: "Three pillars to renew body, mind and everyday habits.",
+    pillars: [
+      {
+        title: "Rest",
+        description:
+          "Restorative sleep, hydrotherapy, deep relaxation and reconnection with mountain nature.",
+      },
+      {
+        title: "Detox",
+        description:
+          "100% plant-based raw food, natural juices and gentle movement to activate vitality.",
+      },
+      {
+        title: "Learn",
+        description:
+          "Psychoeducational workshops, nutrition education and simple strategies to take home.",
+      },
+    ],
+    foodTitle: "Living cuisine & supporting team",
+    foodSubtitle:
+      "A conscious food proposal guided by health and wellness professionals.",
+    foodBody:
+      "The program kitchen is 100% plant-based and raw: living preparations, natural juices and menus designed to support detox with light energy and fresh flavors.",
+    teamTitle: "Professional team",
+    teamRoles: ["Nutritionist", "Physiotherapist", "Massage therapist", "Trainer"],
+    modalitiesTitle: "Modalities & pricing",
+    modalitiesSubtitle: "Choose the option that best fits your experience: local or residential.",
+    tabLocal: "Local modalities",
+    tabResidential: "Residential modalities",
+    includesLabel: "Includes",
+    perPersonNote: "Prices per person",
+    modalities: {
+      "local-esencial": {
+        name: "Local Essential",
+        includes: [
+          "Full access to program activities",
+          "Living foods during the day program",
+          "Psychoeducational workshops and nutrition education",
+          "Access to shared spaces at the center",
+        ],
+      },
+      "local-integral": {
+        name: "Local Integral",
+        includes: [
+          "Everything in Local Essential",
+          "Hydrotherapy sessions",
+          "Personalized nutritional guidance",
+          "Guided movement practices",
+        ],
+      },
+      "local-premium": {
+        name: "Local Premium",
+        includes: [
+          "Everything in Local Integral",
+          "Massage session",
+          "Vitality-oriented training",
+          "Materials and priority follow-up",
+        ],
+      },
+      "residencial-integral": {
+        name: "Residential Integral",
+        includes: [
+          "Integral program with lodging (2 nights)",
+          "Full living-food meals for the retreat",
+          "Hydrotherapy and professional support",
+          "Workshops and rest spaces at the center",
+        ],
+      },
+      "residencial-premium": {
+        name: "Residential Premium",
+        includes: [
+          "Everything in Residential Integral",
+          "Room preference / higher comfort",
+          "Premium massage and program sessions",
+          "Priority support from the team",
+        ],
+      },
+    },
+    ctaTitle: "Ready to detox and reclaim your vitality?",
+    ctaSubtitle: "Write to us and we’ll help you choose the ideal modality.",
+    ctaAgency: "Talk to an advisor",
+    ctaProvider: "Book with Centro Vida Abundante",
+    pdfLabel: "Download full program (PDF)",
+    whatsappPrefillAgency:
+      "Hi! I’d like advice about the *Detox & Vitality Program* at *Centro Vida Abundante* (Nov 29 – Dec 1). I’m coming from the *Viví las Termas* website. Can you help me choose the best modality?",
+    whatsappPrefillDirect:
+      "Hi! I saw the *Detox & Vitality Program* on Viví Las Termas and I’d like to check availability and modalities. Thank you!",
   },
   contacto: {
     heroAlt: "Landscape — contact",

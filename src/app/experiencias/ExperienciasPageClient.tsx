@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { Compass, Map, Sun, Heart, Stars } from "lucide-react"
+import { ArrowRight, Compass, Map, Sun, Heart, Stars } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
 import { useLanguage } from "@/contexts/LanguageContext"
@@ -12,6 +12,7 @@ import {
   type ProviderGalleryUrls,
 } from "@/components/experiencias/RecommendedProvidersSection"
 import { trackServiceInterest } from "@/services/analytics"
+import { RETIRO_DETOX_SLUG, buildRetiroHeroImageUrl } from "@/lib/retiro-detox-vida-abundante"
 
 const IMAGE_META = [
   {
@@ -102,6 +103,44 @@ export default function ExperienciasPageClient({
       </section>
 
       <div className="container mx-auto px-4 py-24">
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16 md:mb-20"
+        >
+          <Link
+            href={`/experiencias/${RETIRO_DETOX_SLUG}`}
+            onClick={() => trackServiceInterest(p.featuredRetreat.title)}
+            className="group relative block overflow-hidden rounded-[2rem] border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
+          >
+            <div className="relative h-64 sm:h-72 md:h-80">
+              <img
+                src={buildRetiroHeroImageUrl("vista-exterior-lavandas.webp")}
+                alt={p.featuredRetreat.title}
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/35 to-black/10" />
+              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-10 text-white">
+                <span className="mb-2 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
+                  {p.featuredRetreat.eyebrow} · {p.featuredRetreat.dates}
+                </span>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2">
+                  {p.featuredRetreat.title}
+                </h2>
+                <p className="max-w-2xl text-sm sm:text-base text-white/85 font-light leading-relaxed mb-4">
+                  {p.featuredRetreat.subtitle}
+                </p>
+                <span className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold text-white">
+                  {p.featuredRetreat.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
           {experiences.map((exp) => (
             <motion.div

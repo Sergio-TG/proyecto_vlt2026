@@ -8,6 +8,8 @@ const ALLOWED_EVENT_TYPES = new Set([
   "clic_reserva_termas",
   "page_view",
   "service_interest",
+  "consult_agency",
+  "direct_provider",
 ])
 
 type TrackBody = {
@@ -40,7 +42,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ ok: false, error: "Evento inválido" }, { status: 400 })
     }
 
-    if ((eventType === "page_view" || eventType === "service_interest") && !targetId) {
+    if (
+      (eventType === "page_view" ||
+        eventType === "service_interest" ||
+        eventType === "consult_agency" ||
+        eventType === "direct_provider") &&
+      !targetId
+    ) {
       return NextResponse.json({ ok: false, error: "target_id requerido" }, { status: 400 })
     }
 
