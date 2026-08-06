@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { Camera, Loader2, User } from "lucide-react"
+import { ChangePasswordForm } from "@/components/panel/ChangePasswordForm"
 import { Button } from "@/components/ui/button"
 import {
   Dialog,
@@ -132,11 +133,11 @@ export function PanelProfileModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="max-h-[90vh] max-w-md overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Mi Perfil</DialogTitle>
           <DialogDescription>
-            Actualizá tu foto de perfil. Se mostrará en la barra superior del panel.
+            Actualizá tu foto y, si querés, tu contraseña.
           </DialogDescription>
         </DialogHeader>
 
@@ -181,6 +182,8 @@ export function PanelProfileModal({
           </div>
 
           {error ? <p className="text-sm font-medium text-red-600">{error}</p> : null}
+
+          <ChangePasswordForm variant="embedded" />
         </div>
 
         <DialogFooter>
@@ -194,7 +197,7 @@ export function PanelProfileModal({
                 Guardando...
               </>
             ) : (
-              "Guardar"
+              "Guardar foto"
             )}
           </Button>
         </DialogFooter>
