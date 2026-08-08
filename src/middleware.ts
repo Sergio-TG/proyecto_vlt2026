@@ -55,7 +55,8 @@ export async function middleware(request: NextRequest) {
     loginUrl.pathname = "/login";
     loginUrl.search = "";
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    // 303: fuerza GET al destino (mejor con proxies que cachean mal redirects RSC).
+    return NextResponse.redirect(loginUrl, 303);
   }
 
   return supabaseResponse;

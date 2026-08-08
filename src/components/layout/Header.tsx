@@ -114,32 +114,35 @@ export function Header() {
               <Globe className="h-4 w-4" />
               <span>{locale.toUpperCase()}</span>
             </Button>
-            <Link href="/socios/portal">
-              <Button
-                variant="outline"
-                size="sm"
-                className={cn(
-                  "rounded-full border-2 px-4 font-semibold transition-all duration-300",
-                  showSolidHeader
-                    ? "border-primary text-primary hover:bg-primary/5"
-                    : "border-white/80 bg-white/10 text-white hover:bg-white/20",
-                )}
-              >
-                {copy.header.accessSocios}
-              </Button>
-            </Link>
-            <Link href="/#planificar-viaje">
-              <Button
-                className={cn(
-                  "rounded-full px-6 py-2 font-bold transition-all duration-300",
-                  !showSolidHeader && isTransparentPage
-                    ? "bg-white text-primary hover:bg-white/90"
-                    : "bg-primary text-white hover:bg-primary/90",
-                )}
-              >
-                {copy.header.planTrip}
-              </Button>
-            </Link>
+            {/*
+              Navegación full-document (sin soft-nav RSC): evita que el proxy/CDN
+              de Hostinger sirva text/x-component (payload RSC) como si fuera HTML
+              tras el redirect del middleware a /login.
+            */}
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className={cn(
+                "rounded-full border-2 px-4 font-semibold transition-all duration-300",
+                showSolidHeader
+                  ? "border-primary text-primary hover:bg-primary/5"
+                  : "border-white/80 bg-white/10 text-white hover:bg-white/20",
+              )}
+            >
+              <a href="/socios/portal">{copy.header.accessSocios}</a>
+            </Button>
+            <Button
+              asChild
+              className={cn(
+                "rounded-full px-6 py-2 font-bold transition-all duration-300",
+                !showSolidHeader && isTransparentPage
+                  ? "bg-white text-primary hover:bg-white/90"
+                  : "bg-primary text-white hover:bg-primary/90",
+              )}
+            >
+              <Link href="/#planificar-viaje">{copy.header.planTrip}</Link>
+            </Button>
           </div>
 
           <button
@@ -195,14 +198,16 @@ export function Header() {
                 <Globe className="h-4 w-4" />
                 {locale === "es" ? copy.header.mobileLangHint : copy.header.mobileLangHintEn}
               </Button>
-              <Link href="/socios/portal" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button variant="outline" className="w-full border-slate-200 font-semibold">
+              <Button asChild variant="outline" className="w-full border-slate-200 font-semibold">
+                <a href="/socios/portal" onClick={() => setIsMobileMenuOpen(false)}>
                   {copy.header.accessSocios}
-                </Button>
-              </Link>
-              <Link href="/#planificar-viaje" className="w-full" onClick={() => setIsMobileMenuOpen(false)}>
-                <Button className="w-full font-bold">{copy.header.planTrip}</Button>
-              </Link>
+                </a>
+              </Button>
+              <Button asChild className="w-full font-bold">
+                <Link href="/#planificar-viaje" onClick={() => setIsMobileMenuOpen(false)}>
+                  {copy.header.planTrip}
+                </Link>
+              </Button>
             </div>
           </div>
         </div>
