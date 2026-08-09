@@ -114,7 +114,7 @@ export const pagesEs = {
       title: "Programa Depuración y Vitalidad",
       subtitle:
         "Retiro Detox integral con alimentación viva, hidroterapia y salud consciente en Centro Vida Abundante.",
-      dates: "29 Nov – 1 Dic",
+      dates: "29 Nov – 1 Dic 2026",
       cta: "Ver programa completo",
     },
   },
@@ -124,7 +124,7 @@ export const pagesEs = {
     heroSubtitle:
       "Retiro Detox integral con alimentación viva, hidroterapia y salud consciente.",
     badges: [
-      "Del 29 de Noviembre al 1 de Diciembre",
+      "Del 29 de Noviembre al 1 de Diciembre de 2026",
       "Centro Vida Abundante",
       "Acompañamiento Profesional",
     ],
@@ -191,7 +191,7 @@ export const pagesEs = {
       "residencial-integral": {
         name: "Residencial Integral",
         includes: [
-          "Programa integral con alojamiento (2 noches)",
+          "Programa integral con alojamiento (3 noches)",
           "Alimentación viva completa del retiro",
           "Hidroterapia y acompañamiento profesional",
           "Talleres y espacios de descanso en el centro",
@@ -706,7 +706,7 @@ export const pagesEn: typeof pagesEs = {
       title: "Detox & Vitality Program",
       subtitle:
         "An integral detox retreat with living foods, hydrotherapy and conscious health at Centro Vida Abundante.",
-      dates: "Nov 29 – Dec 1",
+      dates: "Nov 29 – Dec 1 2026",
       cta: "View full program",
     },
   },
@@ -716,7 +716,7 @@ export const pagesEn: typeof pagesEs = {
     heroSubtitle:
       "An integral detox retreat with living foods, hydrotherapy and conscious health.",
     badges: [
-      "November 29 to December 1",
+      "November 29 to December 1, 2026",
       "Centro Vida Abundante",
       "Professional guidance",
     ],
@@ -783,7 +783,7 @@ export const pagesEn: typeof pagesEs = {
       "residencial-integral": {
         name: "Residential Integral",
         includes: [
-          "Integral program with lodging (2 nights)",
+          "Integral program with lodging (3 nights)",
           "Full living-food meals for the retreat",
           "Hydrotherapy and professional support",
           "Workshops and rest spaces at the center",
