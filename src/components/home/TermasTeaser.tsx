@@ -33,8 +33,9 @@ export function TermasTeaser() {
         >
           <div 
             className="h-full w-full bg-cover bg-center"
-            style={{ 
-              backgroundImage: "url('https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=80&w=2070&auto=format&fit=crop')"
+            style={{
+              backgroundImage:
+                "url('https://images.unsplash.com/photo-1544161515-4ab6ce6db874?q=75&w=1200&auto=format&fit=crop')",
             }} 
           />
         </motion.div>

@@ -1,14 +1,47 @@
 import type { Metadata } from "next";
+import dynamic from "next/dynamic";
 import { Hero } from "@/components/home/Hero";
 import { NarrativeFilter } from "@/components/home/NarrativeFilter";
 import { TrustBuilders } from "@/components/home/TrustBuilders";
-import { TermasTeaser } from "@/components/home/TermasTeaser";
-import { FeaturedAccommodations } from "@/components/home/FeaturedAccommodations";
-import { HomeVideoSection } from "@/components/home/HomeVideoSection";
-import { SocialProof } from "@/components/home/SocialProof";
-import { HomeSeoContent } from "@/components/home/HomeSeoContent";
-import { NewsletterSignup as Newsletter } from "@/components/newsletter/NewsletterSignup";
 import { HOME_VIDEOS } from "@/lib/constants";
+
+const HomeVideoSection = dynamic(
+  () =>
+    import("@/components/home/HomeVideoSection").then((m) => m.HomeVideoSection),
+  { ssr: true },
+);
+
+const TermasTeaser = dynamic(
+  () => import("@/components/home/TermasTeaser").then((m) => m.TermasTeaser),
+  { ssr: true },
+);
+
+const FeaturedAccommodations = dynamic(
+  () =>
+    import("@/components/home/FeaturedAccommodations").then(
+      (m) => m.FeaturedAccommodations,
+    ),
+  { ssr: true },
+);
+
+const SocialProof = dynamic(
+  () => import("@/components/home/SocialProof").then((m) => m.SocialProof),
+  { ssr: true },
+);
+
+const Newsletter = dynamic(
+  () =>
+    import("@/components/newsletter/NewsletterSignup").then(
+      (m) => m.NewsletterSignup,
+    ),
+  { ssr: true },
+);
+
+const HomeSeoContent = dynamic(
+  () =>
+    import("@/components/home/HomeSeoContent").then((m) => m.HomeSeoContent),
+  { ssr: true },
+);
 
 export const metadata: Metadata = {
   title: "Viví las Termas | Cabañas y Turismo en Calamuchita",

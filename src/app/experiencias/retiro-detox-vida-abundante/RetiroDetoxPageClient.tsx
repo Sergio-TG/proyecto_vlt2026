@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import {
   FileText,
@@ -13,7 +14,6 @@ import {
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { RetiroDetoxHero } from "@/components/experiencias/retiro-detox/RetiroDetoxHero"
-import { RetiroDetoxModalities } from "@/components/experiencias/retiro-detox/RetiroDetoxModalities"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 import {
@@ -23,6 +23,14 @@ import {
   waMeHref,
 } from "@/lib/retiro-detox-vida-abundante"
 import { trackConsultAgency, trackServiceInterest } from "@/services/analytics"
+
+const RetiroDetoxModalities = dynamic(
+  () =>
+    import("@/components/experiencias/retiro-detox/RetiroDetoxModalities").then(
+      (m) => m.RetiroDetoxModalities,
+    ),
+  { ssr: true },
+)
 
 const pillarIcons = [Moon, Salad, Sparkles] as const
 

@@ -20,14 +20,18 @@ export const IMAGEKIT_PUBLIC_KEY = process.env.NEXT_PUBLIC_IMAGEKIT_PUBLIC_KEY;
 
 export const IK_TRANSFORMS = {
   card: "tr=w-600,h-400,c-at_max,f-auto,q-80",
-  heroPage: "tr=w-2560,f-auto,q-90",
+  /** Hero full-bleed: sin ancho fijo extremo; Next/ImageKit eligen w según `sizes`. */
+  heroPage: "tr=f-auto,q-80",
+  /** Variante móvil explícita para preload LCP / backgrounds. */
+  heroMobile: "tr=w-800,q-80,f-auto",
   galMain: "tr=w-900,h-600,c-maintain_ratio,f-auto,q-85",
   galThumb: "tr=w-450,h-300,c-maintain_ratio,f-auto,q-75",
   galFull: "tr=w-1400,f-auto,q-90",
   reviewThumb: "tr=w-150,h-150,fo-auto",
   reviewFull: "tr=w-1400,f-auto,q-85",
-  blogCover: "tr=w-1920,f-auto,q-90",
-  blogCard: "tr=w-1200,f-auto,q-85",
+  blogCover: "tr=w-1200,f-auto,q-80",
+  blogCard: "tr=w-800,f-auto,q-80",
+  seoContent: "tr=w-800,q-80,f-auto",
 } as const;
 
 export type IKTransform = keyof typeof IK_TRANSFORMS;

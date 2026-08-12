@@ -23,6 +23,8 @@ interface CustomImageProps {
   width?: number;
   height?: number;
   priority?: boolean;
+  loading?: "lazy" | "eager";
+  quality?: number;
   className?: string;
   fill?: boolean;
   sizes?: string;
@@ -41,9 +43,11 @@ export default function CustomImage({
   width,
   height,
   priority = false,
+  loading,
+  quality = 80,
   className = "",
   fill = false,
-  sizes = "(max-width: 768px) 100vw, 50vw",
+  sizes = "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw",
 }: CustomImageProps) {
   const candidates = useMemo(() => {
     const buildPath = ({ folder: f, subfolder: sf, path: p }: ImageCandidate) => {
@@ -86,6 +90,7 @@ export default function CustomImage({
   const safeIndex = activeIndex >= 0 && activeIndex < candidates.length ? activeIndex : 0;
   const activePath = candidates[safeIndex] ?? candidates[0];
   const activeSrc = activePath.startsWith("/") ? activePath : `/${activePath}`;
+  const resolvedLoading = loading ?? (priority ? "eager" : "lazy");
 
   return (
     <ImageKitImage
@@ -94,6 +99,9 @@ export default function CustomImage({
       width={!fill ? width : undefined}
       height={!fill ? height : undefined}
       priority={priority}
+      loading={resolvedLoading}
+      quality={quality}
+      transformation={[{ format: "auto" }]}
       className={className}
       fill={fill}
       sizes={sizes}

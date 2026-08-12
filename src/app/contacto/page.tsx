@@ -8,11 +8,15 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Mail, Phone, MapPin, MessageCircle } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef, useState, useTransition } from "react"
+import dynamic from "next/dynamic"
 import { submitContact } from "@/actions/contact"
-import FaqSection from "@/components/contact/FaqSection"
 import CustomImage from "@/components/common/CustomImage"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+
+const FaqSection = dynamic(() => import("@/components/contact/FaqSection"), {
+  ssr: true,
+})
 
 export default function ContactoPage() {
   const { locale } = useLanguage()
@@ -46,6 +50,8 @@ export default function ContactoPage() {
             alt={p.heroAlt}
             fill
             priority
+            loading="eager"
+            quality={80}
             className="object-cover"
             sizes="100vw"
           />

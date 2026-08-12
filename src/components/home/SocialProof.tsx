@@ -1,15 +1,18 @@
 "use client"
 
+import Image from "next/image"
 import { Star, Instagram } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+import { withImageKitTransform } from "@/lib/imagekit.config"
 
 const testimonialMeta = [
   {
     id: 1,
     name: "RosarioCeballos38",
-    image: "https://res.cloudinary.com/dxpy1zqj6/image/upload/v1778891515/clientes-rc_w0swrm.png?q=80&w=2070&auto=format&fit=crop",
+    image:
+      "https://res.cloudinary.com/dxpy1zqj6/image/upload/f_auto,q_80,w_800/v1778891515/clientes-rc_w0swrm.png",
     rating: 5,
     stay: "Termas del Sol",
     instagramUrl: "https://www.instagram.com/rosarioceballos38/",
@@ -17,26 +20,38 @@ const testimonialMeta = [
   {
     id: 2,
     name: "Guada Pereyra",
-    image: "https://ik.imagekit.io/vivilastermas/resenas/resena_002.webp",
+    image: withImageKitTransform(
+      "https://ik.imagekit.io/vivilastermas/resenas/resena_002.webp",
+      "seoContent",
+    ),
     rating: 5,
     stay: "Termas del Sol",
-    instagramUrl: "https://www.instagram.com/p/DZ2Q1bnDvBc/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+    instagramUrl:
+      "https://www.instagram.com/p/DZ2Q1bnDvBc/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
   {
     id: 3,
     name: "soledadmiranda08",
-    image: "https://ik.imagekit.io/vivilastermas/alojamientos/hosteria-el-durazno/habitacion_vista_360.webp?updatedAt=1782073656769",
+    image: `${withImageKitTransform(
+      "https://ik.imagekit.io/vivilastermas/alojamientos/hosteria-el-durazno/habitacion_vista_360.webp",
+      "seoContent",
+    )}&updatedAt=1782073656769`,
     rating: 5,
     stay: "Hostería El Durazno",
-    instagramUrl: "https://www.instagram.com/reel/DV10WRSkUNm/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+    instagramUrl:
+      "https://www.instagram.com/reel/DV10WRSkUNm/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
   {
     id: 4,
     name: "Giuliana Blanco",
-    image: "https://ik.imagekit.io/vivilastermas/alojamientos/los-arboles/los-arboles001.webp",
+    image: withImageKitTransform(
+      "https://ik.imagekit.io/vivilastermas/alojamientos/los-arboles/los-arboles001.webp",
+      "seoContent",
+    ),
     rating: 5,
     stay: "Cabañas Los Árboles",
-    instagramUrl: "https://www.instagram.com/reel/DXCXhqEE6Pe/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
+    instagramUrl:
+      "https://www.instagram.com/reel/DXCXhqEE6Pe/?utm_source=ig_web_copy_link&igsh=MzRlODBiNWFlZA==",
   },
 ]
 
@@ -68,10 +83,13 @@ export function SocialProof() {
               key={item.id}
               className="group relative aspect-square overflow-hidden rounded-xl cursor-pointer"
             >
-              <img
+              <Image
                 src={item.image}
                 alt={`${copy.socialProof.title} — ${item.name}`}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                fill
+                loading="lazy"
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 text-white">
                 <div className="flex gap-1 mb-2 text-yellow-400">
