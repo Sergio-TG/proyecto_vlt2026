@@ -22,6 +22,7 @@ import {
 const playfair = Playfair_Display({
   subsets: ["latin"],
   variable: "--font-playfair-blog",
+  display: "swap",
 })
 
 const sectionFade = {

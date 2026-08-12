@@ -4,23 +4,31 @@ import Image from "next/image"
 import { motion } from "framer-motion"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
+import { withImageKitTransform } from "@/lib/imagekit.config"
 
 const SEO_IMAGE_SRC = {
-  entorno: "https://ik.imagekit.io/vivilastermas/entorno/seo/seo-aerea-rio-el-durazno.webp",
-  cabanas: "https://ik.imagekit.io/vivilastermas/entorno/seo/seo-cabana-sierras.webp",
-  termas: "https://ik.imagekit.io/vivilastermas/entorno/seo/seo-piscina-con-vista-sierras.webp",
+  entorno: withImageKitTransform(
+    "https://ik.imagekit.io/vivilastermas/entorno/seo/seo-aerea-rio-el-durazno.webp",
+    "seoContent",
+  ),
+  cabanas: withImageKitTransform(
+    "https://ik.imagekit.io/vivilastermas/entorno/seo/seo-cabana-sierras.webp",
+    "seoContent",
+  ),
+  termas: withImageKitTransform(
+    "https://ik.imagekit.io/vivilastermas/entorno/seo/seo-piscina-con-vista-sierras.webp",
+    "seoContent",
+  ),
 } as const
 
 function SeoImage({
   src,
   alt,
-  priority = false,
   className = "",
   delay = 0.1,
 }: {
   src: string
   alt: string
-  priority?: boolean
   className?: string
   delay?: number
 }) {
@@ -41,9 +49,9 @@ function SeoImage({
           src={src}
           alt={alt}
           fill
-          priority={priority}
+          loading="lazy"
           className="object-cover"
-          sizes="(max-width: 768px) 100vw, 50vw"
+          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
         />
       </motion.div>
     </motion.div>
@@ -96,7 +104,6 @@ export function HomeSeoContent() {
             <SeoImage
               src={SEO_IMAGE_SRC.entorno}
               alt={copy.intro.imageAlt}
-              priority
               delay={0.15}
             />
           </div>
