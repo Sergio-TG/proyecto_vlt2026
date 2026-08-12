@@ -19,6 +19,7 @@ import { resolveBlogImageUrl } from "@/lib/imagekit.config"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
+  display: "swap",
 })
 
 export default function BlogArticlePage() {

@@ -41,6 +41,8 @@ export function Hero() {
           alt={copy.hero.imageAlt}
           fill
           priority
+          loading="eager"
+          quality={80}
           className="transition-transform duration-1000 ease-out"
           sizes="100vw"
         />
