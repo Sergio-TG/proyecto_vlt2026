@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import {
@@ -24,8 +23,9 @@ import { getSiteCopy } from "@/i18n/siteCopy"
 import {
   AGENCY_WHATSAPP_PHONE,
   LIVING_FOOD_GALLERY_FILES,
+  RETIRO_DETOX_PDF_FILENAME,
   RETIRO_DETOX_PROVIDER_ID,
-  RETIRO_DETOX_SLUG,
+  getRetiroPdfUrl,
   waMeHref,
 } from "@/lib/retiro-detox-vida-abundante"
 import { trackConsultAgency, trackServiceInterest } from "@/services/analytics"
@@ -50,7 +50,7 @@ export default function RetiroDetoxPageClient() {
     process.env.NEXT_PUBLIC_WHATSAPP_PHONE || AGENCY_WHATSAPP_PHONE
   ).replace(/[^\d]/g, "")
   const agencyHref = waMeHref(agencyPhone, p.whatsappPrefillAgency)
-  const pdfHref = `/experiencias/${RETIRO_DETOX_SLUG}/programa`
+  const pdfHref = getRetiroPdfUrl()
   const pillars = p.pillars ?? []
   const livingFoodItems = p.livingFoodItems ?? []
   const teamMembers = p.teamMembers ?? []
@@ -242,13 +242,16 @@ export default function RetiroDetoxPageClient() {
               </a>
             </Button>
 
-            <Link
+            <a
               href={pdfHref}
+              download={RETIRO_DETOX_PDF_FILENAME}
+              target="_blank"
+              rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 text-sm font-medium text-slate-500 underline-offset-4 hover:text-primary hover:underline transition-colors"
             >
               <FileText className="h-4 w-4" />
               {p.pdfLabel}
-            </Link>
+            </a>
           </div>
         </motion.div>
       </section>
