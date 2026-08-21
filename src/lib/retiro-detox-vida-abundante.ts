@@ -6,9 +6,11 @@ export const RETIRO_DETOX_IMAGEKIT_FOLDER = "cabana-vida-abundante"
 
 export const AGENCY_WHATSAPP_PHONE = "5493546525404"
 
-/** Ruta esperada del PDF en ImageKit (subir el archivo a esta ubicación). */
-export const RETIRO_DETOX_PDF_PATH =
-  "documentos/experiencias/programa-depuracion-vitalidad.pdf"
+/** PDF público en Hostinger: `public/descargas` (public_html/descargas). */
+export const RETIRO_DETOX_PDF_HREF =
+  "/descargas/Programa%20Detox%202026%20-%20Vida%20Abundante.pdf"
+export const RETIRO_DETOX_PDF_FILENAME =
+  "Programa Detox 2026 - Vida Abundante.pdf"
 
 export const HERO_IMAGE_FILES = [
   "vista-exterior-lavandas.webp",
@@ -56,7 +58,6 @@ export const STAFF_PHOTO_FILES: Array<string | null> = [
   "Licenciado-Comunicacion-Hugo-Carlino.webp",
   null,
   null,
-  null,
 ]
 
 export function buildRetiroHeroImageUrl(fileName: string): string {
@@ -71,18 +72,18 @@ export function buildRetiroStaffImageUrl(fileName: string): string {
 
 export const LIVING_FOOD_GALLERY_FILES = [
   "alimentacion-verduras-crudas-varias.webp",
-  "alimentacion-plato-caldo.webp",
+  "batido-de-platano-y-cacao.webp",
   "postre-moras.webp",
   "postre-frutas-frescas.webp",
 ] as const
 
 export const SCHEDULE_GALLERY_FILES = [
-  "ejercicios-step.webp",
   "ejercicios-varios.webp",
-  "ejercicios-bicicletas-fijas.webp",
-  "ejercicios-estiramientos.webp",
+  "galletas-desk.webp",
+  "alimentacion-plato-caldo.webp",
   "hidroterapia.webp",
   "masajista.webp",
+  "relexion-varias-personas.webp",
 ] as const
 
 export function buildRetiroGalleryImageUrl(fileName: string): string {
@@ -101,13 +102,12 @@ export const RETIRO_TESTIMONIAL_PHOTOS = [
   },
   {
     src: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/retiro-detox/testimonio-andrea-ventancor.webp",
-    updatedAt: "1786667070528",
+    updatedAt: "1787279715265",
   },
 ] as const
 
 export function getRetiroPdfUrl(): string {
-  const base = getResolvedImageKitBase().replace(/\/+$/, "")
-  return `${base}/${RETIRO_DETOX_PDF_PATH}`
+  return RETIRO_DETOX_PDF_HREF
 }
 
 export function waMeHref(phone: string, text: string): string {

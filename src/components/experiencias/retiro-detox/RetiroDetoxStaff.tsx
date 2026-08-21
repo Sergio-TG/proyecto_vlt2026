@@ -40,18 +40,45 @@ function StaffMemberCard({
   fileName: string | null
 }) {
   const alt = member.name ? `${member.role}, ${member.name}` : member.role
+  const compact = !fileName
 
   return (
-    <article className="flex h-full w-full flex-col justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow">
-      <div className="relative overflow-hidden rounded-2xl aspect-[4/5] w-full bg-slate-100 group cursor-pointer">
-        {fileName ? <StaffPortrait fileName={fileName} alt={alt} /> : null}
-      </div>
+    <article
+      className={
+        compact
+          ? "flex h-full w-full flex-col items-center justify-center bg-white px-3 py-4 rounded-xl border border-slate-100 shadow-sm text-center"
+          : "flex h-full w-full flex-col justify-between bg-white p-4 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow"
+      }
+    >
+      {fileName ? (
+        <div className="relative overflow-hidden rounded-2xl aspect-[4/5] w-full bg-slate-100 group cursor-pointer">
+          <StaffPortrait fileName={fileName} alt={alt} />
+        </div>
+      ) : null}
 
-      <div className="mt-3 mb-1 flex flex-col items-center justify-start text-center">
-        <h3 className="mb-1 text-sm sm:text-base font-semibold text-primary leading-tight">
+      <div
+        className={
+          compact
+            ? "flex flex-col items-center justify-center text-center"
+            : "mt-3 mb-1 flex flex-col items-center justify-start text-center"
+        }
+      >
+        <h3
+          className={
+            compact
+              ? "mb-0.5 text-xs sm:text-sm font-semibold text-primary leading-tight"
+              : "mb-1 text-sm sm:text-base font-semibold text-primary leading-tight"
+          }
+        >
           {member.role}
         </h3>
-        <p className="text-xs sm:text-[13px] md:text-sm font-medium text-slate-600 whitespace-nowrap tracking-tight text-center">
+        <p
+          className={
+            compact
+              ? "text-[11px] sm:text-xs font-medium text-slate-600 tracking-tight"
+              : "text-xs sm:text-[13px] md:text-sm font-medium text-slate-600 whitespace-nowrap tracking-tight text-center"
+          }
+        >
           {member.name}
         </p>
       </div>
@@ -66,6 +93,13 @@ export function RetiroDetoxStaff({
   title: string
   members: TeamMember[]
 }) {
+  const items = (members ?? []).map((member, index) => ({
+    member,
+    fileName: STAFF_PHOTO_FILES[index] ?? null,
+  }))
+  const withPhoto = items.filter((item) => item.fileName)
+  const withoutPhoto = items.filter((item) => !item.fileName)
+
   return (
     <motion.section
       aria-labelledby="retiro-detox-staff-title"
@@ -81,15 +115,21 @@ export function RetiroDetoxStaff({
         {title}
       </h3>
       <ul className="mx-auto grid w-full max-w-6xl grid-cols-2 lg:grid-cols-4 gap-5">
-        {(members ?? []).map((member, index) => (
-          <li key={`${member.role}-${member.name || index}`} className="h-full">
-            <StaffMemberCard
-              member={member}
-              fileName={STAFF_PHOTO_FILES[index] ?? null}
-            />
+        {withPhoto.map(({ member, fileName }) => (
+          <li key={`${member.role}-${member.name}`} className="h-full">
+            <StaffMemberCard member={member} fileName={fileName} />
           </li>
         ))}
       </ul>
+      {withoutPhoto.length > 0 ? (
+        <ul className="mx-auto mt-4 md:mt-5 grid w-full max-w-xl grid-cols-2 gap-3 md:gap-4">
+          {withoutPhoto.map(({ member }) => (
+            <li key={`${member.role}-${member.name}`}>
+              <StaffMemberCard member={member} fileName={null} />
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </motion.section>
   )
 }
