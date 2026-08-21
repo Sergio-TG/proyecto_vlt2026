@@ -4,20 +4,26 @@ import Link from "next/link"
 import dynamic from "next/dynamic"
 import { motion } from "framer-motion"
 import {
+  Apple,
   FileText,
-  Leaf,
+  GlassWater,
   MessageCircle,
   Moon,
   Salad,
   Sparkles,
-  Users,
+  Utensils,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { RetiroDetoxHero } from "@/components/experiencias/retiro-detox/RetiroDetoxHero"
+import { RetiroDetoxMiniGallery } from "@/components/experiencias/retiro-detox/RetiroDetoxMiniGallery"
+import { RetiroDetoxSchedule } from "@/components/experiencias/retiro-detox/RetiroDetoxSchedule"
+import { RetiroDetoxStaff } from "@/components/experiencias/retiro-detox/RetiroDetoxStaff"
+import { RetiroDetoxTestimonials } from "@/components/experiencias/retiro-detox/RetiroDetoxTestimonials"
 import { useLanguage } from "@/contexts/LanguageContext"
 import { getSiteCopy } from "@/i18n/siteCopy"
 import {
   AGENCY_WHATSAPP_PHONE,
+  LIVING_FOOD_GALLERY_FILES,
   RETIRO_DETOX_PROVIDER_ID,
   RETIRO_DETOX_SLUG,
   waMeHref,
@@ -33,6 +39,7 @@ const RetiroDetoxModalities = dynamic(
 )
 
 const pillarIcons = [Moon, Salad, Sparkles] as const
+const livingFoodIcons = [Apple, Utensils, GlassWater] as const
 
 export default function RetiroDetoxPageClient() {
   const { locale } = useLanguage()
@@ -44,6 +51,10 @@ export default function RetiroDetoxPageClient() {
   ).replace(/[^\d]/g, "")
   const agencyHref = waMeHref(agencyPhone, p.whatsappPrefillAgency)
   const pdfHref = `/experiencias/${RETIRO_DETOX_SLUG}/programa`
+  const pillars = p.pillars ?? []
+  const livingFoodItems = p.livingFoodItems ?? []
+  const teamMembers = p.teamMembers ?? []
+  const scheduleBlocks = p.scheduleBlocks ?? []
 
   return (
     <div className="min-h-screen bg-white overflow-x-hidden">
@@ -54,7 +65,7 @@ export default function RetiroDetoxPageClient() {
         heroAlt={p.heroAlt}
       />
 
-      <section className="container mx-auto px-4 py-20 md:py-24 max-w-6xl">
+      <section className="container mx-auto px-4 pt-20 md:pt-24 pb-12 md:pb-16 max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -69,7 +80,7 @@ export default function RetiroDetoxPageClient() {
         </motion.div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
-          {p.pillars.map((pillar, index) => {
+          {pillars.map((pillar, index) => {
             const Icon = pillarIcons[index] ?? Sparkles
             return (
               <motion.article
@@ -91,49 +102,85 @@ export default function RetiroDetoxPageClient() {
             )
           })}
         </div>
+
+        <motion.article
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.7 }}
+          className="mt-10 md:mt-14 rounded-3xl border border-slate-100 bg-slate-50/80 p-7 sm:p-8 md:p-10"
+        >
+          <h3 className="text-xl sm:text-2xl md:text-[1.65rem] font-bold tracking-tight text-slate-900 mb-5 md:mb-6">
+            {p.whyDetoxTitle}
+          </h3>
+          <div className="space-y-5 max-w-4xl">
+            <p className="text-slate-600 leading-relaxed font-light">{p.whyDetoxP1}</p>
+            <p className="border-l-[3px] border-primary/45 pl-4 md:pl-5 text-slate-700 leading-relaxed">
+              {p.whyDetoxP2}
+            </p>
+          </div>
+        </motion.article>
       </section>
 
-      <section className="container mx-auto px-4 pb-20 md:pb-24 max-w-6xl">
+      <section className="container mx-auto px-4 pb-16 md:pb-20 max-w-6xl">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.7 }}
-          className="rounded-[2rem] border border-slate-100 bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 p-8 md:p-12 overflow-hidden"
+          className="rounded-[2rem] border border-slate-100 bg-gradient-to-br from-emerald-50/50 via-white to-slate-50 p-6 sm:p-8 md:p-10"
         >
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
-            <div className="space-y-4">
-              <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                <Leaf className="h-5 w-5" />
-              </div>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
-                {p.foodTitle}
-              </h2>
-              <p className="text-lg text-slate-500 font-light">{p.foodSubtitle}</p>
-              <p className="text-slate-600 leading-relaxed">{p.foodBody}</p>
-            </div>
-
-            <div className="rounded-3xl bg-white border border-slate-100 p-6 md:p-8 shadow-sm">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                  <Users className="h-5 w-5" />
-                </div>
-                <h3 className="text-xl font-bold text-slate-900">{p.teamTitle}</h3>
-              </div>
-              <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {p.teamRoles.map((role) => (
-                  <li
-                    key={role}
-                    className="rounded-2xl border border-slate-100 bg-slate-50 px-4 py-3 text-sm font-semibold text-slate-700"
-                  >
-                    {role}
-                  </li>
-                ))}
-              </ul>
-            </div>
+          <div className="text-center max-w-3xl mx-auto mb-8 md:mb-10 space-y-3">
+            <h3 className="text-2xl md:text-4xl font-bold tracking-tight text-slate-900">
+              {p.livingFoodTitle}
+            </h3>
+            <p className="text-base md:text-lg text-slate-500 font-light leading-relaxed">
+              {p.livingFoodSubtitle}
+            </p>
           </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+            {livingFoodItems.map((item, index) => {
+              const Icon = livingFoodIcons[index] ?? Apple
+              return (
+                <motion.article
+                  key={item.title}
+                  initial={{ opacity: 0, y: 20 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-40px" }}
+                  transition={{ delay: index * 0.08, duration: 0.55 }}
+                  className="rounded-2xl border border-slate-100 bg-white/90 p-6 md:p-7 shadow-[0_8px_30px_rgba(0,0,0,0.03)]"
+                >
+                  <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                    <Icon className="h-5 w-5" />
+                  </div>
+                  <h4 className="text-lg font-bold tracking-tight text-slate-900 mb-2">
+                    {item.title}
+                  </h4>
+                  <p className="text-slate-500 leading-relaxed font-light text-[0.95rem]">
+                    {item.description}
+                  </p>
+                </motion.article>
+              )
+            })}
+          </div>
+
+          <RetiroDetoxMiniGallery
+            files={LIVING_FOOD_GALLERY_FILES}
+            alts={p.livingFoodGalleryAlts ?? []}
+            className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4 max-w-5xl mx-auto"
+            sizes="(max-width: 768px) 50vw, 25vw"
+          />
         </motion.div>
+
+        <RetiroDetoxStaff title={p.teamTitle} members={teamMembers} />
       </section>
+
+      <RetiroDetoxSchedule
+        title={p.scheduleTitle}
+        blocks={scheduleBlocks}
+        galleryAlts={p.scheduleGalleryAlts ?? []}
+      />
 
       <RetiroDetoxModalities
         title={p.modalitiesTitle}
@@ -141,8 +188,23 @@ export default function RetiroDetoxPageClient() {
         tabLocal={p.tabLocal}
         tabResidential={p.tabResidential}
         includesLabel={p.includesLabel}
+        excludesLabel={p.excludesLabel}
+        reserveLabel={p.reserveLabel}
+        reserveAria={p.reserveAria}
         perPersonNote={p.perPersonNote}
         modalities={p.modalities}
+        agencyPhone={agencyPhone}
+        whatsappPrefillModality={p.whatsappPrefillModality}
+        onReserve={(modalityName) => {
+          trackConsultAgency(RETIRO_DETOX_PROVIDER_ID)
+          trackServiceInterest(`${p.heroTitle} — ${modalityName}`)
+        }}
+      />
+
+      <RetiroDetoxTestimonials
+        title={p.testimonialsTitle}
+        subtitle={p.testimonialsSubtitle}
+        items={p.testimonials ?? []}
       />
 
       <section className="container mx-auto px-4 py-20 md:py-24 max-w-4xl text-center">

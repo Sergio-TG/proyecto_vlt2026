@@ -67,7 +67,12 @@ export function ProgramaPrintClient() {
         <section className="space-y-3">
           <h2 className="text-2xl font-bold">{p.foodTitle}</h2>
           <p className="text-slate-600 text-sm leading-relaxed">{p.foodBody}</p>
-          <p className="text-sm font-semibold">{p.teamTitle}: {p.teamRoles.join(" · ")}</p>
+          <p className="text-sm font-semibold">
+            {p.teamTitle}:{" "}
+            {p.teamMembers
+              .map((member) => (member.name ? `${member.role} (${member.name})` : member.role))
+              .join(" · ")}
+          </p>
         </section>
 
         <section className="space-y-4">
@@ -75,18 +80,42 @@ export function ProgramaPrintClient() {
           <p className="text-sm text-slate-500">{p.perPersonNote}</p>
           <div className="space-y-5">
             {MODALITIES.map((item) => {
-              const copy = p.modalities[item.id]
+              const copy = p.modalities[item.id] as {
+                name: string
+                tagline: string
+                includes: string[]
+                featuredIncludes?: string[]
+                excludes?: string[]
+              }
               return (
                 <div key={item.id} className="rounded-xl border border-slate-200 p-4 break-inside-avoid">
                   <div className="flex items-baseline justify-between gap-3 mb-2">
                     <h3 className="font-bold text-lg">{copy.name}</h3>
                     <p className="font-bold text-primary">{formatArsPrice(item.price)}</p>
                   </div>
-                  <ul className="list-disc pl-5 space-y-1 text-sm text-slate-600">
+                  <p className="text-xs md:text-sm italic text-slate-600 mb-3">{copy.tagline}</p>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-slate-700">
                     {copy.includes.map((line) => (
                       <li key={line}>{line}</li>
                     ))}
+                    {copy.featuredIncludes?.map((line) => (
+                      <li key={line} className="font-semibold">
+                        ★ {line}
+                      </li>
+                    ))}
                   </ul>
+                  {copy.excludes && copy.excludes.length > 0 ? (
+                    <ul className="mt-3 flex flex-wrap gap-2" aria-label={p.excludesLabel}>
+                      {copy.excludes.map((line) => (
+                        <li
+                          key={line}
+                          className="rounded-full bg-slate-200 px-3 py-1 text-xs text-slate-700"
+                        >
+                          {line}
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
                 </div>
               )
             })}
