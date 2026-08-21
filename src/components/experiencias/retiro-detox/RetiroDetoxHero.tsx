@@ -81,7 +81,7 @@ export function RetiroDetoxHero({ title, subtitle, badges, heroAlt }: RetiroDeto
             {subtitle}
           </p>
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3 pt-1">
-            {badges.map((badge) => (
+            {badges?.map((badge) => (
               <span
                 key={badge}
                 className="inline-flex items-center rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs sm:text-sm font-medium text-white backdrop-blur-md"

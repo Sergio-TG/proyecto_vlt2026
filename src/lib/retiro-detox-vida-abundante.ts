@@ -46,10 +46,64 @@ export function formatArsPrice(value: number): string {
   return `$${value.toLocaleString("es-AR")}`
 }
 
+export const STAFF_IMAGE_FOLDER = "entorno/experiencias/retiro-detox"
+
+/** Archivos en ImageKit, en el mismo orden que `teamMembers`. `null` = solo título. */
+export const STAFF_PHOTO_FILES: Array<string | null> = [
+  "Licenciada-Nutricion-Belen-Carlino.webp",
+  "Personal-Trainer-Emanuel-Carlino.webp",
+  "Licenciada-Educacion-Cristina.webp",
+  "Licenciado-Comunicacion-Hugo-Carlino.webp",
+  null,
+  null,
+  null,
+]
+
 export function buildRetiroHeroImageUrl(fileName: string): string {
   const base = getResolvedImageKitBase().replace(/\/+$/, "")
   return `${base}/alojamientos/${RETIRO_DETOX_IMAGEKIT_FOLDER}/${fileName}?${IK_TRANSFORMS.heroPage}`
 }
+
+export function buildRetiroStaffImageUrl(fileName: string): string {
+  const base = getResolvedImageKitBase().replace(/\/+$/, "")
+  return `${base}/${STAFF_IMAGE_FOLDER}/${fileName}?tr=w-720,f-auto,q-80`
+}
+
+export const LIVING_FOOD_GALLERY_FILES = [
+  "alimentacion-verduras-crudas-varias.webp",
+  "alimentacion-plato-caldo.webp",
+  "postre-moras.webp",
+  "postre-frutas-frescas.webp",
+] as const
+
+export const SCHEDULE_GALLERY_FILES = [
+  "ejercicios-step.webp",
+  "ejercicios-varios.webp",
+  "ejercicios-bicicletas-fijas.webp",
+  "ejercicios-estiramientos.webp",
+  "hidroterapia.webp",
+  "masajista.webp",
+] as const
+
+export function buildRetiroGalleryImageUrl(fileName: string): string {
+  const base = getResolvedImageKitBase().replace(/\/+$/, "")
+  return `${base}/${STAFF_IMAGE_FOLDER}/${fileName}?tr=w-800,f-auto,q-80`
+}
+
+export const RETIRO_TESTIMONIAL_PHOTOS = [
+  {
+    src: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/retiro-detox/testimonio-susy-battilana.webp",
+    updatedAt: null as string | null,
+  },
+  {
+    src: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/retiro-detox/testimonio-miriam-pereyra.webp",
+    updatedAt: "1786667028998",
+  },
+  {
+    src: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/retiro-detox/testimonio-andrea-ventancor.webp",
+    updatedAt: "1786667070528",
+  },
+] as const
 
 export function getRetiroPdfUrl(): string {
   const base = getResolvedImageKitBase().replace(/\/+$/, "")

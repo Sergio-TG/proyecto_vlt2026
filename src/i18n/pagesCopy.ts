@@ -147,72 +147,164 @@ export const pagesEs = {
           "Talleres psicoeducativos, educación nutricional y estrategias simples para llevar a casa.",
       },
     ],
+    whyDetoxTitle: "¿Por qué nuestro organismo necesita depurarse?",
+    whyDetoxP1:
+      "En su funcionamiento normal, nuestro organismo produce sustancias tóxicas que deben ser eliminadas. Si lo son, no afectarán la salud. Pero también recibe toxinas del exterior (pesticidas, fármacos, aditivos, etc.). Cuando el organismo sobrepasa su capacidad de eliminación, no tiene más remedio que almacenarlas hasta que pueda evacuarlas.",
+    whyDetoxP2:
+      "Como consecuencia del elevado grado de intoxicación, aparece un envejecimiento precoz y la mayoría de las enfermedades crónicas del estilo de vida, junto con la pérdida de vitalidad. Esto hace necesaria una desintoxicación o eliminación de las toxinas acumuladas, inclusive antes o durante cualquier tratamiento o proceso curativo.",
+    livingFoodTitle: "Alimentación 100% Viva y Basada en Plantas",
+    livingFoodSubtitle:
+      "Una propuesta crudivegana diseñada para acompañar el proceso de depuración y recuperación celular.",
+    livingFoodItems: [
+      {
+        title: "Filosofía",
+        description:
+          "Propuesta 100% vegetal y sin cocción, basada en alimentos naturales, nutritivos y llenos de vitalidad.",
+      },
+      {
+        title: "3 comidas principales",
+        description:
+          "Elaboradas diariamente con frutas frescas, deshidratadas y oleosas, verduras frescas, frutos secos, semillas y brotes.",
+      },
+      {
+        title: "Colaciones depurativas",
+        description:
+          "Bebidas vivas diarias en formato de licuados, exprimidos y batidos funcionales.",
+      },
+    ],
     foodTitle: "Cocina viva y equipo acompañante",
     foodSubtitle:
       "Una propuesta de alimentación consciente, guiada por profesionales de la salud y el bienestar.",
     foodBody:
       "La cocina del programa es 100% basada en plantas y sin cocción: preparaciones vivas, jugos naturales y menús pensados para acompañar la depuración con energía ligera y sabores frescos.",
     teamTitle: "Equipo profesional",
-    teamRoles: ["Nutricionista", "Fisioterapeuta", "Masajista", "Entrenador"],
+    teamMembers: [
+      { role: "Nutricionista", name: "Lic. Belén Carlino" },
+      { role: "Entrenador Físico", name: "PT Emanuel Carlino" },
+      { role: "Coordinadora de Servicios", name: "Lic. en Educación Cristina" },
+      { role: "Talleres de Reflexión", name: "Lic. en Com. Hugo Carlino" },
+      { role: "Coach Psicoeducativa", name: "Lic. Silvia Acosta" },
+      { role: "Masajista", name: "Equipo de Bienestar" },
+      { role: "Fisioterapeuta", name: "Equipo de Bienestar" },
+    ],
+    scheduleTitle: "Ritmo diario del retiro",
+    scheduleBlocks: [
+      {
+        period: "Mañana",
+        text: "Despertar vital, actividad física y desayuno crudo.",
+      },
+      {
+        period: "Mediodía y tarde",
+        text: "Almuerzo, talleres educativos y circuito de hidroterapia.",
+      },
+      {
+        period: "Noche",
+        text: "Cena liviana y espacios de reflexión.",
+      },
+    ],
+    schedulePdfLabel: "Descargar cronograma completo en PDF",
+    schedulePdfAria: "Descargar cronograma completo en PDF",
+    livingFoodGalleryAlts: [
+      "Verduras crudas varias del programa",
+      "Plato de caldo vivo",
+      "Postre de moras",
+      "Postre de frutas frescas",
+    ],
+    scheduleGalleryAlts: [
+      "Ejercicios en step",
+      "Ejercicios varios",
+      "Bicicletas fijas",
+      "Estiramientos",
+      "Circuito de hidroterapia",
+      "Sesión de masajes",
+    ],
     modalitiesTitle: "Modalidades y costos",
     modalitiesSubtitle: "Elegí la opción que mejor se adapte a tu experiencia: local o residencial.",
     tabLocal: "Modalidades Locales",
     tabResidential: "Modalidades Residenciales",
     includesLabel: "Incluye",
+    excludesLabel: "No incluye",
+    reserveLabel: "Reservar",
+    reserveAria: (name: string) => `Reservar modalidad ${name}`,
     perPersonNote: "Valores por persona",
     modalities: {
       "local-esencial": {
         name: "Local Esencial",
+        tagline:
+          "Pensada para personas de la localidad que desean participar del programa sin alojamiento.",
         includes: [
           "Acceso completo a las actividades del programa",
           "Alimentación viva durante la jornada",
-          "Talleres psicoeducativos y educación nutricional",
-          "Uso de espacios comunes del centro",
+          "Talleres educativos",
+          "Espacios de reflexión",
         ],
       },
       "local-integral": {
         name: "Local Integral",
+        tagline: "Una experiencia completa para quienes desean participar sin hospedarse.",
         includes: [
           "Todo lo de Local Esencial",
-          "Sesiones de hidroterapia",
-          "Acompañamiento nutricional personalizado",
-          "Prácticas de movimiento guiado",
+          "Circuito de hidroterapia",
         ],
       },
       "local-premium": {
         name: "Local Premium",
-        includes: [
-          "Todo lo de Local Integral",
-          "Sesión de masajes",
-          "Entrenamiento orientado a vitalidad",
-          "Materiales y seguimiento prioritario",
-        ],
+        tagline:
+          "Una experiencia local completa con un componente adicional de relajación y cuidado personal.",
+        includes: ["Todo lo de Local Integral"],
+        featuredIncludes: ["Masajes durante la experiencia (2 días)"],
       },
       "residencial-integral": {
         name: "Residencial Integral",
+        tagline:
+          "Para personas que vienen de otras localidades o desean vivir la experiencia completa.",
         includes: [
-          "Programa integral con alojamiento (3 noches)",
-          "Alimentación viva completa del retiro",
-          "Hidroterapia y acompañamiento profesional",
-          "Talleres y espacios de descanso en el centro",
+          "Alojamiento completo (3 noches)",
+          "Alimentación viva y talleres guiados",
+          "Circuito de hidroterapia",
+          "Espacios de descanso y reflexión",
         ],
       },
       "residencial-premium": {
         name: "Residencial Premium",
+        tagline:
+          "Una experiencia residencial más personalizada y enfocada en la relajación profunda.",
         includes: [
-          "Todo lo de Residencial Integral",
-          "Preferencia de habitación / mayor confort",
-          "Masajes y sesiones premium del programa",
-          "Acompañamiento prioritario del equipo",
+          "Programa integral con alojamiento (3 noches)",
+          "Alimentación viva y talleres guiados",
+          "Circuito de hidroterapia y descanso",
         ],
+        featuredIncludes: ["Masajes durante la experiencia (2 días)"],
       },
     },
+    testimonialsTitle: "Experiencias de nuestros participantes",
+    testimonialsSubtitle:
+      "Voces de quienes ya recorrieron el programa de depuración y vitalidad.",
+    testimonials: [
+      {
+        name: "Susy Battilana",
+        quote:
+          "Hermoso lugar, maravillosa gente que nos mostró hábitos saludables que llevan a una mejor calidad de vida. Tan presentes en cada detalle, en cada necesidad, calificaría con un 10 +.",
+      },
+      {
+        name: "Miriam Pereyra",
+        quote:
+          "Un lugar cálido, amable, espiritual, con mucha luz natural. Me sirvió mucho para tomar conciencia de la importancia de una buena alimentación y la práctica de actividad física.",
+      },
+      {
+        name: "Andrea Ventancor",
+        quote:
+          "Estoy muy agradecida por tanto cariño recibido. La información, muy precisa y el espacio físico, precioso.",
+      },
+    ],
     ctaTitle: "¿Listo para depurar y recuperar tu vitalidad?",
     ctaSubtitle: "Escribinos y te ayudamos a elegir la modalidad ideal para vos.",
     ctaPrimary: "Contratar Retiro Detox",
     pdfLabel: "Descargar Programa Completo (PDF)",
     whatsappPrefillAgency:
       "Hola Viví Las Termas! Quiero consultar disponibilidad y reservar mi lugar para el Programa Depuración y Vitalidad de Centro Vida Abundante.",
+    whatsappPrefillModality: (name: string) =>
+      `Hola Viví Las Termas! Quiero consultar disponibilidad y reservar mi lugar para el Programa Depuración y Vitalidad de Centro Vida Abundante. Me interesa la modalidad ${name}.`,
   },
   contacto: {
     heroAlt: "Paisaje - contacto",
@@ -739,72 +831,164 @@ export const pagesEn: typeof pagesEs = {
           "Psychoeducational workshops, nutrition education and simple strategies to take home.",
       },
     ],
+    whyDetoxTitle: "Why does the body need to cleanse?",
+    whyDetoxP1:
+      "In its normal functioning, the body produces toxic substances that must be eliminated. If they are, they will not affect health. But it also receives toxins from the outside (pesticides, drugs, additives, etc.). When the body exceeds its elimination capacity, it has no choice but to store them until it can evacuate them.",
+    whyDetoxP2:
+      "As a consequence of a high degree of intoxication, premature aging and most chronic lifestyle diseases appear, along with a loss of vitality. This makes a detoxification or elimination of accumulated toxins necessary, even before or during any treatment or healing process.",
+    livingFoodTitle: "100% Living, Plant-Based Nutrition",
+    livingFoodSubtitle:
+      "A raw vegan proposal designed to support the cleansing process and cellular recovery.",
+    livingFoodItems: [
+      {
+        title: "Philosophy",
+        description:
+          "A 100% plant-based, uncooked proposal based on natural, nutritious foods full of vitality.",
+      },
+      {
+        title: "3 main meals",
+        description:
+          "Prepared daily with fresh, dehydrated and oily fruits, fresh vegetables, nuts, seeds and sprouts.",
+      },
+      {
+        title: "Cleansing snacks",
+        description:
+          "Daily living drinks in the form of blended juices, fresh-pressed juices and functional smoothies.",
+      },
+    ],
     foodTitle: "Living cuisine & supporting team",
     foodSubtitle:
       "A conscious food proposal guided by health and wellness professionals.",
     foodBody:
       "The program kitchen is 100% plant-based and raw: living preparations, natural juices and menus designed to support detox with light energy and fresh flavors.",
     teamTitle: "Professional team",
-    teamRoles: ["Nutritionist", "Physiotherapist", "Massage therapist", "Trainer"],
+    teamMembers: [
+      { role: "Nutritionist", name: "Lic. Belén Carlino" },
+      { role: "Physical Trainer", name: "PT Emanuel Carlino" },
+      { role: "Services Coordinator", name: "Lic. in Education Cristina" },
+      { role: "Reflection Workshops", name: "Lic. in Com. Hugo Carlino" },
+      { role: "Psychoeducational Coach", name: "Lic. Silvia Acosta" },
+      { role: "Massage therapist", name: "Wellness Team" },
+      { role: "Physiotherapist", name: "Wellness Team" },
+    ],
+    scheduleTitle: "Daily rhythm of the retreat",
+    scheduleBlocks: [
+      {
+        period: "Morning",
+        text: "Vital wake-up, physical activity and raw breakfast.",
+      },
+      {
+        period: "Midday and afternoon",
+        text: "Lunch, educational workshops and hydrotherapy circuit.",
+      },
+      {
+        period: "Evening",
+        text: "Light dinner and reflection spaces.",
+      },
+    ],
+    schedulePdfLabel: "Download full schedule as PDF",
+    schedulePdfAria: "Download full retreat schedule as PDF",
+    livingFoodGalleryAlts: [
+      "Assorted raw vegetables from the program",
+      "Living broth plate",
+      "Blackberry dessert",
+      "Fresh fruit dessert",
+    ],
+    scheduleGalleryAlts: [
+      "Step exercises",
+      "Various exercises",
+      "Stationary bikes",
+      "Stretching",
+      "Hydrotherapy circuit",
+      "Massage session",
+    ],
     modalitiesTitle: "Modalities & pricing",
     modalitiesSubtitle: "Choose the option that best fits your experience: local or residential.",
     tabLocal: "Local modalities",
     tabResidential: "Residential modalities",
     includesLabel: "Includes",
+    excludesLabel: "Not included",
+    reserveLabel: "Book",
+    reserveAria: (name: string) => `Book ${name} modality`,
     perPersonNote: "Prices per person",
     modalities: {
       "local-esencial": {
         name: "Local Essential",
+        tagline:
+          "Designed for local residents who want to join the program without lodging.",
         includes: [
           "Full access to program activities",
-          "Living foods during the day program",
-          "Psychoeducational workshops and nutrition education",
-          "Access to shared spaces at the center",
+          "Living food during the day",
+          "Educational workshops",
+          "Reflection spaces",
         ],
       },
       "local-integral": {
         name: "Local Integral",
+        tagline: "A complete experience for those who want to take part without staying overnight.",
         includes: [
           "Everything in Local Essential",
-          "Hydrotherapy sessions",
-          "Personalized nutritional guidance",
-          "Guided movement practices",
+          "Hydrotherapy circuit",
         ],
       },
       "local-premium": {
         name: "Local Premium",
-        includes: [
-          "Everything in Local Integral",
-          "Massage session",
-          "Vitality-oriented training",
-          "Materials and priority follow-up",
-        ],
+        tagline:
+          "A complete local experience with an added component of relaxation and personal care.",
+        includes: ["Everything in Local Integral"],
+        featuredIncludes: ["Massages during the experience (2 days)"],
       },
       "residencial-integral": {
         name: "Residential Integral",
+        tagline:
+          "For people coming from other towns or who want to live the full experience.",
         includes: [
-          "Integral program with lodging (3 nights)",
-          "Full living-food meals for the retreat",
-          "Hydrotherapy and professional support",
-          "Workshops and rest spaces at the center",
+          "Full lodging (3 nights)",
+          "Living food and guided workshops",
+          "Hydrotherapy circuit",
+          "Rest and reflection spaces",
         ],
       },
       "residencial-premium": {
         name: "Residential Premium",
+        tagline:
+          "A more personalized residential experience focused on deep relaxation.",
         includes: [
-          "Everything in Residential Integral",
-          "Room preference / higher comfort",
-          "Premium massage and program sessions",
-          "Priority support from the team",
+          "Full program with lodging (3 nights)",
+          "Living food and guided workshops",
+          "Hydrotherapy circuit and rest",
         ],
+        featuredIncludes: ["Massages during the experience (2 days)"],
       },
     },
+    testimonialsTitle: "Experiences from our participants",
+    testimonialsSubtitle:
+      "Voices of people who have already lived the cleansing and vitality program.",
+    testimonials: [
+      {
+        name: "Susy Battilana",
+        quote:
+          "A beautiful place, wonderful people who showed us healthy habits that lead to a better quality of life. So present in every detail, every need — I would rate it a 10+.",
+      },
+      {
+        name: "Miriam Pereyra",
+        quote:
+          "A warm, kind, spiritual place with plenty of natural light. It helped me become aware of how important good nutrition and physical activity are.",
+      },
+      {
+        name: "Andrea Ventancor",
+        quote:
+          "I am very grateful for all the care I received. The information was very precise and the physical space, beautiful.",
+      },
+    ],
     ctaTitle: "Ready to detox and reclaim your vitality?",
     ctaSubtitle: "Write to us and we’ll help you choose the ideal modality.",
     ctaPrimary: "Book Detox Retreat",
     pdfLabel: "Download full program (PDF)",
     whatsappPrefillAgency:
       "Hi Viví Las Termas! I’d like to check availability and reserve my spot for the Detox & Vitality Program at Centro Vida Abundante.",
+    whatsappPrefillModality: (name: string) =>
+      `Hi Viví Las Termas! I’d like to check availability and reserve my spot for the Detox & Vitality Program at Centro Vida Abundante. I’m interested in the ${name} modality.`,
   },
   contacto: {
     heroAlt: "Landscape — contact",
