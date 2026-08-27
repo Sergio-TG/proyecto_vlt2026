@@ -13,6 +13,7 @@ import {
 } from "@/components/experiencias/RecommendedProvidersSection"
 import { trackServiceInterest } from "@/services/analytics"
 import { RETIRO_DETOX_SLUG, buildRetiroHeroImageUrl } from "@/lib/retiro-detox-vida-abundante"
+import { CHAMPAQUI_SLUG } from "@/lib/oscura-overa-champaqui"
 
 const IMAGE_META = [
   {
@@ -134,6 +135,44 @@ export default function ExperienciasPageClient({
                 </p>
                 <span className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold text-white">
                   {p.featuredRetreat.cta}
+                  <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
+                </span>
+              </div>
+            </div>
+          </Link>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 28 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.7 }}
+          className="mb-16 md:mb-20"
+        >
+          <Link
+            href={`/experiencias/${CHAMPAQUI_SLUG}`}
+            onClick={() => trackServiceInterest(p.featuredChampaqui.title)}
+            className="group relative block overflow-hidden rounded-[2rem] border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
+          >
+            <div className="relative h-[380px] sm:h-[450px] overflow-hidden">
+              <img
+                src="https://ik.imagekit.io/vivilastermas/prestadores/oscura-overa/excursion94/cerro-champaqui-panoramica.webp"
+                alt={p.featuredChampaqui.title}
+                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/15" />
+              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-12 text-white">
+                <span className="mb-3 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
+                  {p.featuredChampaqui.eyebrow} · {p.featuredChampaqui.price}
+                </span>
+                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 max-w-3xl">
+                  {p.featuredChampaqui.title}
+                </h2>
+                <p className="max-w-2xl text-base sm:text-lg text-white/90 font-light leading-relaxed mb-5">
+                  {p.featuredChampaqui.subtitle}
+                </p>
+                <span className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold text-white">
+                  {p.featuredChampaqui.cta}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
               </div>
