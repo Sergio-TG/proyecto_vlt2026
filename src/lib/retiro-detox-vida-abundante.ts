@@ -6,9 +6,9 @@ export const RETIRO_DETOX_IMAGEKIT_FOLDER = "cabana-vida-abundante"
 
 export const AGENCY_WHATSAPP_PHONE = "5493546525404"
 
-/** PDF público en Hostinger: `public/descargas` (public_html/descargas). */
+/** PDF alojado en Hostinger (`public_html/descargas`). URL absoluta para no depender del repo. */
 export const RETIRO_DETOX_PDF_HREF =
-  "/descargas/Programa%20Detox%202026%20-%20Vida%20Abundante.pdf"
+  "https://www.vivilastermas.com/descargas/Programa%20Detox%202026%20-%20Vida%20Abundante.pdf"
 export const RETIRO_DETOX_PDF_FILENAME =
   "Programa Detox 2026 - Vida Abundante.pdf"
 

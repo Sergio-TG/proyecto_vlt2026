@@ -187,6 +187,16 @@ export async function getArchivosGaleriaTermas(): Promise<string[]> {
   return listImageKitPath("/galeria/termas")
 }
 
+/** Lista imágenes de la galería Champaquí (`prestadores/oscura-overa/excursion94/`). Sin fallback a otras carpetas. */
+export async function getArchivosGaleriaExcursion94(): Promise<{
+  folder: string
+  archivos: string[]
+}> {
+  const folder = "prestadores/oscura-overa/excursion94"
+  const archivos = await listImageKitPath(`/${folder}`)
+  return { folder, archivos }
+}
+
 /** Lista imágenes de `prestadores/{slug}/`, excluyendo logos. */
 export async function getArchivosGaleriaPrestador(slug: string): Promise<string[]> {
   const cleanSlug = String(slug || "")

@@ -1,3 +1,5 @@
+import { oscuraOveraChampaquiEn, oscuraOveraChampaquiEs } from "@/i18n/oscuraOveraCopy"
+
 /** Textos de páginas (es / en) — importados en siteCopy.ts */
 export const pagesEs = {
   termas: {
@@ -117,7 +119,16 @@ export const pagesEs = {
       dates: "29 Nov – 1 Dic 2026",
       cta: "Ver programa completo",
     },
+    featuredChampaqui: {
+      eyebrow: "Excursión guiada",
+      title: "Trekking Cerro Champaquí",
+      subtitle:
+        "Salida desde Villa Yacanto a la cumbre más alta de Córdoba, con Oscura Overa y el guía Adrián Martínez.",
+      price: "$94.000 / persona",
+      cta: "Ver ficha y catálogo",
+    },
   },
+  oscuraOveraChampaqui: oscuraOveraChampaquiEs,
   retiroDetox: {
     heroAlt: "Centro Vida Abundante — Programa Depuración y Vitalidad",
     heroTitle: "Programa Depuración y Vitalidad",
@@ -800,7 +811,16 @@ export const pagesEn: typeof pagesEs = {
       dates: "Nov 29 – Dec 1 2026",
       cta: "View full program",
     },
+    featuredChampaqui: {
+      eyebrow: "Guided excursion",
+      title: "Trekking Cerro Champaquí",
+      subtitle:
+        "Departure from Villa Yacanto to the highest summit in Córdoba, with Oscura Overa and guide Adrián Martínez.",
+      price: "$94,000 / person",
+      cta: "View details and catalogue",
+    },
   },
+  oscuraOveraChampaqui: oscuraOveraChampaquiEn,
   retiroDetox: {
     heroAlt: "Centro Vida Abundante — Detox & Vitality Program",
     heroTitle: "Detox & Vitality Program",
