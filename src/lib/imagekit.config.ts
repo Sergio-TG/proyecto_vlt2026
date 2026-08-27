@@ -164,7 +164,7 @@ export function buildGaleriaPrestadorUrls(
   return buildFolderGaleriaUrls(`${IMAGE_FOLDERS.PRESTADORES}/${cleanSlug}`, archivos, transform);
 }
 
-function buildFolderGaleriaUrls(
+export function buildFolderGaleriaUrls(
   folderPrefix: string,
   archivos: string[],
   transform: IKTransform = "galThumb",
