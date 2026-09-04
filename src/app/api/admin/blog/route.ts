@@ -16,24 +16,7 @@ import {
   type BlogCategorySlug,
 } from "@/lib/blog-categories"
 import { slugify } from "@/lib/utils"
-
-function parseParagraphs(value: unknown): string[] {
-  if (Array.isArray(value)) {
-    return value
-      .map((item) => String(item ?? "").replace(/\r\n/g, "\n").trim())
-      .filter(Boolean)
-  }
-  if (typeof value === "string") {
-    // Doble Enter (línea en blanco) = nuevo párrafo.
-    // Enter simple = salto de línea dentro del párrafo (se conserva).
-    return value
-      .replace(/\r\n/g, "\n")
-      .split(/\n\s*\n/)
-      .map((block) => block.replace(/^\n+|\n+$/g, "").trim())
-      .filter(Boolean)
-  }
-  return []
-}
+import { parseBlogParagraphs } from "@/lib/blog-html"
 
 function parseStatus(value: unknown): BlogPostStatus | null {
   const s = String(value || "").trim().toLowerCase()
@@ -127,8 +110,8 @@ function buildUpsertFromBody(body: BlogPostPayload): { error: string } | { data:
       title_en: String(body.title_en || "").trim(),
       excerpt_es: String(body.excerpt_es || "").trim(),
       excerpt_en: String(body.excerpt_en || "").trim(),
-      paragraphs_es: parseParagraphs(body.paragraphs_es),
-      paragraphs_en: parseParagraphs(body.paragraphs_en),
+      paragraphs_es: parseBlogParagraphs(body.paragraphs_es),
+      paragraphs_en: parseBlogParagraphs(body.paragraphs_en),
       category_es: categories.category_es,
       category_en: categories.category_en,
       category_slug: categories.category_slug,

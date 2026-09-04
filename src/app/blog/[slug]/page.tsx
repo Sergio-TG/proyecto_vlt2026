@@ -12,8 +12,8 @@ import { getSiteCopy } from "@/i18n/siteCopy"
 import { cn } from "@/lib/utils"
 import { fetchPublishedBlogPostBySlug, type BlogPostContent } from "@/lib/blog"
 import { resolveBlogCategorySlug } from "@/lib/blog-categories"
-import { BlogRichText } from "@/lib/blog-rich-text"
 import { BlogAudioPlayer } from "@/components/blog/BlogAudioPlayer"
+import { BlogArticleBody } from "@/components/blog/BlogArticleBody"
 import { BlogMediaGallery } from "@/components/blog/BlogMediaGallery"
 import { resolveBlogImageUrl } from "@/lib/imagekit.config"
 
@@ -165,16 +165,9 @@ export default function BlogArticlePage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.1, duration: 0.5 }}
-          className="mx-auto max-w-3xl space-y-6 py-10 md:py-12"
+          className="mx-auto max-w-3xl py-10 md:py-12"
         >
-          {post.paragraphs?.map((paragraph, i) => (
-            <p
-              key={i}
-              className="mb-6 text-base leading-relaxed text-slate-600 last:mb-0 md:text-lg"
-            >
-              <BlogRichText text={paragraph} />
-            </p>
-          ))}
+          <BlogArticleBody paragraphs={post.paragraphs ?? []} />
         </motion.div>
 
         {/* Galería multimedia */}
