@@ -28,6 +28,7 @@ import {
   X,
 } from "lucide-react"
 import { slugify } from "@/lib/utils"
+import { paragraphsToEditorHtml } from "@/lib/blog-html"
 import type { BlogGalleryItem, BlogPostRow, BlogPostStatus } from "@/lib/blog"
 import { BLOG_CATEGORIES, type BlogCategorySlug } from "@/lib/blog-categories"
 
@@ -95,8 +96,8 @@ function rowToForm(row: BlogPostRow): FormState {
     title_en: row.title_en,
     excerpt_es: row.excerpt_es,
     excerpt_en: row.excerpt_en,
-    paragraphs_es: row.paragraphs_es.join("\n\n"),
-    paragraphs_en: row.paragraphs_en.join("\n\n"),
+    paragraphs_es: paragraphsToEditorHtml(row.paragraphs_es),
+    paragraphs_en: paragraphsToEditorHtml(row.paragraphs_en),
     category_es: row.category_es,
     category_en: row.category_en,
     category_slug: row.category_slug,
@@ -564,18 +565,25 @@ export default function AdminBlogPage() {
                   </div>
                   <BlogRichTextEditor
                     id="paragraphs-es"
-                    label="Párrafos (ES)"
-                    rows={8}
+                    className="md:col-span-2"
+                    label="Cuerpo (ES)"
+                    rows={12}
                     value={form.paragraphs_es}
                     onChange={(paragraphs_es) => setForm((prev) => ({ ...prev, paragraphs_es }))}
-                    placeholder={"Párrafo 1\n\nPárrafo 2"}
+                    placeholder="Escribí el artículo en español…"
+                    token={token}
+                    slug={form.slug || slugify(form.title_es)}
                   />
                   <BlogRichTextEditor
                     id="paragraphs-en"
-                    label="Párrafos (EN)"
-                    rows={8}
+                    className="md:col-span-2"
+                    label="Cuerpo (EN)"
+                    rows={12}
                     value={form.paragraphs_en}
                     onChange={(paragraphs_en) => setForm((prev) => ({ ...prev, paragraphs_en }))}
+                    placeholder="English translation of the article…"
+                    token={token}
+                    slug={form.slug || slugify(form.title_es)}
                   />
                 </div>
 
