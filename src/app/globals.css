@@ -6,6 +6,7 @@
 @custom-variant dark (&:is(.dark *));
 
 @plugin "tailwindcss-animate";
+@plugin "@tailwindcss/typography";
 
 @theme {
   --color-border: hsl(var(--border));
@@ -146,7 +147,8 @@ html.content-protection body {
 html.content-protection input,
 html.content-protection textarea,
 html.content-protection select,
-html.content-protection [contenteditable="true"] {
+html.content-protection [contenteditable="true"],
+html.content-protection .ProseMirror {
   -webkit-user-select: text;
   -ms-user-select: text;
   user-select: text;
@@ -168,3 +170,136 @@ html.content-protection img {
 .map-popup .leaflet-popup-tip {
   box-shadow: none;
 }
+
+/* Editor TipTap del blog (admin) */
+.blog-editor .tiptap,
+.blog-editor .ProseMirror {
+  min-height: 16rem;
+  padding: 1rem 1.1rem 1.5rem;
+  color: #334155;
+  font-size: 1rem;
+  line-height: 1.75;
+}
+
+.blog-editor .tiptap:focus,
+.blog-editor .ProseMirror:focus {
+  outline: none;
+}
+
+.blog-editor .tiptap p,
+.blog-editor .ProseMirror p {
+  margin: 0.7em 0;
+}
+
+.blog-editor .tiptap h2,
+.blog-editor .ProseMirror h2 {
+  margin: 1.1em 0 0.45em;
+  font-size: 1.65rem;
+  font-weight: 650;
+  line-height: 1.25;
+  color: hsl(var(--primary));
+}
+
+.blog-editor .tiptap h3,
+.blog-editor .ProseMirror h3 {
+  margin: 1em 0 0.4em;
+  font-size: 1.35rem;
+  font-weight: 650;
+  line-height: 1.3;
+  color: hsl(var(--primary));
+}
+
+.blog-editor .tiptap h4,
+.blog-editor .ProseMirror h4 {
+  margin: 0.9em 0 0.35em;
+  font-size: 1.15rem;
+  font-weight: 650;
+  line-height: 1.35;
+  color: hsl(var(--primary));
+}
+
+.blog-editor .tiptap ul,
+.blog-editor .ProseMirror ul,
+.blog-editor .tiptap ol,
+.blog-editor .ProseMirror ol {
+  margin: 0.6em 0 0.6em 1.4em;
+  padding: 0;
+}
+
+.blog-editor .tiptap ul,
+.blog-editor .ProseMirror ul {
+  list-style: disc;
+}
+
+.blog-editor .tiptap ol,
+.blog-editor .ProseMirror ol {
+  list-style: decimal;
+}
+
+.blog-editor .tiptap li,
+.blog-editor .ProseMirror li {
+  margin: 0.2em 0;
+}
+
+.blog-editor .tiptap blockquote,
+.blog-editor .ProseMirror blockquote {
+  margin: 0.9em 0;
+  padding: 0.15em 0 0.15em 1rem;
+  border-left: 3px solid hsl(var(--primary) / 0.45);
+  color: #475569;
+  font-style: italic;
+}
+
+.blog-editor .tiptap hr,
+.blog-editor .ProseMirror hr {
+  margin: 1.4em 0;
+  border: 0;
+  border-top: 1px solid #e2e8f0;
+}
+
+.blog-editor .tiptap pre,
+.blog-editor .ProseMirror pre {
+  margin: 0.9em 0;
+  overflow-x: auto;
+  border-radius: 0.75rem;
+  background: #0f172a;
+  padding: 0.9rem 1rem;
+  color: #e2e8f0;
+  font-size: 0.9rem;
+}
+
+.blog-editor .tiptap img,
+.blog-editor .ProseMirror img {
+  margin: 1rem auto;
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.75rem;
+}
+
+.blog-editor .tiptap a,
+.blog-editor .ProseMirror a {
+  color: hsl(var(--primary));
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.blog-editor .tiptap p.is-editor-empty:first-child::before,
+.blog-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: #94a3b8;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}
+
+.blog-prose mark {
+  padding: 0.05em 0.2em;
+  border-radius: 0.2em;
+}
+
+.blog-prose :where(p) {
+  margin-top: 0.9em;
+  margin-bottom: 0.9em;
+}
+
