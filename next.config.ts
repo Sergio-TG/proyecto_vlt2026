@@ -37,16 +37,6 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  async redirects() {
-    return [
-      {
-        source: "/promo-video",
-        destination:
-          "https://player.vimeo.com/video/1230327296?autoplay=1&muted=1&playsinline=1",
-        permanent: false,
-      },
-    ]
-  },
   async headers() {
     return [
       {
