@@ -19,7 +19,8 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     pathname.startsWith("/login") ||
     pathname.startsWith("/recuperar-clave") ||
     pathname.startsWith("/actualizar-clave") ||
-    pathname.startsWith("/no-autorizado");
+    pathname.startsWith("/no-autorizado") ||
+    pathname.startsWith("/promo-video");
 
   return (
     <ImageKitProviderWrapper>
