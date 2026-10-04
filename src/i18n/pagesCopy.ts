@@ -56,29 +56,45 @@ export const pagesEs = {
     items: [
       {
         title: "Trekking y Senderismo",
+        tag: "Aventura",
         description:
           "Explorá los senderos de las Sierras Grandes. Desde caminatas suaves a orillas del río hasta ascensos desafiantes.",
       },
       {
+        title: "Ritual Satori: Reiki & Armonización",
+        tag: "Bienestar",
+        description:
+          "Experiencia de sanación y equilibrio profundo que combina Reiki Japonés, gemoterapia y la vibración sagrada de cuencos y diapasones.",
+        imageAlt: "Sesión de Ritual Satori, Reiki Japonés y Gemoterapia en Villa Yacanto",
+        cta: "Consultar Experiencia",
+        href: "https://wa.me/5493546562722?text=Hola!%20Quisiera%20consultar%20disponibilidad%20para%20la%20experiencia%20Ritual%20Satori%20desde%20el%20portal%20Viv%C3%AD%20Las%20Termas.",
+        external: true,
+      },
+      {
         title: "Yoga",
+        tag: "Bienestar",
         description:
           "Sentí la energía de la montaña. Encontrá tu equilibrio en un entorno cálido, con la serenidad de la brisa serrana a través de nuestros ventanales.",
       },
       {
         title: "Sound Healing",
+        tag: "Bienestar",
         description:
           "Sintoniza con la frecuencia de la naturaleza. Una sesión de armonización con cuencos de cuarzo y sonidos ancestrales, diseñada para equilibrar tu energía en el silencio absoluto de El Durazno.",
       },
       {
         title: "Puntos de Interés",
+        tag: "Exploración",
         description: "Aguas cristalinas, descubre el lugar perfecto para refrescarse en verano y matear en invierno.",
       },
       {
         title: "Cabalgatas",
+        tag: "Aventura",
         description: "Recorré paisajes inaccesibles a pie en cabalgatas guiadas, ideales para disfrutar en pareja o en familia.",
       },
       {
         title: "Astroturismo",
+        tag: "Cielo y Estrellas",
         description:
           "Viví la experiencia de observar uno de los cielos más limpios de Córdoba, con guiado nocturno, reconocimiento de constelaciones y fotografía básica del cielo.",
       },
@@ -748,29 +764,45 @@ export const pagesEn: typeof pagesEs = {
     items: [
       {
         title: "Trekking & hiking",
+        tag: "Adventure",
         description:
           "Explore trails in the Sierras Grandes — from gentle riverside walks to challenging climbs.",
       },
       {
+        title: "Satori Ritual: Reiki & Harmonization",
+        tag: "Wellness",
+        description:
+          "A deep healing and balance experience combining Japanese Reiki, gem therapy, and the sacred vibration of singing bowls and tuning forks.",
+        imageAlt: "Ritual Satori session with Japanese Reiki and gem therapy in Villa Yacanto",
+        cta: "Ask about this experience",
+        href: "https://wa.me/5493546562722?text=Hi!%20I%20would%20like%20to%20check%20availability%20for%20the%20Ritual%20Satori%20experience%20from%20the%20Viv%C3%AD%20Las%20Termas%20portal.",
+        external: true,
+      },
+      {
         title: "Yoga",
+        tag: "Wellness",
         description:
           "Feel the mountain energy. Find your balance in a warm setting with the calm serrano breeze through our windows.",
       },
       {
         title: "Sound healing",
+        tag: "Wellness",
         description:
           "Tune into nature’s frequency. A harmonizing session with quartz bowls and ancestral sounds, designed to balance your energy in the silence of El Durazno.",
       },
       {
         title: "Points of interest",
+        tag: "Discovery",
         description: "Crystal-clear waters — the perfect spot to cool off in summer and enjoy a mate in winter.",
       },
       {
         title: "Horseback riding",
+        tag: "Adventure",
         description: "Ride through landscapes you can’t reach on foot — great for couples and families.",
       },
       {
         title: "Astro tourism",
+        tag: "Stargazing",
         description:
           "Experience one of Córdoba’s clearest night skies, with guided stargazing, constellation spotting and basic night-sky photography.",
       },
