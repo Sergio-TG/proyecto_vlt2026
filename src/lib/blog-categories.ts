@@ -7,6 +7,7 @@ export type BlogCategorySlug =
   | "bienestar-termas"
   | "alojamientos-turismo-responsable"
   | "experiencias-naturaleza"
+  | "eventos"
 
 export type BlogCategoryDefinition = {
   slug: BlogCategorySlug
@@ -55,6 +56,13 @@ export const BLOG_CATEGORIES: readonly BlogCategoryDefinition[] = [
     description_es: "Senderismo, Champaquí, El Durazno, gastronomía serrana y circuitos al aire libre.",
     description_en: "Hiking, Champaquí, El Durazno, mountain food and outdoor circuits.",
   },
+  {
+    slug: "eventos",
+    name_es: "Eventos",
+    name_en: "Events",
+    description_es: "Fiestas, festivales, ferias y agenda cultural en Calamuchita y las Sierras de Córdoba.",
+    description_en: "Festivals, fairs and cultural agenda in Calamuchita and the Córdoba Sierras.",
+  },
 ] as const
 
 const BY_SLUG = Object.fromEntries(BLOG_CATEGORIES.map((c) => [c.slug, c])) as Record<
@@ -87,6 +95,11 @@ const LEGACY_LABEL_TO_SLUG: Record<string, BlogCategorySlug> = {
   "interviews & local voices": "entrevistas-voces-locales",
   "historias de montana": "entrevistas-voces-locales",
   "historias de montaña": "entrevistas-voces-locales",
+  eventos: "eventos",
+  evento: "eventos",
+  events: "eventos",
+  event: "eventos",
+  agenda: "eventos",
 }
 
 export function isBlogCategorySlug(value: string): value is BlogCategorySlug {

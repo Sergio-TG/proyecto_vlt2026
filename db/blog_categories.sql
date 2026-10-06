@@ -76,3 +76,16 @@ update public.blog_posts set
   category_es = 'Entrevistas & Voces Locales',
   category_en = 'Interviews & Local Voices'
 where category_slug = 'entrevistas-voces-locales';
+
+-- Categoría: Eventos
+update public.blog_posts set category_slug = 'eventos'
+where category_slug = ''
+  and (
+    lower(trim(category_es)) in ('eventos', 'evento', 'agenda')
+    or lower(trim(category_en)) in ('events', 'event')
+  );
+
+update public.blog_posts set
+  category_es = 'Eventos',
+  category_en = 'Events'
+where category_slug = 'eventos';
