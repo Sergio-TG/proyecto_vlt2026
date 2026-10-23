@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import { ArrowRight, Compass, Map, Sun, Heart, Stars, Sparkles } from "lucide-react"
+import { ArrowRight, Bird, Compass, Sun, Heart, Stars, Sparkles } from "lucide-react"
 import { motion, useScroll, useTransform } from "framer-motion"
 import { useRef } from "react"
 import { useLanguage } from "@/contexts/LanguageContext"
@@ -15,42 +15,52 @@ import { trackServiceInterest } from "@/services/analytics"
 import { RETIRO_DETOX_SLUG, buildRetiroHeroImageUrl } from "@/lib/retiro-detox-vida-abundante"
 import { CHAMPAQUI_SLUG } from "@/lib/oscura-overa-champaqui"
 
+/** Imágenes e iconos alineados 1:1 con `pages.experiencias.items` (ES/EN). */
 const IMAGE_META = [
   {
-    image: "https://images.unsplash.com/photo-1551632811-561732d1e306?q=80&w=2070&auto=format&fit=crop",
-    icon: <Map className="w-6 h-6" aria-hidden="true" />,
+    // Aviturismo & Senderismo — solo encuadre (misma altura de card)
+    image:
+      "https://ik.imagekit.io/vivilastermas/prestadores/aviturismo-senderismo/mujer-tomando-foto-cerro.jpeg",
+    imageClassName: "w-full h-full object-cover object-[center_22%]",
+    icon: <Bird className="w-6 h-6" aria-hidden="true" />,
     delay: 0.1,
   },
   {
+    // Ritual Satori
     image:
       "https://ik.imagekit.io/vivilastermas/entorno/experiencias/ritual-satori-reiki-japones2.webp?updatedAt=1790448105963",
     icon: <Sparkles className="w-6 h-6" aria-hidden="true" />,
     delay: 0.15,
   },
   {
+    // Yoga
     image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/yoga-mar.webp?q=80&w=2070&auto=format&fit=crop",
     icon: <Heart className="w-6 h-6" aria-hidden="true" />,
     delay: 0.2,
   },
   {
+    // Sound Healing
     image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/sound-healing002.webp?updatedAt=1784166431956",
     icon: <Sun className="w-6 h-6" aria-hidden="true" />,
+    delay: 0.25,
+  },
+  {
+    // Puntos de Interés
+    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/puntos-de-interes.webp?q=80&w=2070&auto=format&fit=crop",
+    icon: <Compass className="w-6 h-6" aria-hidden="true" />,
     delay: 0.3,
   },
   {
-    image: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/puntos-de-interes.webp?q=80&w=2070&auto=format&fit=crop",
-    icon: <Sun className="w-6 h-6" aria-hidden="true" />,
+    // Cabalgatas
+    image: "https://plus.unsplash.com/premium_photo-1663036377788-a60733e5fb43?q=80&w=2070&auto=format&fit=crop",
+    icon: <Compass className="w-6 h-6" aria-hidden="true" />,
     delay: 0.4,
   },
   {
-    image: "https://plus.unsplash.com/premium_photo-1663036377788-a60733e5fb43?q=80&w=2070&auto=format&fit=crop",
-    icon: <Compass className="w-6 h-6" aria-hidden="true" />,
-    delay: 0.5,
-  },
-  {
+    // Astroturismo
     image: "https://images.unsplash.com/photo-1731332066050-47efac6e884f?q=80&w=2070&auto=format&fit=crop",
     icon: <Stars className="w-6 h-6" aria-hidden="true" />,
-    delay: 0.6,
+    delay: 0.5,
   },
 ]
 
@@ -123,37 +133,37 @@ export default function ExperienciasPageClient({
         </div>
       </section>
 
-      <div className="container mx-auto px-4 py-24">
+      <div className="container mx-auto px-4 mt-6 md:mt-8">
         <motion.div
           initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.7 }}
-          className="mb-16 md:mb-20"
+          className="mb-6"
         >
           <Link
             href={`/experiencias/${RETIRO_DETOX_SLUG}`}
             onClick={() => trackServiceInterest(p.featuredRetreat.title)}
-            className="group relative block overflow-hidden rounded-2rem border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
+            className="group relative block overflow-hidden rounded-4xl border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
           >
-            <div className="relative h-88 sm:h-104 md:h-120 lg:h-136">
+            <div className="relative min-h-55 md:min-h-65 max-h-75 overflow-hidden">
               <img
                 src={buildRetiroHeroImageUrl("vista-exterior-lavandas.webp")}
                 alt={p.featuredRetreat.title}
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-black/15" />
-              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-12 text-white">
-                <span className="mb-3 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
+              <div className="relative flex h-full flex-col justify-end p-6 md:p-8 text-white">
+                <span className="mb-2 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
                   {p.featuredRetreat.eyebrow} · {p.featuredRetreat.dates}
                 </span>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 max-w-3xl">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 max-w-3xl">
                   {p.featuredRetreat.title}
                 </h2>
-                <p className="max-w-2xl text-base sm:text-lg text-white/90 font-light leading-relaxed mb-5">
+                <p className="max-w-2xl text-sm sm:text-base text-white/90 font-light leading-relaxed mb-3 line-clamp-2">
                   {p.featuredRetreat.subtitle}
                 </p>
-                <span className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold text-white">
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-white">
                   {p.featuredRetreat.cta}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
@@ -167,31 +177,31 @@ export default function ExperienciasPageClient({
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-40px" }}
           transition={{ duration: 0.7 }}
-          className="mb-16 md:mb-20"
+          className="mb-8"
         >
           <Link
             href={`/experiencias/${CHAMPAQUI_SLUG}`}
             onClick={() => trackServiceInterest(p.featuredChampaqui.title)}
             className="group relative block overflow-hidden rounded-4xl border border-slate-100 shadow-[0_10px_40px_rgba(0,0,0,0.06)]"
           >
-            <div className="relative h-95 sm:h-112,5 overflow-hidden">
+            <div className="relative min-h-55 md:min-h-65 max-h-75 overflow-hidden">
               <img
                 src="https://ik.imagekit.io/vivilastermas/prestadores/oscura-overa/excursion94/cerro-champaqui-panoramica.webp"
                 alt={p.featuredChampaqui.title}
-                className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+                className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/40 to-black/15" />
-              <div className="absolute inset-0 flex flex-col justify-end p-6 sm:p-8 md:p-12 text-white">
-                <span className="mb-3 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3.5 py-1.5 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
+              <div className="relative flex h-full flex-col justify-end p-6 md:p-8 text-white">
+                <span className="mb-2 inline-flex w-fit rounded-full border border-white/25 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wide backdrop-blur-sm">
                   {p.featuredChampaqui.eyebrow} · {p.featuredChampaqui.price}
                 </span>
-                <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight mb-3 max-w-3xl">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold tracking-tight mb-2 max-w-3xl">
                   {p.featuredChampaqui.title}
                 </h2>
-                <p className="max-w-2xl text-base sm:text-lg text-white/90 font-light leading-relaxed mb-5">
+                <p className="max-w-2xl text-sm sm:text-base text-white/90 font-light leading-relaxed mb-3 line-clamp-2">
                   {p.featuredChampaqui.subtitle}
                 </p>
-                <span className="inline-flex items-center gap-2 text-sm sm:text-base font-semibold text-white">
+                <span className="inline-flex items-center gap-2 text-sm font-semibold text-white">
                   {p.featuredChampaqui.cta}
                   <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                 </span>
@@ -200,7 +210,7 @@ export default function ExperienciasPageClient({
           </Link>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-6 md:gap-y-8">
           {experiences.map((exp) => {
             const ctaLabel = exp.cta ?? p.consultBtn
             const href = exp.href ?? "/contacto"
@@ -226,7 +236,7 @@ export default function ExperienciasPageClient({
                   height={320}
                   loading="lazy"
                   decoding="async"
-                  className="w-full h-full object-cover"
+                  className={exp.imageClassName ?? "w-full h-full object-cover"}
                 />
                 <div className="absolute top-8 left-8 bg-white/90 backdrop-blur-xl p-4 rounded-3xl text-black shadow-2xl transform -rotate-6 group-hover:rotate-0 transition-transform duration-500">
                   {exp.icon}

@@ -29,6 +29,10 @@ const PROVIDER_META: Record<
     logo: "https://ik.imagekit.io/vivilastermas/prestadores/oscura-overa/logo-oscura-overa.webp?updatedAt=1784166181252",
     highlightIcons: [Mountain, ShieldCheck],
   },
+  "explorar-aviturismo": {
+    logo: "https://ik.imagekit.io/vivilastermas/entorno/experiencias/aviturismo.webp?updatedAt=1792120861110",
+    highlightIcons: [Mountain, ShieldCheck],
+  },
 }
 
 export function RecommendedProvidersSection({
@@ -43,13 +47,13 @@ export function RecommendedProvidersSection({
 
   return (
     <section className="bg-slate-50 border-t border-slate-100">
-      <div className="container mx-auto px-4 py-20 md:py-24">
+      <div className="container mx-auto px-4 mt-16 mb-10">
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
           transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-          className="max-w-3xl mb-12 md:mb-16"
+          className="max-w-3xl mb-10"
         >
           <h2 className="text-3xl md:text-5xl font-bold tracking-tight text-slate-900 mb-4">
             {section.sectionTitle}
