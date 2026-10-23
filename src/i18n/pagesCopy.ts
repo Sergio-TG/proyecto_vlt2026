@@ -1,4 +1,5 @@
 import { oscuraOveraChampaquiEn, oscuraOveraChampaquiEs } from "@/i18n/oscuraOveraCopy"
+import { explorarAviturismoEn, explorarAviturismoEs } from "@/i18n/explorarAviturismoCopy"
 
 /** Textos de páginas (es / en) — importados en siteCopy.ts */
 export const pagesEs = {
@@ -55,10 +56,14 @@ export const pagesEs = {
     consultBtn: "Consultar Actividad",
     items: [
       {
-        title: "Trekking y Senderismo",
-        tag: "Aventura",
+        title: "Aviturismo & Senderismo",
+        tag: "Exploración",
         description:
-          "Explorá los senderos de las Sierras Grandes. Desde caminatas suaves a orillas del río hasta ascensos desafiantes.",
+          "Salidas diarias de avistaje de aves y caminatas guiadas por los paisajes de Villa Yacanto, con guía especializado.",
+        imageAlt: "Avistaje de aves y caminata guiada por los paisajes de Villa Yacanto",
+        cta: "Consultar Experiencia",
+        href: "https://wa.me/5493546562722?text=Hola!%20Quisiera%20consultar%20disponibilidad%20para%20la%20experiencia%20Aviturismo%20%26%20Senderismo%20desde%20el%20portal%20Viv%C3%AD%20Las%20Termas.",
+        external: true,
       },
       {
         title: "Ritual Satori: Reiki & Armonización",
@@ -80,7 +85,7 @@ export const pagesEs = {
         title: "Sound Healing",
         tag: "Bienestar",
         description:
-          "Sintoniza con la frecuencia de la naturaleza. Una sesión de armonización con cuencos de cuarzo y sonidos ancestrales, diseñada para equilibrar tu energía en el silencio absoluto de El Durazno.",
+          "Sintonizá con la frecuencia de la naturaleza. Una sesión de armonización con cuencos de cuarzo y sonidos ancestrales, pensada para equilibrar tu energía en el silencio de El Durazno.",
       },
       {
         title: "Puntos de Interés",
@@ -125,6 +130,34 @@ export const pagesEs = {
           whatsappPrefill:
             "¡Hola! Quiero consultar por una excursión con el prestador *Oscura Overa*. Vengo del sitio web *Viví las Termas*. ¿Me podrían brindar información sobre salidas y disponibilidad? ¡Muchas gracias!",
         },
+        {
+          id: "explorar-aviturismo",
+          name: "Explorar Aviturismo & Senderismo",
+          tagline: "Prestador Habilitado Ley 8801/99",
+          category: "Turismo Activo / Naturaleza",
+          description:
+            "Explorar Aviturismo y Senderismo en Villa Yacanto te invita a conectar con la hermosa naturaleza de las Sierras de Córdoba. Disfruta de salidas diarias de avistaje de aves, caminatas guiadas por senderos únicos, renovadoras sesiones de yoga al aire libre y circuitos culturales llenos de la historia regional. Al finalizar el día, vive un sunset inolvidable en las pircas históricas, ideal para capturar la magia de Calamuchita en un ambiente seguro y personalizado. Una propuesta pensada para quienes buscan aventura, bienestar, paisajes serranos y experiencias auténticas en la montaña.",
+          image:
+            "https://ik.imagekit.io/vivilastermas/entorno/experiencias/aviturismo.webp?updatedAt=1792120861110",
+          imageAlt:
+            "Caminata de aviturismo y senderismo guiado en Villa Yacanto, Córdoba",
+          primaryCta: "Ver Salidas y Cronograma",
+          href: "https://wa.me/5493546525404?text=Hola!%20Quisiera%20consultar%20disponibilidad%20para%20la%20experiencia%20Explorar%20Aviturismo%20y%20Senderismo%20desde%20el%20portal%20Viv%C3%AD%20Las%20Termas.",
+          external: true,
+          highlights: [
+            {
+              title: "Naturaleza y aves",
+              text: "Salidas diarias de avistaje de aves y caminatas guiadas por los paisajes imponentes de Villa Yacanto, con guía especializado.",
+            },
+            {
+              title: "Experiencia habilitada",
+              text: "Actividad guiada por Christian Pettenon, Prestador Habilitado por la Provincia de Córdoba bajo la Ley N° 8801/99.",
+            },
+          ],
+          logoAlt: "Logo de Explorar Aviturismo & Senderismo",
+          whatsappPrefill:
+            "¡Hola! Quisiera consultar disponibilidad para la experiencia *Explorar Aviturismo y Senderismo* desde el portal *Viví Las Termas*. ¿Me podrían brindar información sobre salidas y disponibilidad? ¡Muchas gracias!",
+        },
       ],
     },
     featuredRetreat: {
@@ -145,6 +178,7 @@ export const pagesEs = {
     },
   },
   oscuraOveraChampaqui: oscuraOveraChampaquiEs,
+  explorarAviturismo: explorarAviturismoEs,
   retiroDetox: {
     heroAlt: "Centro Vida Abundante — Programa Depuración y Vitalidad",
     heroTitle: "Programa Depuración y Vitalidad",
@@ -763,10 +797,14 @@ export const pagesEn: typeof pagesEs = {
     consultBtn: "Ask about this activity",
     items: [
       {
-        title: "Trekking & hiking",
-        tag: "Adventure",
+        title: "Birdwatching & Hiking",
+        tag: "Exploration",
         description:
-          "Explore trails in the Sierras Grandes — from gentle riverside walks to challenging climbs.",
+          "Daily birdwatching outings and guided hikes through the landscapes of Villa Yacanto, with a specialized guide.",
+        imageAlt: "Birdwatching and guided hike through the landscapes of Villa Yacanto",
+        cta: "Ask about this experience",
+        href: "https://wa.me/5493546562722?text=Hi!%20I%20would%20like%20to%20check%20availability%20for%20the%20Birdwatching%20%26%20Hiking%20experience%20from%20the%20Viv%C3%AD%20Las%20Termas%20portal.",
+        external: true,
       },
       {
         title: "Satori Ritual: Reiki & Harmonization",
@@ -807,7 +845,7 @@ export const pagesEn: typeof pagesEs = {
           "Experience one of Córdoba’s clearest night skies, with guided stargazing, constellation spotting and basic night-sky photography.",
       },
     ],
-    prestadores: {
+        prestadores: {
       sectionTitle: "Our Recommended Providers",
       sectionSubtitle:
         "The local provider network that makes unique experiences possible in Villa Yacanto, El Durazno, and the heart of the sierras.",
@@ -833,8 +871,36 @@ export const pagesEn: typeof pagesEs = {
           whatsappPrefill:
             "Hi! I’d like to enquire about an excursion with the provider *Oscura Overa*. I’m coming from the *Viví las Termas* website. Could you share details about trips and availability? Thank you!",
         },
+        {
+          id: "explorar-aviturismo",
+          name: "Explore Birdwatching & Hiking",
+          tagline: "Licensed provider — Law 8801/99",
+          category: "Active tourism / Nature",
+          description:
+            "Explore Birdwatching and Hiking in Villa Yacanto invites you to connect with the beautiful nature of the Córdoba Highlands. Enjoy daily birdwatching outings, guided walks through unique trails, renewing outdoor yoga sessions, and cultural circuits full of regional history. At the end of the day, experience an unforgettable sunset at the historic stone walls, ideal for capturing the magic of Calamuchita in a safe and personalized environment. A proposal designed for those looking for adventure, well-being, mountain landscapes and authentic mountain experiences.",
+          image:
+            "https://ik.imagekit.io/vivilastermas/entorno/experiencias/aviturismo.webp?updatedAt=1792120861110",
+          imageAlt: "Guided birdwatching and hiking walk in Villa Yacanto, Córdoba",
+          primaryCta: "View outings and schedule",
+          href: "https://wa.me/5493546525404?text=Hi!%20I%20would%20like%20to%20check%20availability%20for%20the%20Explore%20Birdwatching%20%26%20Hiking%20experience%20from%20the%20Viv%C3%AD%20Las%20Termas%20portal.",
+          external: true,
+          highlights: [
+            {
+              title: "Nature & birds",
+              text: "Daily birdwatching outings and guided walks through the stunning landscapes of Villa Yacanto, led by a specialized guide.",
+            },
+            {
+              title: "Licensed experience",
+              text: "Guided by Christian Pettenon, a provider licensed by the Province of Córdoba under Law No. 8801/99.",
+            },
+          ],
+          logoAlt: "Explore Birdwatching & Hiking logo",
+          whatsappPrefill:
+            "Hi! I’d like to enquire about availability for the *Explore Birdwatching & Hiking* experience coming from the *Viví Las Termas* website. Could you share details about outings and availability? Thank you!",
+        },
       ],
     },
+
     featuredRetreat: {
       eyebrow: "Wellness retreat",
       title: "Detox & Vitality Program",
@@ -853,7 +919,8 @@ export const pagesEn: typeof pagesEs = {
     },
   },
   oscuraOveraChampaqui: oscuraOveraChampaquiEn,
-  retiroDetox: {
+  explorarAviturismo: explorarAviturismoEn,
+    retiroDetox: {
     heroAlt: "Centro Vida Abundante — Detox & Vitality Program",
     heroTitle: "Detox & Vitality Program",
     heroSubtitle:
@@ -911,7 +978,7 @@ export const pagesEn: typeof pagesEs = {
     foodSubtitle:
       "A conscious food proposal guided by health and wellness professionals.",
     foodBody:
-      "The program kitchen is 100% plant-based and raw: living preparations, natural juices and menus designed to support detox with light energy and fresh flavors.",
+      "The program’s cuisine is 100% plant-based and uncooked: living preparations, natural juices and menus designed to support detox with light energy and fresh flavors.",
     teamTitle: "Professional team",
     teamMembers: [
       { role: "Nutritionist", name: "Lic. Belén Carlino" },

@@ -4,8 +4,11 @@ import { buildGaleriaPrestadorUrls } from "@/lib/imagekit.config"
 import { getArchivosGaleriaPrestador } from "@/lib/imagekit"
 
 const OSCURA_OVERA_SLUG = "oscura-overa"
+const AVITURISMO_IK_FOLDER = "aviturismo-senderismo"
+const AVITURISMO_PROVIDER_ID = "explorar-aviturismo"
 
 export const metadata: Metadata = {
+
   title: "Trekking, Champaquí y Experiencias de Bienestar en Calamuchita",
   description:
     "Viví la montaña a tu manera: ascensión al Cerro Champaquí, yoga, sound healing, astroturismo, senderismo y cabalgatas en Villa Yacanto y El Durazno. ¡Reservá tu aventura!",
@@ -18,15 +21,21 @@ export const metadata: Metadata = {
 }
 
 export default async function ExperienciasPage() {
-  const archivos = await getArchivosGaleriaPrestador(OSCURA_OVERA_SLUG)
+    const archivos = await getArchivosGaleriaPrestador(OSCURA_OVERA_SLUG)
   const thumbUrls = buildGaleriaPrestadorUrls(OSCURA_OVERA_SLUG, archivos, "galThumb")
   const fullUrls = buildGaleriaPrestadorUrls(OSCURA_OVERA_SLUG, archivos, "galFull")
+
+  const archivosAviturismo = await getArchivosGaleriaPrestador(AVITURISMO_IK_FOLDER)
+  const thumbUrlsAviturismo = buildGaleriaPrestadorUrls(AVITURISMO_IK_FOLDER, archivosAviturismo, "galThumb")
+  const fullUrlsAviturismo = buildGaleriaPrestadorUrls(AVITURISMO_IK_FOLDER, archivosAviturismo, "galFull")
 
   return (
     <ExperienciasPageClient
       providerGalleries={{
         [OSCURA_OVERA_SLUG]: { thumbUrls, fullUrls },
+        [AVITURISMO_PROVIDER_ID]: { thumbUrls: thumbUrlsAviturismo, fullUrls: fullUrlsAviturismo },
       }}
     />
   )
+
 }
