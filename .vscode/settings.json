@@ -2,5 +2,6 @@
   "css.customData": [
     ".vscode/tailwind.css-data.json"
   ],
-  "CodeGPT.apiKey": "CodeGPT Plus Beta"
+  "CodeGPT.apiKey": "CodeGPT Plus Beta",
+  "json.schemaDownload.enable": true
 }
