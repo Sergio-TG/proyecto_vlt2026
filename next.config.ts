@@ -10,11 +10,12 @@ const NO_STORE_HEADERS = [
 const nextConfig: NextConfig = {
   // Hostinger suele ejecutar `npm ci --omit=dev`: no hay ESLint en node_modules,
   // y el build debe poder completarse sin instalar paquetes adicionales en runtime.
+  experimental: {
+    cpus: 1,
+    workerThreads: false
+  },
   poweredByHeader: false,
   compress: true,
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   images: {
     formats: ["image/avif", "image/webp"],
     deviceSizes: [640, 750, 828, 1080, 1200, 1920],
